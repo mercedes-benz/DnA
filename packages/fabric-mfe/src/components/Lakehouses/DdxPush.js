@@ -8,8 +8,9 @@ import Tooltip from '../../common/modules/uilab/js/src/tooltip';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
 import Notification from '../../common/modules/uilab/js/src/notification';
 import { fabricApi } from '../../apis/fabric.api';
-import { DIVISIONS, BUSINESS_DOMAINS, CLOUD_PROVIDERS, TECHNOLOGIES, PURPOSES, CRITERIA_TRANSFER_PRICING, QUALIFICATION_TRANSFER_PRICING, SECURITY_LEVELS, UPDATE_FREQUENCIES } from '../../utilities/constants';
+import { BUSINESS_DOMAINS, DIVISION_BUSINESS_DOMAIN_MAP, CLOUD_PROVIDERS, TECHNOLOGIES, PURPOSES, CRITERIA_TRANSFER_PRICING, QUALIFICATION_TRANSFER_PRICING, UPDATE_FREQUENCIES } from '../../utilities/constants';
 import { Envs } from '../../utilities/envs';
+import { useDebouncedCallback } from '../../hooks/useDebouncedCallback';
 
 const Step1_BasicIdentification = ({ formData, setFormData, errors, clearError }) => (
   <div className={Styles.stepForm}>
@@ -65,23 +66,23 @@ const Step2_OwnershipGovernance = ({
 
   const [legalEntityOptions, setLegalEntityOptions] = useState([]);
 
-  const handleLegalEntitySearch = (searchTerm, showSpinner) => {
-    clearError('legalEntityError');
-    if (searchTerm.length > 3) {
-      showSpinner && showSpinner(true);
-      fabricApi.getLegalEntities(searchTerm)
-        .then((response) => {
-          showSpinner && showSpinner(false);
-          setLegalEntityOptions(response?.data || []); 
-        })
-        .catch((err) => {
-          showSpinner && showSpinner(false);
-          Notification.show(err?.response?.data?.errors?.[0]?.message || 'Something went wrong.', 'alert');
-        });
-    } else {
-      setLegalEntityOptions([]);
-    }
-  };
+  const handleLegalEntitySearch = useDebouncedCallback((searchTerm, showSpinner) => {  
+    clearError('legalEntityError');  
+    if (searchTerm.length > 3) {  
+      showSpinner && showSpinner(true);  
+      fabricApi.getLegalEntities(searchTerm)  
+        .then((response) => {  
+          showSpinner && showSpinner(false);  
+          setLegalEntityOptions(response?.data || []);  
+        })  
+        .catch((err) => {  
+          showSpinner && showSpinner(false);  
+          Notification.show(err?.response?.data?.errors?.[0]?.message || 'Something went wrong.', 'alert');  
+        });  
+    } else {  
+      setLegalEntityOptions([]);  
+    }  
+  }, 500);
 
   useEffect(() => {
     if (workspaceOwner) {
@@ -106,6 +107,13 @@ const Step2_OwnershipGovernance = ({
 
   const isBusinessDomainDisabled = workspaceDivision && BUSINESS_DOMAINS.includes(workspaceDivision);
   const isDataProvidersLimitReached = formData.dataProviders?.length >= 5;
+  const businessDomainOptions = DIVISION_BUSINESS_DOMAIN_MAP[formData.divisions] || [];
+
+  useEffect(() => {
+    setTimeout(() => {
+      SelectBox.defaultSetup();
+    }, 0);
+  }, [formData.divisions]);
 
   useEffect(() => {
     // SelectBox.defaultSetup();
@@ -228,12 +236,12 @@ const Step2_OwnershipGovernance = ({
               id="divisionField"
               defaultValue={formData.divisions || ''}
               onChange={(e) => {
-                setFormData((prev) => ({ ...prev, divisions: e.target.value }));
+                setFormData((prev) => ({ ...prev, divisions: e.target.value, businessDomain: '' }));
                 clearError('divisionError');
               }}
             >
               <option value="">Choose</option>
-              {DIVISIONS.map((name, index) => (
+              {Object.keys(DIVISION_BUSINESS_DOMAIN_MAP).map((name, index) => (
                 <option key={index} value={name}>
                   {name}
                 </option>
@@ -251,6 +259,7 @@ const Step2_OwnershipGovernance = ({
           </label>
           <div className="custom-select">
             <select
+              key={formData.divisions || 'no-division'}
               id="businessDomain"
               defaultValue={formData.businessDomain || ''}
               onChange={(e) => {
@@ -258,10 +267,10 @@ const Step2_OwnershipGovernance = ({
                 clearError('businessDomainError');
               }}
               onFocus={isBusinessDomainDisabled ? (e) => e.target.blur() : undefined}
-              disabled={isBusinessDomainDisabled}
+              disabled={isBusinessDomainDisabled || !formData.divisions}
             >
               <option value="">Choose</option>
-              {BUSINESS_DOMAINS.map((bd, idx) => (
+              {businessDomainOptions.map((bd, idx) => (
                 <option key={idx} value={bd}>
                   {bd}
                 </option>
@@ -510,11 +519,17 @@ const Step4_ComplianceUsage = ({
           <div className={classNames('custom-select')}>
             <select
               id="securityLevel"
-              value="Public"
-              onChange={() => {}}
+              defaultValue={formData.securityLevel || ''}
+              onChange={(e) => {
+                if (e.target.value) {
+                  setFormData((prev) => ({ ...prev, securityLevel: e.target.value }));
+                  clearError('securityLevelError');
+                }
+              }}
             >
-              {SECURITY_LEVELS.map((sl) => (
-                <option key={sl} value={sl} disabled={sl !== 'Public'}>
+              <option value="">Choose</option>
+              {Envs.SECURITY_LEVELS?.map((sl) => (
+                <option key={sl} value={sl}>
                   {sl}
                 </option>
               ))}
@@ -531,22 +546,21 @@ const Step4_ComplianceUsage = ({
             (Please specify the allowed purposes for processing this data)
           </label>
           <div className={classNames('custom-select')}>
-          <select
-            id="purposes"
-            multiple={true}
-            value={formData.purposes || []}
-            onChange={(e) => {
-              const values = Array.from(e?.target?.selectedOptions, opt => opt?.value);
-              setFormData({ ...formData, purposes: values });
-              clearError('purposesError');
-            }}
-          >
-            {purposes.map((p, i) => (
-              <option key={i} value={p}>
-                {p}
-              </option>
-            ))}
-          </select>
+            <select
+              id="purposes"
+              defaultValue={formData.purposes || ''}
+              onChange={(e) => {
+                setFormData({ ...formData, purposes: e.target.value });
+                clearError('purposesError');
+              }}
+            >
+              <option value="">Choose</option>
+              {purposes.map((p, i) => (
+                <option key={i} value={p}>
+                  {p}
+                </option>
+              ))}
+            </select>
           </div>
           {errors.purposesError && <span className="error-message">{errors.purposesError}</span>}
         </div>
@@ -621,7 +635,6 @@ const Step4_ComplianceUsage = ({
     </div>
   );
 };
-
 
 const Step5_PersonalData = ({ formData, setFormData, errors, clearError, criteriaTransferPricing, qualificationTransferPricing }) => {
 
@@ -768,7 +781,7 @@ const ViewDdxTablesModalContent = ({ workspaceId, workspaceName, workspaceOwner,
     technology: ['UnityCatalog', 'Fabric'],   
     cloudProvider: 'Azure',
     dataHubName: 'oneFabric',
-    securityLevel: 'Public',
+    securityLevel: '',
     fulfillsDataCloudFramework: true,
     price: true,
   });
@@ -840,7 +853,7 @@ const ViewDdxTablesModalContent = ({ workspaceId, workspaceName, workspaceOwner,
       if (!formData.securityLevel) {
         newErrors.securityLevelError = '*Missing entry';
       }
-      if (!formData.purposes?.length) {
+      if (!formData.purposes) {
         newErrors.purposesError = '*Missing entry';
       }
       if (typeof formData.personalDataContained === 'undefined') {
@@ -900,9 +913,9 @@ const ViewDdxTablesModalContent = ({ workspaceId, workspaceName, workspaceOwner,
       cdcDatabaseLink: cdcDatabaseLink,
       cdcDataProductLink: formData.cdcDataProductLink || '',
       securityLevel: securityLevel || '',
-      purposes: formData.purposes || [],
+      purposes: formData.purposes ? [formData.purposes] : [],
       dataProviders: (formData.dataProviders || []).map((u) => u.id),
-      divisions: (formData.divisions || '').replace(/-/g, ' ') || '',
+      division: (formData.divisions || '').replace(/-/g, ' ') || '',
 
       isTransferPricing: !!formData.isTransferPricing,
       criteriaTransferPricing: formData.criteriaTransferPricing || [],
@@ -948,8 +961,6 @@ const ViewDdxTablesModalContent = ({ workspaceId, workspaceName, workspaceOwner,
         },
       ],
     };
-    //remove for testing
-    console.log('Submit payload:', JSON.stringify(payload, null, 2));
 
     ProgressIndicator.show();
     fabricApi.publishDdxDataProduct(workspaceId, lakehouseId, payload)
@@ -1064,7 +1075,7 @@ const ViewDdxTablesModalContent = ({ workspaceId, workspaceName, workspaceOwner,
           setFormData={setFormData}
           errors={errors}
           clearError={clearError}
-          securityLevel={SECURITY_LEVELS || []}
+          securityLevel={Envs.SECURITY_LEVELS || []}
           purposes={PURPOSES || []}
           updateFrequencies={UPDATE_FREQUENCIES || []}
         />
@@ -1101,7 +1112,8 @@ const ViewDdxTablesModalContent = ({ workspaceId, workspaceName, workspaceOwner,
                 <li>Navigate through each step in the DDX portal..</li>
                 <li>Upon reaching <strong>Step 7</strong>, click the <strong>Get Objects</strong> button and then proceed by clicking Next.</li>
                 <li>In <strong>Step 8</strong>, click the <strong>Get Objects</strong> button again.</li>
-                <li>In the final step, review and verify all the details, agree to the Terms of Use, and complete the onboarding process.</li>                
+                <li>In the final step, review and verify all the details, agree to the Terms of Use, and complete the onboarding process.</li>
+                <li>After completing the onboarding process, if you need any help with the approval of your data product kindly reach out to  <a href={`mailto:${Envs.DDX_DP_APPROVAL_MAIL}`} target="_blank" rel="noreferrer">{Envs.DDX_DP_APPROVAL_MAIL}</a></li>
               </ol>
             </div>
           </div>

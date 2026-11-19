@@ -10,6 +10,7 @@ export interface IPaginationProps {
   totalPages: number;
   displayByPage?: boolean;
   startWithFive?: boolean;
+  showOneTwenty?: boolean;
 }
 
 export interface IPaginationState {
@@ -120,8 +121,19 @@ export default class Pagination extends React.PureComponent<IPaginationProps, IP
                 target="_blank"
                 onClick={this.fetchData(60)}
               >
-                {'60'}
+                {this.props.showOneTwenty ? '60 ' : '60'}
               </a>
+              {this.props.showOneTwenty && (
+                <a
+                  className={
+                    this.state.selectedPageNumber === 120 ? Styles.pageNumLevel + ' ' + Styles.active : Styles.pageNumLevel
+                  }
+                  target="_blank"
+                  onClick={this.fetchData(120)}
+                >
+                  {'120'}
+                </a>
+              )}
             </span>
           )
         ) : (

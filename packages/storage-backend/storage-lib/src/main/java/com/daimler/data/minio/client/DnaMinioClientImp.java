@@ -38,6 +38,7 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -300,15 +301,15 @@ public class DnaMinioClientImp implements DnaMinioClient {
 					secondBuilder = new ProcessBuilder(storageMCcommandKey, "-c", secondCommand);
 				}
 	
-//				firstBuilder.redirectErrorStream(true);
-//				Process p2 = firstBuilder.start();
-//				BufferedReader r2 = new BufferedReader(new InputStreamReader(p2.getInputStream()));
-//				
-//				LOGGER.info("minio mc client alias command output is {}",r2.readLine());
-//	
-//				if(!p2.waitFor(Integer.parseInt(storageMCAliasCmdTimeout), TimeUnit.SECONDS)) {
-//				    p2.destroy();
-//				}
+				firstBuilder.redirectErrorStream(true);
+				Process p2 = firstBuilder.start();
+				BufferedReader r2 = new BufferedReader(new InputStreamReader(p2.getInputStream()));
+
+				LOGGER.info("minio mc client alias command output is {}",r2.readLine());
+
+				if(!p2.waitFor(Integer.parseInt(storageMCAliasCmdTimeout), TimeUnit.SECONDS)) {
+				    p2.destroy();
+				}
 				
 				Process p = secondBuilder.start();
 				LOGGER.info("Started mc command to list buckets");
@@ -334,15 +335,22 @@ public class DnaMinioClientImp implements DnaMinioClient {
 				}
 				
 				LOGGER.info("finished reading response from mc list buckets");
-								
-				data = prefix.concat(data.substring(0, data.length() - 1)).concat(suffix);
-				LOGGER.debug("Policies data from minio to update cache is {} ", data);
-				McListBucketCollectionDto listBucketCollectionDto = mapper.readValue(data, McListBucketCollectionDto.class);
-				LOGGER.info("Success from minio list bucket for user:{}", userId);
-				getBucketResponse.setData(listBucketCollectionDto.getData());
-				getBucketResponse.setStatus(ConstantsUtility.SUCCESS);
-				getBucketResponse.setHttpStatus(HttpStatus.OK);
-				
+
+				if (data.isEmpty()) {
+					LOGGER.info("No buckets returned by mc ls for user:{}", userId);
+					getBucketResponse.setData(Collections.emptyList());
+					getBucketResponse.setStatus(ConstantsUtility.SUCCESS);
+					getBucketResponse.setHttpStatus(HttpStatus.OK);
+				} else {
+					data = prefix.concat(data.substring(0, data.length() - 1)).concat(suffix);
+					LOGGER.debug("Policies data from minio to update cache is {} ", data);
+					McListBucketCollectionDto listBucketCollectionDto = mapper.readValue(data, McListBucketCollectionDto.class);
+					LOGGER.info("Success from minio list bucket for user:{}", userId);
+					getBucketResponse.setData(listBucketCollectionDto.getData());
+					getBucketResponse.setStatus(ConstantsUtility.SUCCESS);
+					getBucketResponse.setHttpStatus(HttpStatus.OK);
+				}
+
 				r.close();
 				p.destroy();
 			} else {
@@ -1314,6 +1322,16 @@ public class DnaMinioClientImp implements DnaMinioClient {
 				}
 			}
 		}
+		// Delete the policy documents themselves from MinIO
+		for (String policy : policies) {
+			try {
+				LOGGER.info("Removing policy document:{} from MinIO", policy);
+				minioAdminClient.removeCannedPolicy(policy);
+				LOGGER.info("Successfully removed policy document:{} from MinIO", policy);
+			} catch (Exception e) {
+				LOGGER.error("Error occurred while removing policy:{} from MinIO: {}", policy, e.getMessage());
+			}
+		}
 		// updating minioUsersCache
 		LOGGER.debug("Removing all enteries from {}.", ConstantsUtility.MINIO_USERS_CACHE);
 		cacheUtil.removeAll(ConstantsUtility.MINIO_USERS_CACHE);
@@ -1439,13 +1457,14 @@ public class DnaMinioClientImp implements DnaMinioClient {
 			ProcessBuilder policyBuilder = new ProcessBuilder(isWindows ? "cmd.exe" : "sh", isWindows ? "/c" : "-c", attachPolicyCommand);
 
 			// Execute alias command
-			// Process aliasProcess = aliasBuilder.start();
-			// int aliasExitCode = aliasProcess.waitFor();
-			// if (aliasExitCode != 0) {
-			// 	LOGGER.error("Failed to set alias. Exit code: {}", aliasExitCode);
-			// 	return "Failed to set alias.";
-			// }
-			// LOGGER.debug("Alias set successfully for user: {}", userId);
+			aliasBuilder.redirectErrorStream(true);
+			Process aliasProcess = aliasBuilder.start();
+			int aliasExitCode = aliasProcess.waitFor();
+			if (aliasExitCode != 0) {
+				LOGGER.error("Failed to set alias. Exit code: {}", aliasExitCode);
+				return "Failed to set alias.";
+			}
+			LOGGER.debug("Alias set successfully for user: {}", userId);
 
 			// Execute policy command
 			policyBuilder.redirectErrorStream(true);
@@ -1516,13 +1535,14 @@ public class DnaMinioClientImp implements DnaMinioClient {
 			ProcessBuilder policyBuilder = new ProcessBuilder(isWindows ? "cmd.exe" : "sh", isWindows ? "/c" : "-c", detachPolicyCommand);
 
 			// Execute alias command
-			// Process aliasProcess = aliasBuilder.start();
-			// int aliasExitCode = aliasProcess.waitFor();
-			// if (aliasExitCode != 0) {
-			// 	LOGGER.error("Failed to set alias. Exit code: {}", aliasExitCode);
-			// 	return "Failed to set alias.";
-			// }
-			// LOGGER.debug("Alias set successfully for user: {}", userId);
+			aliasBuilder.redirectErrorStream(true);
+			Process aliasProcess = aliasBuilder.start();
+			int aliasExitCode = aliasProcess.waitFor();
+			if (aliasExitCode != 0) {
+				LOGGER.error("Failed to set alias. Exit code: {}", aliasExitCode);
+				return "Failed to set alias.";
+			}
+			LOGGER.debug("Alias set successfully for user: {}", userId);
 
 			// Execute policy command
 			policyBuilder.redirectErrorStream(true);

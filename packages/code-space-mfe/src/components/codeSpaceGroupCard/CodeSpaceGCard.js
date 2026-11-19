@@ -104,7 +104,7 @@ const CodeSpaceGCard = ({ codeSpace, userInfo, onStartStopCodeSpace, onShowDeplo
       <div key={codeSpace?.workspaceId} className={classNames(Styles.codeSpaceItem)}>
         <div>
           <div className={Styles.flexDisplay}>
-            <h3 onClick={onCardNameClick}>
+            <h3 onClick={onCardNameClick} title={codeSpace?.projectDetails?.projectName}>
               {codeSpace?.projectDetails?.projectName}
             </h3>
             {!enableOnboard && !creationFailed && serverStarted && (

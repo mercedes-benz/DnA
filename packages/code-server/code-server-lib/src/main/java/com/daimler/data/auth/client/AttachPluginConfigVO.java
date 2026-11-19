@@ -16,6 +16,10 @@ public class AttachPluginConfigVO  implements Serializable {
 	
 	private static final long serialVersionUID = 1L;
 
+	private String session_secret;
+
+	private String skip_already_auth_requests;
+
 	private String client_secret;
 
 	  private String discovery;

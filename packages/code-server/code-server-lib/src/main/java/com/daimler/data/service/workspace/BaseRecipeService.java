@@ -49,6 +49,7 @@ import com.daimler.dna.notifications.common.producer.KafkaProducerService;
 import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.application.auth.UserStore.UserInfo;
 import com.daimler.data.application.client.GitClient;
+import com.daimler.data.service.ArgoCdService;
 import com.daimler.data.dto.solution.ChangeLogVO;
 import com.daimler.data.dto.workspace.CreatedByVO;
 import com.daimler.data.dto.workspace.UserInfoVO;
@@ -99,6 +100,9 @@ public class BaseRecipeService implements RecipeService{
 	@Autowired
 	private GitClient gitClient;
 
+	@Autowired
+	private ArgoCdService argoCdService;
+
 	@Value("${codeserver.recipe.software.filename}")
 	private String gitFileName;
 
@@ -110,7 +114,10 @@ public class BaseRecipeService implements RecipeService{
 	
 	@Value("${codeServer.git.pat}")
 	private String gitIPat;
-    
+
+	@Value("${codeServer.git.orgname}")
+	private String gitOrgName;
+
 	@Override
 	@Transactional
 	public List<RecipeVO> getAllRecipes(int offset, int limit,String id) {
@@ -125,12 +132,12 @@ public RecipeVO createRecipe(RecipeVO recipeRequestVO) {
 	SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
 	String repoUrl = recipeRequestVO.getRepodetails();
 	
-	if (Boolean.TRUE.equals(recipeRequestVO.isIsPublic())
-			&& repoUrl != null
-			&& repoUrl.contains("ghe.com")) {
-		throw new RuntimeException(
-				"Public recipes are not allowed for GHE repositories. Please set recipe visibility to Private.");
-	}
+	// if (Boolean.TRUE.equals(recipeRequestVO.isIsPublic())
+	// 		&& repoUrl != null
+	// 		&& repoUrl.contains("ghe.com")) {
+	// 	throw new RuntimeException(
+	// 			"Public recipes are not allowed for GHE repositories. Please set recipe visibility to Private.");
+	// }
 
 	if (Boolean.FALSE.equals(recipeRequestVO.isIsPublic())
 			&& repoUrl != null
@@ -158,6 +165,12 @@ public RecipeVO createRecipe(RecipeVO recipeRequestVO) {
 			throw new RuntimeException(
 					"Unable to access GHE repository. Please verify PID access.");
 		}
+	}
+
+	// Register repository with ArgoCD when deployment is enabled
+	if (Boolean.TRUE.equals(recipeRequestVO.isIsDeployEnabled()) && repoUrl != null
+			&& Boolean.FALSE.equals(recipeRequestVO.isIsPublic())) {
+		registerRepoWithArgoCD(repoUrl);
 	}
 
 	CodeServerRecipeNsql entity = recipeAssembler.toEntity(recipeRequestVO);
@@ -199,6 +212,12 @@ public RecipeVO updateRecipe(RecipeVO recipeRequestVO) {
 			throw new RuntimeException(
 					"Unable to access GHE repository. Please verify PID access.");
 		}
+	}
+
+	// Register repository with ArgoCD when deployment is enabled
+	if (Boolean.TRUE.equals(recipeRequestVO.isIsDeployEnabled()) && repoUrl != null
+			&& Boolean.FALSE.equals(recipeRequestVO.isIsPublic())) {
+		registerRepoWithArgoCD(repoUrl);
 	}
 
 	CodeServerRecipeNsql existing = workspaceCustomRecipeRepo.findByRecipeName(
@@ -245,7 +264,8 @@ public RecipeVO updateRecipe(RecipeVO recipeRequestVO) {
 			repoName = codespaceSplitValues[length-1];
 			repoOwner = codespaceSplitValues[length-2];
 			gitUrl = gitHubUrl.replace("/"+repoOwner, "");
-		gitUrl = gitUrl.replace("/"+repoName, "");
+			gitUrl = gitUrl.replace("/"+repoName, "");
+		    gitUrl = gitUrl.trim();
 		
 		String patToUse;
 
@@ -340,6 +360,21 @@ public RecipeVO updateRecipe(RecipeVO recipeRequestVO) {
 	}
 
 	
+	private void registerRepoWithArgoCD(String repoUrl) {
+    try {
+        if (repoUrl.contains(gitOrgName + "/")) {
+            log.info("Skipping ArgoCD repo registration for {} repo: {}", gitOrgName, repoUrl);
+            return;
+        }
+        String token = argoCdService.getArgoToken();
+        String repoGitUrl = repoUrl.endsWith(".git") ? repoUrl : repoUrl + ".git";
+        argoCdService.registerRepository(token, repoGitUrl, configuredPid, ghePat);
+        log.info("Repository registered with ArgoCD for deployment: {}", repoGitUrl);
+    } catch (Exception e) {
+        log.error("Failed to register repository with ArgoCD: {}", e.getMessage());
+    }
+}
+
 	private GenericMessage getMessageDescrption(String message, String statusMsg ) {
 		GenericMessage responseMessage = new GenericMessage();
 		MessageDescription msg = new MessageDescription();
@@ -370,6 +405,7 @@ public GenericMessage validateGitHubUrl(String gitHubUrl) {
         String gitUrl = gitHubUrl
                 .replace("/" + repoName, "")
                 .replace("/" + applicationName, "");
+		gitUrl = gitUrl.trim();
 
         HttpStatus status;
 		boolean isGheRepo = gitHubUrl.contains("ghe.com");

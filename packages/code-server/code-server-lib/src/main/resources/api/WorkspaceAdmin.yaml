@@ -182,9 +182,122 @@ paths:
           description: "Method not allowed"
         500:
           description: "Internal error"
-          
+
+  /workspaces/resourceexemptions:
+    get:
+      tags:
+        - "code-server-admin"
+      summary: "Get all codespace projects with their resource cap exemption state."
+      description: "Get all codespace projects along with the environment specific resource cap exemption flags. Restricted to codespace admins."
+      operationId: "getResourceCapExemptions"
+      parameters:
+          - name: offset
+            in: query
+            description: page number from which listing of projects should start. Offset. Example 2
+            required: false
+            type: integer
+          - name: limit
+            in: query
+            description: page size to limit the number of projects, Example 15
+            required: false
+            type: integer
+          - name: projectName
+            in: query
+            description: project name to filter the listing.
+            required: false
+            type: string
+      responses:
+        200:
+          description: "Returns the projects with their exemption state"
+          schema:
+            $ref: "#/definitions/CodespaceResourceExemptionCollectionVO"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
+  /workspaces/{projectName}/resourceexemptions:
+    put:
+      tags:
+        - "code-server-admin"
+      summary: "Update the resource cap exemption of a project for an environment."
+      description: "Marks or unmarks a codespace project as exempt from the ArgoCD resource caps for the given environment. Applies to every workspace of the project. Restricted to codespace admins."
+      operationId: "updateResourceCapExemption"
+      parameters:
+        - name: "projectName"
+          in: "path"
+          description: "Name of the codespace project"
+          required: true
+          type: "string"
+        - name: env
+          in: query
+          description: environment for which the exemption should be updated
+          required: true
+          type: string
+          enum:
+          - int
+          - prod
+        - name: exempt
+          in: query
+          description: true to exempt the project from the resource caps, false to apply the caps again
+          required: true
+          type: boolean
+      responses:
+        200:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        404:
+          description: "Project not found."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"  
 
 definitions:
+
+  CodespaceResourceExemptionVO:
+    type: object
+    properties:
+      projectName:
+        type: string
+        description: "Name of the Project"
+      projectOwner:
+        $ref: "#/definitions/UserInfoVO"
+      workspaceCount:
+        type: integer
+        description: "Number of non deleted workspaces belonging to the project"
+      exemptInt:
+        type: boolean
+        description: "True when the project is exempt from the resource caps in staging"
+      exemptProd:
+        type: boolean
+        description: "True when the project is exempt from the resource caps in production"
+
+  CodespaceResourceExemptionCollectionVO:
+    type: object
+    properties:
+     data:
+        type: array
+        items:
+          $ref: "#/definitions/CodespaceResourceExemptionVO"
+     totalCount:
+        type: integer
+        description: "Total number of Codespace projects"
   
   CodespaceSecurityConfigDetailsVO:
     type: object

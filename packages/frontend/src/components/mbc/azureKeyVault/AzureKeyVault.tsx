@@ -12,14 +12,46 @@ import { ApiClient } from '../../../../src/services/ApiClient';
 import CreateNewKeyVault from './createNewKeyVault/CreateNewKeyVault';
 import Modal from '../../formElements/modal/Modal';
 import { useHistory } from 'react-router-dom';
-import { IKeyVault } from 'globals/types';
+import { IKeyVault, IUserInfo } from 'globals/types';
+import { SESSION_STORAGE_KEYS } from 'globals/constants';
 import AzureKeyVaultCard from './AzureKeyVaultCard';
+import Pagination from '../pagination/Pagination';
+import ConfirmModal from 'components/formElements/modal/confirmModal/ConfirmModal';
 
-const AzureKeyVault = () => {
+interface Props {
+  user: IUserInfo;
+}
+
+const AzureKeyVault = ({ user }: Props) => {
   const [keyVaultList, setKeyVaultList] = useState([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [selectedKeyVault, setSelectedKeyVault] = useState<IKeyVault | null>(null);
+  const [keyVaultToDelete, setKeyVaultToDelete] = useState<IKeyVault | null>(null);
+
+  const [totalNumberOfPages, setTotalNumberOfPages] = useState(1);
+  const [currentPageNumber, setCurrentPageNumber] = useState(1);
+  const [currentPageOffset, setCurrentPageOffset] = useState(0);
+  const [maxItemsPerPage, setMaxItemsPerPage] = useState(
+    parseInt(sessionStorage.getItem(SESSION_STORAGE_KEYS.PAGINATION_MAX_ITEMS_PER_PAGE), 10) || 15,
+  );
+
+  const onPaginationPreviousClick = () => {
+    const currentPageNum = currentPageNumber - 1;
+    setCurrentPageNumber(currentPageNum);
+    setCurrentPageOffset((currentPageNum - 1) * maxItemsPerPage);
+  };
+
+  const onPaginationNextClick = () => {
+    setCurrentPageOffset(currentPageNumber * maxItemsPerPage);
+    setCurrentPageNumber(currentPageNumber + 1);
+  };
+
+  const onViewByPageNum = (pageNum: number) => {
+    setCurrentPageNumber(1);
+    setCurrentPageOffset(0);
+    setMaxItemsPerPage(pageNum);
+  };
 
   const History = useHistory();
   const goback = () => {
@@ -28,26 +60,63 @@ const AzureKeyVault = () => {
 
   useEffect(() => {
     getKeyVaultList();
-  }, []);
+  }, [maxItemsPerPage, currentPageNumber, currentPageOffset]);
 
   const getKeyVaultList = () => {
     ProgressIndicator.show();
     Tooltip.defaultSetup();
-    ApiClient.getKeyVaults()
+    ApiClient.getKeyVaults(currentPageOffset, maxItemsPerPage)
       .then((response) => {
+        const errors = response?.responses?.errors;
+        if (errors?.length) {
+          ProgressIndicator.hide();
+          Notification.show(errors[0]?.message || 'Failed to fetch Key Vaults.', 'alert');
+          return;
+        }
         setKeyVaultList(response?.records || []);
+        const totalPages = Math.ceil((response?.totalCount || 0) / maxItemsPerPage) || 1;
+        setTotalNumberOfPages(totalPages);
+        setCurrentPageNumber(currentPageNumber > totalPages ? 1 : currentPageNumber);
         ProgressIndicator.hide();
       })
-      .catch((err) => {
+      .catch((err: any) => {
         ProgressIndicator.hide();
+        Notification.show(err?.message || 'Failed to fetch Key Vaults.', 'alert');
       });
   };
+
+  const isCreator = (keyVault: IKeyVault) =>
+    !!user?.id && keyVault?.createdBy?.id?.toLowerCase() === user.id.toLowerCase();
 
   const onEditWorkspace = (keyVault : IKeyVault) => {
     setSelectedKeyVault(keyVault);
     setIsEditMode(true);
     setShowCreateModal(true);
   }
+
+  const onDeleteKeyVault = () => {
+    const keyVault = keyVaultToDelete;
+    setKeyVaultToDelete(null);
+    if (!keyVault?.id) {
+      return;
+    }
+    ProgressIndicator.show();
+    ApiClient.deleteKeyVault(keyVault.id)
+      .then((response) => {
+        ProgressIndicator.hide();
+        const errors = response?.responses?.errors;
+        if (errors?.length) {
+          Notification.show(errors[0]?.message || 'Failed to delete the Key Vault.', 'alert');
+          return;
+        }
+        Notification.show(`Key Vault ${keyVault.keyVaultName} deleted successfully.`);
+        getKeyVaultList();
+      })
+      .catch((err: any) => {
+        ProgressIndicator.hide();
+        Notification.show(err?.message || 'Failed to delete the Key Vault.', 'alert');
+      });
+  };
 
   return (
     <React.Fragment>
@@ -87,11 +156,23 @@ const AzureKeyVault = () => {
                   <AzureKeyVaultCard
                     key={index}
                     project={project}
+                    canEdit={isCreator(project)}
                     onEditWorkspace={() => onEditWorkspace(project)}
+                    onDeleteWorkspace={() => setKeyVaultToDelete(project)}
                   />
                 );
               })}
             </div>
+          )}
+          {keyVaultList?.length > 0 && (
+            <Pagination
+              totalPages={totalNumberOfPages}
+              pageNumber={currentPageNumber}
+              onPreviousClick={onPaginationPreviousClick}
+              onNextClick={onPaginationNextClick}
+              onViewByNumbers={onViewByPageNum}
+              displayByPage={true}
+            />
           )}
         </div>
       </div>
@@ -108,6 +189,7 @@ const AzureKeyVault = () => {
             <CreateNewKeyVault
               edit={isEditMode}
               project={selectedKeyVault}
+              user={user}
               setShowCreateModal={() => setShowCreateModal(false)}
               getKeyVaultList={getKeyVaultList}
             />
@@ -116,6 +198,22 @@ const AzureKeyVault = () => {
           onCancel={() => { setShowCreateModal(false); getKeyVaultList(); }}
         />
       )}
+      <ConfirmModal
+        title=""
+        acceptButtonTitle="Delete"
+        cancelButtonTitle="Cancel"
+        showAcceptButton={true}
+        showCancelButton={true}
+        show={!!keyVaultToDelete}
+        content={
+          <div>
+            <h3>Are you sure you want to delete {keyVaultToDelete?.keyVaultName}?</h3>
+            <p>The Key Vault and all its secrets, keys and certificates will be deleted in Azure.</p>
+          </div>
+        }
+        onCancel={() => setKeyVaultToDelete(null)}
+        onAccept={onDeleteKeyVault}
+      />
     </React.Fragment>
   );
 };

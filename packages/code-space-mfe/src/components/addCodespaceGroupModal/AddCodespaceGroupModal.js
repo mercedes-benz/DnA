@@ -52,7 +52,7 @@ const AddCodespaceGroupModal = ({ edit, group, onSave }) => {
             'alert',
           );
         });
-  }, [edit, group]);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const onCodeSpaceChange = (e) => {
     const selectedOptions = e.currentTarget.selectedOptions;

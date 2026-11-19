@@ -9,9 +9,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
 
-import javax.annotation.PostConstruct;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.annotation.PostConstruct;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.lang.reflect.Method;
 import java.util.Map;
 
@@ -31,6 +31,9 @@ public class ApiKeyAuthorizationInterceptor implements HandlerInterceptor {
     @Value("${fabricWorkspaces.ada.spire.apiKey}")
     private String spireApiKey;
 
+    @Value("${fabricWorkspaces.ada.adp.apiKey}")
+    private String adpApiKey;
+
     private Map<String, String> apiKeyCreatorMap;
 
     // Call this after @Value fields are injected
@@ -40,6 +43,7 @@ public class ApiKeyAuthorizationInterceptor implements HandlerInterceptor {
         apiKeyCreatorMap.put(adaApiKey, "ada");
         apiKeyCreatorMap.put(xtoApiKey, "xto");
         apiKeyCreatorMap.put(spireApiKey, "spire");
+        apiKeyCreatorMap.put(adpApiKey, "adp");
     }
 
     @Override

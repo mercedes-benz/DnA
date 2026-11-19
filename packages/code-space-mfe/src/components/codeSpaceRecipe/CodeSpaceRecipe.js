@@ -179,12 +179,13 @@ const CodeSpaceRecipe = (props) => {
   };
 
   const onGitUrlChange = (e) => {
-  const githubUrlVal = e.currentTarget.value.trim();
+  const githubUrlVal = e.currentTarget.value;
   setGitUrl(githubUrlVal);
   setEnableCreate(false);
 
+  const trimmedUrl = githubUrlVal.trim();
   const gitIHost = Envs.CODE_SPACE_GIT_PAT_APP_URL ? new URL(Envs.CODE_SPACE_GIT_PAT_APP_URL).host : '';
-  const isGitI = gitIHost && githubUrlVal.includes(gitIHost);
+  const isGitI = gitIHost && trimmedUrl.includes(gitIHost);
   setIsGitIRepo(isGitI);
 
   if (isGitI) {
@@ -192,12 +193,38 @@ const CodeSpaceRecipe = (props) => {
     Notification.show('Only repos from GHE is allowed.', 'alert');
   }
 
-  const errorText = githubUrlVal.length
-    ? (isValidGitUrl(githubUrlVal) ? '' : `Provide valid https://github.com/ or ${Envs.CODE_SPACE_GIT_PAT_APP_URL} git url.`)
+  const gheHost = Envs.CODE_SPACE_GHE_PAT_APP_URL ? new URL(Envs.CODE_SPACE_GHE_PAT_APP_URL).host : '';
+  let isValid = false;
+  if (trimmedUrl.length) {
+    if (isValidGitUrl(trimmedUrl)) {
+      isValid = true;
+    } else if (!trimmedUrl.endsWith('.git') && (trimmedUrl.includes('github.com/') || trimmedUrl.includes('.ghe.com/') || trimmedUrl.includes('git.i.mercedes-benz.com/'))) {
+      isValid = isValidGitUrl(trimmedUrl + '.git');
+    }
+  }
+  
+  const errorText = trimmedUrl.length
+    ? (isValid ? '' : `Provide valid https://github.com/ or https://${gheHost}/ git url.`)
     : requiredError;
 
   setErrorObj(prev => ({ ...prev, gitUrl: errorText }));
 };
+
+  const onGitUrlBlur = (e) => {
+    let trimmedUrl = gitUrl.trim();
+    
+    if (trimmedUrl && !trimmedUrl.endsWith('.git') && (trimmedUrl.includes('github.com/') || trimmedUrl.includes('.ghe.com/') || trimmedUrl.includes('git.i.mercedes-benz.com/'))) {
+      trimmedUrl = trimmedUrl + '.git';
+      setGitUrl(trimmedUrl);
+      
+      const errorText = isValidGitUrl(trimmedUrl) ? '' : `Provide valid https://github.com/ or https://${Envs.CODE_SPACE_GHE_PAT_APP_URL ? new URL(Envs.CODE_SPACE_GHE_PAT_APP_URL).host : ''} git url.`;
+      setErrorObj(prev => ({ ...prev, gitUrl: errorText }));
+    }
+    
+    if (!errorObj?.gitUrl?.length) {
+      verifyRequest(e);
+    }
+  };
 
 
   const onSoftwareChange = (selectedTags) => {
@@ -606,7 +633,7 @@ const CodeSpaceRecipe = (props) => {
                           required={true}
                           maxLength={200}
                           onChange={onGitUrlChange}
-                          onBlur={errorObj?.gitUrl?.length ? undefined : verifyRequest}
+                          onBlur={onGitUrlBlur}
                         />
                         {(!enableCreate &&
                           <button className={classNames('btn btn-tertiary', Styles.verifyButton, errorObj?.gitUrl?.length > 0 && Styles.giturlerror)} type="button" onClick={verifyRequest}>

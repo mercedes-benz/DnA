@@ -1,5 +1,5 @@
 import classNames from 'classnames';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useForm, FormProvider, Controller } from 'react-hook-form';
 import { useHistory } from "react-router-dom";
 // styles
@@ -17,6 +17,26 @@ import { Envs } from '../../utilities/envs';
 import { hostServer } from '../../server/api';
 import { fabricApi} from '../../apis/fabric.api';
 import { USER_ROLE } from '../../utilities/constants';
+
+const toLocalDateKey = (date) =>
+  `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+
+const toDateKey = (value) => {
+  if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}/.test(value)) return value.slice(0, 10);
+  const date = new Date(value);
+  return isNaN(date.getTime()) ? null : toLocalDateKey(date);
+};
+
+const isActiveProject = (project) => {
+  if (!project?.inactiveDate) return true;
+  const inactiveDateKey = toDateKey(project.inactiveDate);
+  return inactiveDateKey === null || inactiveDateKey > toLocalDateKey(new Date());
+};
+
+const toActiveProjectOptions = (records) =>
+  (records || [])
+    .filter(isActiveProject)
+    .map((project) => ({ ...project, id: project.projectID, name: project.projectName || project.projectID }));
 
 const FabricWorkspaceForm = ({ workspace, edit, onSave, user}) => {
   let history = useHistory();
@@ -48,10 +68,11 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave, user}) => {
   const [fabricTags, setFabricTags] = useState([]);
   const [projectList, setProjectList] = useState([]);
   const [selectedProject, setSelectedProject] = useState(edit && workspace?.projectId ? { projectID: workspace?.projectId } : {});
+  const [isProjectNameResolved, setIsProjectNameResolved] = useState(!(edit && workspace?.projectId));
   const selectedDivision = watch('division');
 
-  const [costCenter, setCostCenter] = useState(edit && workspace?.costCenter !== null ? workspace?.costCenter : '');
-  const [internalOrder, setInternalOrder] = useState(edit && workspace?.internalOrder !== null ? workspace?.internalOrder : '');
+  // const [costCenter, setCostCenter] = useState(edit && workspace?.costCenter !== null ? workspace?.costCenter : '');
+  // const [internalOrder, setInternalOrder] = useState(edit && workspace?.internalOrder !== null ? workspace?.internalOrder : '');
   const [division, setDivision] = useState(edit ? (workspace?.divisionId ? workspace?.divisionId + '@-@' + workspace?.division : '0') : '');
   const [subDivision, setSubDivision] = useState(edit ? (workspace?.subDivisionId ? workspace?.subDivisionId + '@-@' + workspace?.subDivision : '0') : '');
   const [description, setDescription] = useState(edit && workspace?.description ? workspace?.description : '');
@@ -72,6 +93,24 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave, user}) => {
   const [selectedLeanIX, setSelectedLeanIX] = useState(
     edit && workspace?.appId ? { id: workspace?.appId, ...workspace?.leanIXDetails } : []
   );
+  const selectedProjectIdRef = useRef(edit ? workspace?.projectId : undefined);
+
+  // Mirrors the backend: the project's LeanIX resolved via PlanningIT, else the raw value
+  const applyProjectLeanIX = (project) => {
+    const leanIX = project?.leanIX?.trim();
+    if (!leanIX || selectedProjectIdRef.current !== project.projectID) return;
+    const applyIfStillSelected = (item) => {
+      if (selectedProjectIdRef.current === project.projectID) setSelectedLeanIX(item);
+    };
+    fabricApi
+      .getLeanIX(leanIX)
+      .then((res) => {
+        const items = res.data?.data || [];
+        const match = items.find((item) => item?.id?.toLowerCase() === leanIX.toLowerCase()) || items[0];
+        applyIfStillSelected(match || { id: leanIX });
+      })
+      .catch(() => applyIfStillSelected({ id: leanIX }));
+  };
 
   useEffect(() => {
     ProgressIndicator.show();
@@ -98,6 +137,24 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave, user}) => {
   }, []);
 
   useEffect(() => {
+    if (!edit || !workspace?.projectId) return;
+    fabricApi
+      .searchProjectDetails(workspace.projectId)
+      .then((res) => {
+        const match = toActiveProjectOptions(res.data?.records).find(
+          (project) => project.projectID === workspace.projectId,
+        );
+        if (match) {
+          setSelectedProject((prev) => (prev?.projectID === workspace.projectId ? match : prev));
+          applyProjectLeanIX(match);
+        }
+      })
+      .catch(() => {})
+      .finally(() => setIsProjectNameResolved(true));
+    //eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
     if (selectedLeanIX.id) {
       setValue('leanIX', {
         appId: selectedLeanIX.id,
@@ -115,6 +172,10 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave, user}) => {
     }
   }, [selectedLeanIX, setValue]);
 
+  // subscription radios are disabled for non-admins on edit, so keep the form state in sync
+  useEffect(() => {
+    setValue('subscription', subscription, { shouldValidate: false });
+  }, [subscription, setValue]);
 
   useEffect(() => {
     ProgressIndicator.show();
@@ -249,6 +310,10 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave, user}) => {
   };
   
   const filteredProjects = projectList.length === 0 ? null : projectList;
+  // A project known only by ID (edit mode, lookup pending or not found) keeps LeanIX locked, as the backend may still apply its LeanIX
+  const isLeanIXDisabled = Boolean(
+    selectedProject?.projectID && (selectedProject?.leanIX?.trim() || !selectedProject?.projectName),
+  );
   
   
   const handleProjectSearch = (searchTerm, showSpinner) => {
@@ -257,7 +322,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave, user}) => {
       fabricApi
         .searchProjectDetails(searchTerm)
         .then((res) => {
-          setProjectList(res.data?.records || []);
+          setProjectList(toActiveProjectOptions(res.data?.records));
           showSpinner(false);
         })
         .catch((e) => {
@@ -288,8 +353,8 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave, user}) => {
       termsOfUse: values?.termsOfUse,
       typeOfProject: values?.typeOfProject,
       dataClassification: values?.dataClassification,
-      costCenter: values?.costCenter.trim(),
-      internalOrder: values?.internalOrder.trim(),
+      // costCenter: values?.costCenter.trim(),
+      // internalOrder: values?.internalOrder.trim(),
       relatedSolutions: relatedSolutions,
       relatedReports: relatedReports,
       projectId: values?.projectDetails || null,
@@ -331,8 +396,8 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave, user}) => {
       termsOfUse: values?.termsOfUse,
       typeOfProject: values?.typeOfProject,
       dataClassification: values?.dataClassification,
-      costCenter: values?.costCenter.trim(),
-      internalOrder: values?.internalOrder.trim(),
+      // costCenter: values?.costCenter.trim(),
+      // internalOrder: values?.internalOrder.trim(),
       relatedSolutions: relatedSolutions,
       relatedReports: relatedReports,
       projectId: values?.projectDetails || null,
@@ -364,11 +429,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave, user}) => {
     });
   };
   
-const divisionId = division ? division.split('@-@')[0] : null;
-const mandate = divisionId && Envs.MANDATE_LEANIX_FOR_DIVISIONS 
-  ? Envs.MANDATE_LEANIX_FOR_DIVISIONS.split(',').includes(divisionId) 
-  : false;
-const isLeanIXRequired = typeOfProject === 'Production' && mandate;
+
 
   return (
     <>
@@ -454,6 +515,7 @@ const isLeanIXRequired = typeOfProject === 'Production' && mandate;
                 <Controller
                   control={control}
                   name="projectDetails"
+                  defaultValue={edit && workspace?.projectId ? workspace.projectId : ''}
                   rules={{
                     required: false,
                   }}
@@ -461,11 +523,15 @@ const isLeanIXRequired = typeOfProject === 'Production' && mandate;
                     <TypeAheadBox
                       label={'Project Details (Recommended for Billing Purpose)'}
                       placeholder={'Search Project Name'}
-                      defaultValue={selectedProject?.projectID}
+                      defaultValue={
+                        selectedProject?.projectName || (isProjectNameResolved ? selectedProject?.projectID : '')
+                      }
                       list={filteredProjects}
                       setSelected={(selectedProject) => {
                         setSelectedProject(selectedProject || {});
                         field.onChange(selectedProject?.projectID || '');
+                        selectedProjectIdRef.current = selectedProject?.projectID;
+                        applyProjectLeanIX(selectedProject);
                       }}
                       onInputChange={(value, showSpinner) =>
                         handleProjectSearch(value, showSpinner, selectedDivision)
@@ -506,7 +572,7 @@ const isLeanIXRequired = typeOfProject === 'Production' && mandate;
                 />
               </div>
             </div>
-            <div className={Styles.col2}>
+            {/* <div className={Styles.col2}>
               <div className={classNames('input-field-group include-error', errors?.costCenter ? 'error' : '')}>
                   <label className={'input-label'}>
                     Cost Center 
@@ -545,7 +611,7 @@ const isLeanIXRequired = typeOfProject === 'Production' && mandate;
                     <span className={'error-message'}>{errors?.internalOrder?.message}{errors.internalOrder?.type === 'pattern' && `Spaces not allowed as field value..`}</span>
                   </div>
                 </div>
-            </div> 
+            </div>  */}
             {(typeOfProject !== 'Playground' && typeOfProject !== 'Proof of Concept') && 
               (
                 <div className={Styles.col2}>
@@ -554,7 +620,7 @@ const isLeanIXRequired = typeOfProject === 'Production' && mandate;
                     control={control}
                     name="leanIX"
                     rules={{
-                      required: isLeanIXRequired ? '*Missing entry' : false,
+                      required: false,
                     }}
                     render={({ field }) => (
                         <TypeAheadBox
@@ -562,6 +628,7 @@ const isLeanIXRequired = typeOfProject === 'Production' && mandate;
                           placeholder={'Select App-ID (Enter minimum 4 characters)'}
                           defaultValue={selectedLeanIX.id}
                           list={leanIXList}
+                          disabled={isLeanIXDisabled}
                           setSelected={(selectedTags) => {
                             const leanIXData = {
                               appId: selectedTags.id,
@@ -580,7 +647,7 @@ const isLeanIXRequired = typeOfProject === 'Production' && mandate;
                             field.onChange(leanIXData);
                           }}
                           onInputChange={handleLeanIXSearch}
-                          required={isLeanIXRequired}
+                          required={false}
                           showError={errors.leanIX?.message}
                           render={(item) => (
                             <div className={Styles.optionContainer}>
@@ -836,8 +903,9 @@ const isLeanIXRequired = typeOfProject === 'Production' && mandate;
                         value="PowerBI"
                         name="subscription"
                         defaultChecked={subscription === 'PowerBI'}
+                        disabled={edit && !isFabricAdmin}
                         {...register('subscription', {
-                          required: '*Missing entry',
+                          required: !(edit && !isFabricAdmin) && '*Missing entry',
                           onChange: (e) => { setSubscription(e.target.value) }
                         })}
                       />
@@ -852,8 +920,9 @@ const isLeanIXRequired = typeOfProject === 'Production' && mandate;
                         value="Fabric"
                         name="subscription"
                         defaultChecked={subscription === 'Fabric'}
+                        disabled={edit && !isFabricAdmin}
                         {...register('subscription', {
-                          required: '*Missing entry',
+                          required: !(edit && !isFabricAdmin) && '*Missing entry',
                           onChange: (e) => { setSubscription(e.target.value) }
                         })}
                       />
@@ -960,7 +1029,7 @@ const isLeanIXRequired = typeOfProject === 'Production' && mandate;
               className="btn btn-tertiary"
               type="button"
               onClick={handleSubmit((values) => {
-                edit ? handleEditWorkspace(values) : handleCreateWorkspace(values);
+                  edit ? handleEditWorkspace(values) : handleCreateWorkspace(values);
               })}
             >
               {edit ? 'Save Workspace' : 'Create Workspace'}

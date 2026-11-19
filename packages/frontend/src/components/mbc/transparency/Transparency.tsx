@@ -3,6 +3,7 @@ import Styles from './Transparency.scss';
 import DNACard from 'components/card/Card';
 import headerImageURL from '../../../assets/images/Transparency-Landing.png';
 import { TranparencyLandingPageElements } from 'globals/landingPageElements';
+import { Envs } from 'globals/Envs';
 import LandingSummary from '../shared/landingSummary/LandingSummary';
 
 const Transparency = () => {
@@ -12,7 +13,9 @@ const Transparency = () => {
     <LandingSummary
       title={'Transparency'}
       subTitle={
-        'Explore all Data & AI Solutions in MB and view your Portfolio.'
+        Envs.ENABLE_SOLUTIONS
+          ? 'Explore all Data & AI Solutions in MB and view your Portfolio.'
+          : 'Explore all Data & AI Solutions in MB.'
       }
       tags={['Lorem Ipsum', 'ABC', 'XYZ']}
       headerImage={headerImageURL}

@@ -9,6 +9,7 @@ import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indica
 import { CodeSpaceApiClient } from '../../apis/codespace.api';
 import SelectBox from 'dna-container/SelectBox';
 import Modal from 'dna-container/Modal';
+import ConfirmModal from 'dna-container/ConfirmModal';
 import { SESSION_STORAGE_KEYS } from '../../Utility/constants.js';
 import { regionalDateAndTimeConversionSolution, buildGitJobLogViewAWSURL, buildGitRepoUrl, buildGitCommitUrl } from '../../Utility/utils';
 import TextBox from 'dna-container/TextBox';
@@ -16,6 +17,7 @@ import Tags from 'dna-container/Tags';
 import Tooltip from '../../common/modules/uilab/js/src/tooltip';
 import Pagination from 'dna-container/Pagination';
 import DeployModal from '../deployModal/DeployModal';
+import IntMigrationModal, { needsIntMigration } from '../intMigrationModal/IntMigrationModal';
 
 const BuildModal = (props) => {
   const [branches, setBranches] = useState([]);
@@ -36,6 +38,9 @@ const BuildModal = (props) => {
   const [showDeployCodeSpaceModal, setShowDeployCodeSpaceModal] = useState(false);
   const [buildDetails, setBuildDetails] = useState('');
   const [retainBuildImage, setRetainBuildImage] = useState(false);
+  const [showIntMigrationModal, setShowIntMigrationModal] = useState(false);
+  const [showDeleteBuildModal, setShowDeleteBuildModal] = useState(false);
+  const [buildVersionToDelete, setBuildVersionToDelete] = useState('');
 
   const projectDetails = props.codeSpaceData?.projectDetails;
   // const intDeploymentMigrated = props.codeSpaceData?.projectDetails?.intDeploymentDetails?.deploymentUrl?.includes(Envs.CODESPACE_AWS_POPUP_URL);
@@ -205,6 +210,22 @@ const BuildModal = (props) => {
     //refresh the logs
   };
 
+  const onBuildDeleteConfirm = (version) => {
+    setBuildVersionToDelete(version);
+    setShowDeleteBuildModal(true);
+  };
+
+  const deleteBuildClose = () => {
+    setShowDeleteBuildModal(false);
+    setBuildVersionToDelete('');
+  };
+
+  const deleteBuildAccept = () => {
+    setShowDeleteBuildModal(false);
+    handleBuildDelete(buildVersionToDelete);
+    setBuildVersionToDelete('');
+  };
+
   const handleBuildDelete = (version) => {
     CodeSpaceApiClient.deleteBuild(projectDetails?.projectName, version)
       .then(() => {
@@ -243,18 +264,19 @@ const BuildModal = (props) => {
   };
 
   return (
-    <Modal
-      title={`Manage Build - ${props?.codeSpaceData?.projectDetails?.projectName || ''}`}
-      showAcceptButton={false}
-      //   acceptButtonTitle={'Deploy'}
-      //   cancelButtonTitle={'Cancel'}
-      //   onAccept={onAcceptCodeBuild}
-      showCancelButton={false}
-      modalWidth="1000px"
-      buttonAlignment="center"
-      show={true}
-      content={
-        <>
+    <>
+      <Modal
+        title={`Manage Build - ${props?.codeSpaceData?.projectDetails?.projectName || ''}`}
+        showAcceptButton={false}
+        //   acceptButtonTitle={'Deploy'}
+        //   cancelButtonTitle={'Cancel'}
+        //   onAccept={onAcceptCodeBuild}
+        showCancelButton={false}
+        modalWidth="1000px"
+        buttonAlignment="center"
+        show={true}
+        content={
+          <>
           <div className={Styles.BuildModal}>
             <p>The code from your workspace will be built and you can check the status on the build logs.</p>
             <div className={classNames(Styles.fourColumnFlexLayout)}>
@@ -402,11 +424,7 @@ const BuildModal = (props) => {
                             <td>
                               <a
                                 target="_blank"
-                                href={
-                                  buildEnvironment === 'int'
-                                    ? buildGitJobLogViewAWSURL(projectDetails?.intBuildDetails?.gitjobRunID)
-                                    : buildGitJobLogViewAWSURL(projectDetails?.prodBuildDetails?.gitjobRunID)
-                                }
+                                href={buildGitJobLogViewAWSURL(item?.gitjobRunID)}
                                 rel="noreferrer"
                                 className={classNames(Styles.newLink)}
                                 style={{
@@ -466,7 +484,11 @@ const BuildModal = (props) => {
                                     onClick={() => {
                                       item.environment = buildEnvironment;
                                       setBuildDetails(item);
-                                      setShowDeployCodeSpaceModal(true);
+                                      if (buildEnvironment === 'staging' && needsIntMigration(props.codeSpaceData)) {
+                                        setShowIntMigrationModal(true);
+                                      } else {
+                                        setShowDeployCodeSpaceModal(true);
+                                      }
                                     }}
                                   >
                                     <i className="icon mbc-icon deploy" />
@@ -482,7 +504,7 @@ const BuildModal = (props) => {
                                       )
                                     }
                                     type="button"
-                                    onClick={() => handleBuildDelete(item.version)}
+                                    onClick={() => onBuildDeleteConfirm(item.version)}
                                     disabled={item.version === latestBuildVersion}
                                     tooltip-data={
                                       item.version === latestBuildVersion
@@ -517,6 +539,61 @@ const BuildModal = (props) => {
               startWithFive={true}
             />
           ) : null}
+          {showIntMigrationModal && (
+            <IntMigrationModal
+              show={showIntMigrationModal}
+              codeSpaceData={props.codeSpaceData}
+              onDismiss={() => {
+                setShowIntMigrationModal(false);
+                const deployRequest = {
+                  targetEnvironment: 'int',
+                  branch: buildDetails.branch,
+                  version: buildDetails.version || '',
+                  keepBuildImage: false,
+                };
+                
+                const projectName = props.codeSpaceData?.projectDetails?.projectName;
+                if (projectName) {
+                  localStorage.setItem('intMigrationDismissed_' + projectName, 'true');
+                }
+                
+                ProgressIndicator.show();
+                CodeSpaceApiClient.deployCodeSpace(props.codeSpaceData.id, deployRequest)
+                  .then((res) => {
+                    if (res.data.success === 'SUCCESS') {
+                      ProgressIndicator.hide();
+                      props.setCodeDeploying(true);
+                      Notification.show(
+                        `Code space '${projectName}' deployment successfully started.`
+                      );
+                      
+                      if (props.startDeploymentStatusListener) {
+                        props.startDeploymentStatusListener(
+                          projectName,
+                          deployRequest.targetEnvironment,
+                          props.onDeploymentStatusUpdate,
+                          props.onDeploymentComplete,
+                          props.onDeploymentSSEError
+                        );
+                      }
+                    } else {
+                      ProgressIndicator.hide();
+                      Notification.show(
+                        'Error in deploying code space. Please try again later.\\n' + res.data.errors[0].message,
+                        'alert'
+                      );
+                    }
+                  })
+                  .catch((err) => {
+                    ProgressIndicator.hide();
+                    Notification.show(
+                      'Error in deploying. Please try again later.\\n' + err?.response?.data?.errors[0]?.message,
+                      'alert'
+                    );
+                  });
+              }}
+            />
+          )}
           {showDeployCodeSpaceModal && (
             <DeployModal
               userInfo={props.userInfo}
@@ -527,14 +604,31 @@ const BuildModal = (props) => {
               setCodeDeploying={props.setCodeDeploying}
               setIsApiCallTakeTime={props.setIsApiCallTakeTime}
               buildDetails={buildDetails}
+              skipIntMigrationCheck={true}
+              startDeploymentStatusListener={props.startDeploymentStatusListener}
+              onDeploymentStatusUpdate={props.onDeploymentStatusUpdate}
+              onDeploymentComplete={props.onDeploymentComplete}
+              onDeploymentSSEError={props.onDeploymentSSEError}
             />
           )}
-        </>
-      }
-      scrollableContent={false}
-      scrollableBox={true}
-      onCancel={() => props.setShowCodeBuildModal(false)}
-    />
+          </>
+        }
+        scrollableContent={false}
+        scrollableBox={true}
+        onCancel={() => props.setShowCodeBuildModal(false)}
+      />
+      <ConfirmModal
+        title={''}
+        acceptButtonTitle="Yes"
+        cancelButtonTitle="Cancel"
+        showAcceptButton={true}
+        showCancelButton={true}
+        show={showDeleteBuildModal}
+        content={<div><h3>Are you sure you want to delete this build?</h3></div>}
+        onCancel={deleteBuildClose}
+        onAccept={deleteBuildAccept}
+      />
+    </>
   );
 };
 export default BuildModal;

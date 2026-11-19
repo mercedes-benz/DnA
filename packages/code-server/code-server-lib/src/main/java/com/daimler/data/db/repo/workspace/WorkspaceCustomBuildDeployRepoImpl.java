@@ -43,4 +43,22 @@ public class WorkspaceCustomBuildDeployRepoImpl extends CommonDataRepositoryImpl
             return null;
     }
 
+    @Override
+    public CodeServerBuildDeployNsql findByProjectNameIncludingDeleted(String projectName) {
+        CriteriaBuilder cb = em.getCriteriaBuilder();
+        CriteriaQuery<CodeServerBuildDeployNsql> cq = cb.createQuery(CodeServerBuildDeployNsql.class);
+        Root<CodeServerBuildDeployNsql> root = cq.from(entityClass);
+        CriteriaQuery<CodeServerBuildDeployNsql> getAll = cq.select(root);
+        Predicate con1 = cb.equal(cb.lower(
+                cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("projectName"))),
+                projectName.toLowerCase());
+        cq.where(con1);
+        TypedQuery<CodeServerBuildDeployNsql> getAllQuery = em.createQuery(getAll);
+        List<CodeServerBuildDeployNsql> entities = getAllQuery.getResultList();
+        if (entities != null && entities.size() > 0)
+            return entities.get(0);
+        else
+            return null;
+    }
+
 }

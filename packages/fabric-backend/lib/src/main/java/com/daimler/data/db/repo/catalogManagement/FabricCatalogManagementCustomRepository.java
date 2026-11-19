@@ -27,6 +27,7 @@
 
 package com.daimler.data.db.repo.catalogManagement;
 
+import java.util.List;
 import java.util.Optional;
 
 import com.daimler.data.db.entities.FabricCatalogMetadataNsql;
@@ -36,6 +37,6 @@ public interface FabricCatalogManagementCustomRepository extends CommonDataRepos
 
 	Optional<FabricCatalogMetadataNsql> findByServiceName(String serviceName);
 
-	
+	List<FabricCatalogMetadataNsql> findAllByServiceName(String serviceName);
 
 }

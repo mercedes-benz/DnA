@@ -30,6 +30,8 @@
  import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
  import java.util.Arrays;
  import java.util.Date;
@@ -48,13 +50,15 @@ import java.util.regex.Matcher;
  import java.util.stream.Collectors;
  import java.util.Collections;
 
- import org.json.JSONObject;
+import org.json.JSONObject;
  import org.springframework.beans.BeanUtils;
  import org.springframework.beans.factory.annotation.Autowired;
+ import org.springframework.context.annotation.Lazy;
  import org.springframework.beans.factory.annotation.Value;
  import org.springframework.http.HttpStatus;
  import org.springframework.http.ResponseEntity;
- import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Service;
+ import org.springframework.transaction.annotation.Isolation;
  import org.springframework.transaction.annotation.Transactional;
  import org.springframework.util.ObjectUtils;
  
@@ -66,6 +70,8 @@ import java.util.regex.Matcher;
  import com.daimler.data.assembler.WorkspaceAssembler;
  import com.daimler.data.auth.client.AuthenticatorClient;
  import com.daimler.data.auth.client.DnaAuthClient;
+ import com.daimler.data.service.ArgoCdService;
+import com.daimler.data.service.scheduler.DeploymentStatusMonitorJob;
  import com.daimler.data.controller.exceptions.GenericMessage;
  import com.daimler.data.controller.exceptions.MessageDescription;
  import com.daimler.data.db.entities.CodeServerBuildDeployNsql;
@@ -95,13 +101,16 @@ import java.util.regex.Matcher;
  import com.daimler.data.dto.CodespaceSecurityConfigDto;
  import com.daimler.data.dto.DeploymentManageDto;
  import com.daimler.data.dto.DeploymentManageInputDto;
+import com.daimler.data.dto.GitHubWorkflowJobsResponseDto;
 import com.daimler.data.dto.GitHubWorkflowRunDto;
 import com.daimler.data.dto.GitLatestCommitIdDto;
 import com.daimler.data.dto.GitRunIdDetailsDto;
+import com.daimler.data.dto.GitWebHookDto;
 import com.daimler.data.dto.WorkbenchManageDto;
  import com.daimler.data.dto.WorkbenchManageInputDto;
  import com.daimler.data.dto.solution.ChangeLogVO;
  import com.daimler.data.dto.userinfo.UsersCollection;
+ import com.daimler.data.dto.CodespaceResourceExemptionDto;
  import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.CloudServiceProviderEnum;
  import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.RecipeIdEnum;
  import com.daimler.data.dto.workspace.CodeServerUserGroupByIdVO;
@@ -117,7 +126,8 @@ import com.daimler.data.dto.WorkbenchManageDto;
 import com.daimler.data.dto.workspace.GitJobRunIdStatusVO;
 import com.daimler.data.dto.workspace.GitJobStatusVO;
 import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
- import com.daimler.data.dto.workspace.ResourceVO;
+import com.daimler.data.dto.workspace.ManageDeployRequestDto;
+import com.daimler.data.dto.workspace.ResourceVO;
  import com.daimler.data.dto.workspace.UpdateUserGroupRequestVO;
  import com.daimler.data.dto.workspace.UserInfoVO;
  import com.daimler.data.dto.workspace.WorkspacePluginStatusVO;
@@ -127,6 +137,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
  import com.daimler.data.util.CommonUtils;
  import com.daimler.data.util.ConstantsUtility;
  import com.daimler.dna.notifications.common.producer.KafkaProducerService;
+ import com.daimler.data.dto.workspace.admin.CodespaceResourceExemptionVO;
  import com.fasterxml.jackson.databind.JsonNode;
  import com.fasterxml.jackson.databind.ObjectMapper;
  import com.daimler.data.db.json.DeploymentAudit;
@@ -136,6 +147,18 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
  @Slf4j
  @SuppressWarnings(value = "unused")
  public class BaseWorkspaceService implements WorkspaceService {
+
+	public static class PendingDeployment {
+		private boolean required;
+		private String userId;
+		private String workspaceId;
+		private String environment;
+		private String branch;
+		private String version;
+		private String deployType;
+		private boolean isPrivateRecipe;
+		private Boolean keepImage;
+	}
  
 	 @Value("${codeServer.env.ref}")
 	 private String codeServerEnvRef;
@@ -166,6 +189,9 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
     
 	 @Value("${codeServer.git.ghe.pat}")
      private String ghePat;
+
+	 @Value("${workspace.git-job.stale-threshold-minutes}")
+	 private int staleThresholdMinutes;
 
 	 @Value("${codeServer.git.pat}")
 	 private String gitPat;
@@ -208,6 +234,9 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
  
 	 @Autowired
 	 private WorkspaceAssembler workspaceAssembler;
+	 @Autowired
+	 @Lazy
+	 private WorkspaceService self;
 	 @Autowired
 	 private WorkspaceCustomRepository workspaceCustomRepository;
 	 @Autowired
@@ -258,6 +287,12 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 	 @Autowired
 	 private WorkspaceCustomBuildDeployRepo buildDeployCustomRepo;
 
+	 @Autowired
+	 private ArgoCdService argoCdService;
+
+	 @Autowired
+	 private DeploymentStatusMonitorJob deploymentStatusMonitorJob;
+
 	 @Value("${codeServer.build.retainedlimit}")
      private String retainedBuildLimitValue;
 
@@ -268,9 +303,23 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 	 public BaseWorkspaceService() {
 		 super();
 	 }
+
+	 private boolean isLastWorkspaceForProject(String projectName, String currentWorkspaceId) {
+		 List<String> workspaceIds = workspaceCustomRepository.getWorkspaceIdsByProjectName(projectName);
+		 if (workspaceIds == null || workspaceIds.isEmpty()) {
+			 return true;
+		 }
+		 for (String workspaceId : workspaceIds) {
+			 if (workspaceId != null
+					 && (currentWorkspaceId == null || !workspaceId.equalsIgnoreCase(currentWorkspaceId))) {
+				 return false;
+			 }
+		 }
+		 return true;
+	 }
   
 	 @Override
-	 @Transactional
+	 @Transactional(isolation = Isolation.SERIALIZABLE)
 	 public GenericMessage deleteById(String userId, String id) {
 		 // 1. undeploy if deployed and id is project owner id
 		 // 4. update all workspaces under this project
@@ -404,7 +453,8 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 
 			 //update status as deleted in logs
 		 
-		 	if(buildDeployNsql != null){
+			if(buildDeployNsql != null && isLastWorkspaceForProject(
+					entity.getData().getProjectDetails().getProjectName(), entity.getData().getWorkspaceId())){
 				String projectName = entity.getData().getProjectDetails().getProjectName();
 				
 				if(buildDeployNsql.getData().getIntBuildAuditLogs() != null){
@@ -425,6 +475,9 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 
 				buildDeployNsql.getData().setStatus("DELETED");
 				buildDeployRepo.save(buildDeployNsql);
+			} else if (buildDeployNsql != null) {
+				log.info("Retaining build/deploy record because other workspaces still exist for project {}",
+						entity.getData().getProjectDetails().getProjectName());
 		 	}
 		 }
   
@@ -524,7 +577,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 
 			//update status as deleted in logs
 		 
-			if(buildDeployNsql != null){
+			if(buildDeployNsql != null && isLastWorkspaceForProject(projectName, entity.getData().getWorkspaceId())){
 				
 				buildDeployNsql.getData().getIntBuildAuditLogs().forEach( i ->{
 					if(!i.isImageDeleted()){
@@ -540,6 +593,9 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 
 				buildDeployNsql.getData().setStatus("DELETED");
 				buildDeployRepo.save(buildDeployNsql);
+			} else if (buildDeployNsql != null) {
+				log.info("Retaining build/deploy record because other workspaces still exist for project {}",
+						projectName);
 		 	}
 		 }
 
@@ -667,11 +723,8 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 				repoName = vo.getProjectDetails().getRecipeDetails().getRepodetails();
 			}
 			String pathCheckout = "";
-			boolean isWorkspaceMigratedToGHE = false;
 			String repoDetails = vo.getProjectDetails().getRecipeDetails().getRepodetails();
-			if (repoDetails != null && repoDetails.contains("ghe.com")) {
-				isWorkspaceMigratedToGHE = true;
-			}
+			boolean isWorkspaceMigratedToGHE = resolveWorkspaceMigratedToGHE(vo, repoDetails);
 			if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")
 					&& !vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
 							.startsWith("private")
@@ -707,19 +760,13 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 		   }
 		   if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().equalsIgnoreCase("default") && 
 				!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")) {
-				String gitValidationUrl = (repoDetails != null && repoDetails.contains("ghe.com")) 
+				String gitValidationUrl = isWorkspaceMigratedToGHE
 					? gheBaseUri 
 					: gitBaseUri;
-				HttpStatus validateUserPatstatus = gitClient.validateGitPat(collabPid, pat, gitValidationUrl);
-				if (!validateUserPatstatus.is2xxSuccessful()) {
-					MessageDescription errMsg;
-					if (validateUserPatstatus == HttpStatus.FORBIDDEN) {
-						errMsg = new MessageDescription(
-								"PAT is valid but SSO is not configured for " + orgName + ". Please authorize SSO for your Personal Access Token.");
-					} else {
-						errMsg = new MessageDescription(
-								"Invalid Git Personal Access Token provided. Please verify and retry.");
-					}
+				GitClient.GitPatValidationResult validation =
+						gitClient.validateGitPat(collabPid, pat, gitValidationUrl);
+				if (!validation.isSuccessful()) {
+					MessageDescription errMsg = getGitPatValidationError(validation, orgName);
 					errors.add(errMsg);
 					responseVO.setErrors(errors);
 					return responseVO;
@@ -737,7 +784,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 				}
 			}
 			if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private")) {
-				if (repoDetails == null || !repoDetails.contains("ghe.com")) {
+				if (!isWorkspaceMigratedToGHE) {
 					HttpStatus addAdminAccessToGitUser = gitClient.addAdminAccessToRepo(entity.getData().getWorkspaceOwner().getGitUserName(),
 							repoName);
 					if (!addAdminAccessToGitUser.is2xxSuccessful()) {
@@ -843,11 +890,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 			// entity.getData().setStatus(ConstantsUtility.CREATEREQUESTEDSTATE);
 			entity.getData().setStatus(ConstantsUtility.CREATEDSTATE);//added
 			
-			if (repoDetails != null && repoDetails.contains("ghe.com")) {
-				entity.getData().setIsWorkspaceMigratedToGHE(true);
-			} else {
-				entity.getData().setIsWorkspaceMigratedToGHE(false);
-			}
+			entity.getData().setIsWorkspaceMigratedToGHE(isWorkspaceMigratedToGHE);
 			
 			String recipeId = vo.getProjectDetails().getRecipeDetails().getRecipeId().toString();
 			String workspaceUrl = this.getWorkspaceUrl(recipeId,ownerwsid,workspaceOwner.getId(),vo.getProjectDetails().getRecipeDetails().getCloudServiceProvider().toString());
@@ -892,11 +935,8 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 				 repoName = vo.getProjectDetails().getRecipeDetails().getRepodetails();
 			 }
 			 String pathCheckout = "";
-			 boolean isWorkspaceMigratedToGHE = false;
 			 String repoDetails = vo.getProjectDetails().getRecipeDetails().getRepodetails();
-			 if (repoDetails != null && repoDetails.contains("ghe.com")) {
-				 isWorkspaceMigratedToGHE = true;
-			 }
+			 boolean isWorkspaceMigratedToGHE = resolveWorkspaceMigratedToGHE(vo, repoDetails);
 			 if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")
 					 && !vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
 							 .startsWith("private")
@@ -932,22 +972,16 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 			}
 			if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().equalsIgnoreCase("default") && 
 				 !vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")) {
-				 String gitValidationUrl = (repoDetails != null && repoDetails.contains("ghe.com")) 
+				 String gitValidationUrl = isWorkspaceMigratedToGHE
 						 ? gheBaseUri 
 						 : gitBaseUri;
-				 HttpStatus validateUserPatstatus = gitClient.validateGitPat(entity.getData().getGitUserName(), pat, gitValidationUrl);
-				 if (!validateUserPatstatus.is2xxSuccessful()) {
-					 MessageDescription errMsg;
-					 if (validateUserPatstatus == HttpStatus.FORBIDDEN) {
-						errMsg = new MessageDescription(
-								"PAT is valid but SSO is not configured for " + orgName + ". Please authorize SSO for your Personal Access Token.");
-					 } else {
-						errMsg = new MessageDescription(
-								"Invalid Git Personal Access Token provided. Please verify and retry.");
-					 }
-					 errors.add(errMsg);
-					 responseVO.setErrors(errors);
-					 return responseVO;
+					GitClient.GitPatValidationResult validation =
+							gitClient.validateGitPat(entity.getData().getGitUserName(), pat, gitValidationUrl);
+					if (!validation.isSuccessful()) {
+						MessageDescription errMsg = getGitPatValidationError(validation, orgName);
+						errors.add(errMsg);
+						responseVO.setErrors(errors);
+						return responseVO;
 				 }
 			 }
 			 else {
@@ -962,7 +996,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 				 }
 			 }
 			 if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private")) {
-				 if (repoDetails == null || !repoDetails.contains("ghe.com")) {
+				 if (!isWorkspaceMigratedToGHE) {
 					 HttpStatus addAdminAccessToGitUser = gitClient.addAdminAccessToRepo(entity.getData().getWorkspaceOwner().getGitUserName(),
 							 repoName);
 					 if (!addAdminAccessToGitUser.is2xxSuccessful()) {
@@ -1071,12 +1105,9 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 			 entity.getData().setIntiatedOn(isoFormat.parse(isoFormat.format(new Date())));
 			 // entity.getData().setStatus(ConstantsUtility.CREATEREQUESTEDSTATE);
 			 entity.getData().setStatus(ConstantsUtility.CREATEDSTATE);//added
+			 entity.getData().setAutoDeploy(vo.isAutoDeploy());
 			 
-			 if (repoDetails != null && repoDetails.contains("ghe.com")) {
-				 entity.getData().setIsWorkspaceMigratedToGHE(true);
-			 } else {
-				 entity.getData().setIsWorkspaceMigratedToGHE(false);
-			 }
+			 entity.getData().setIsWorkspaceMigratedToGHE(isWorkspaceMigratedToGHE);
 			 
 			 String recipeId = vo.getProjectDetails().getRecipeDetails().getRecipeId().toString();
 			 String workspaceUrl = this.getWorkspaceUrl(recipeId,ownerwsid,workspaceOwner.getId(),ConstantsUtility.DHC_CAAS_AWS);
@@ -1098,7 +1129,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 	 }
 
 	 @Override
-	 @Transactional
+	 @Transactional(isolation = Isolation.SERIALIZABLE)
 	 public InitializeWorkspaceResponseVO createWorkspace(CodeServerWorkspaceVO vo, String pat) {
 		CreatedByVO currentUser = this.userStore.getVO();
 		InitializeWorkspaceResponseVO responseVO = new InitializeWorkspaceResponseVO();
@@ -1116,7 +1147,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 			 Map<String,Boolean> gitUsers = new HashMap<>();
 			 UserInfoVO owner = vo.getProjectDetails().getProjectOwner();
 		 	 String repoDetails = vo.getProjectDetails().getRecipeDetails().getRepodetails();
-			 boolean isWorkspaceMigratedToGHE = (repoDetails != null && repoDetails.contains("ghe.com"));
+			 boolean isWorkspaceMigratedToGHE = resolveWorkspaceMigratedToGHE(vo, repoDetails);
 			 log.info("Creating workspace with repo: {} - isWorkspaceMigratedToGHE: {} (will use {} server)", 
 			 		repoDetails, isWorkspaceMigratedToGHE, isWorkspaceMigratedToGHE ? "GHE" : "git.i");
 			 String repoName = vo.getProjectDetails().getGitRepoName();
@@ -1132,19 +1163,13 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 					 String gitValidationUrl = isWorkspaceMigratedToGHE
 							 ? gheBaseUri 
 							 : gitBaseUri;
-					 HttpStatus validateUserPatstatus = gitClient.validateGitPat(owner.getGitUserName(), pat, gitValidationUrl);
-					 if (!validateUserPatstatus.is2xxSuccessful()) {
-						 MessageDescription errMsg;
-						 if (validateUserPatstatus == HttpStatus.FORBIDDEN) {
-							errMsg = new MessageDescription(
-									"PAT is valid but SSO is not configured for " + orgName + ". Please authorize SSO for your Personal Access Token.");
-						 } else {
-							errMsg = new MessageDescription(
-									"Invalid GitHub Personal Access Token provided. Please verify and retry.");
-						 }
-						 errors.add(errMsg);
-						 responseVO.setErrors(errors);
-						 return responseVO;
+						GitClient.GitPatValidationResult validation =
+								gitClient.validateGitPat(owner.getGitUserName(), pat, gitValidationUrl);
+						if (!validation.isSuccessful()) {
+							MessageDescription errMsg = getGitPatValidationError(validation, orgName);
+							errors.add(errMsg);
+							responseVO.setErrors(errors);
+							return responseVO;
 					 }
 				 }
  
@@ -1430,12 +1455,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 			 //  ownerEntity.getData().setStatus(ConstantsUtility.CREATEREQUESTEDSTATE);
 			 ownerEntity.getData().setStatus(ConstantsUtility.CREATEDSTATE);//added
 			 
-			 String repoDetailsCreate = vo.getProjectDetails().getRecipeDetails().getRepodetails(); 
-			 if (repoDetailsCreate != null && repoDetailsCreate.contains("ghe.com")) { 
-				 ownerEntity.getData().setIsWorkspaceMigratedToGHE(true); 
-			 } else {
-				 ownerEntity.getData().setIsWorkspaceMigratedToGHE(false);
-			 }
+			 ownerEntity.getData().setIsWorkspaceMigratedToGHE(isWorkspaceMigratedToGHE);
 			 
 			 String recipeId = vo.getProjectDetails().getRecipeDetails().getRecipeId().toString();
 			 String workspaceUrl = this.getWorkspaceUrl(recipeId,ownerwsid,projectOwnerId, vo.getProjectDetails().getRecipeDetails().getCloudServiceProvider().toString());
@@ -1485,13 +1505,17 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 						Boolean isGHE = vo.getProjectDetails().getRecipeDetails().getRepodetails().contains("ghe.com");
 						status = gitClient.isUserCollaborator(orgName, collaborator.getId(), repoName, isGHE);
 						if(!status.is2xxSuccessful()) {
-							log.info("Collaborator {} Addition failed for recipe {}  ",collaborator.getId(),vo.getProjectDetails().getRecipeDetails().getRecipeId());
-							errors.add(new MessageDescription("Cannot add User "+collaborator.getId()+" as collaborator because the user is  not a collaborator to the private repo "+repoName+" add the user to the repo and try again"));
-							responseVO.setErrors(errors);
-							responseVO.setWarnings(new ArrayList<>());
-							responseVO.setSuccess("FAILED");
-							responseVO.setData(null);
-							return responseVO;
+							HttpStatus addStatus = gitClient.addUserToRepo(collaborator.getId(), repoName, orgName, Boolean.TRUE.equals(isGHE));
+							if(!addStatus.is2xxSuccessful()) {
+								log.info("Collaborator {} Addition failed for recipe {} with status {}", collaborator.getId(), vo.getProjectDetails().getRecipeDetails().getRecipeId(), addStatus);
+								errors.add(new MessageDescription("Cannot add User "+collaborator.getId()+" as collaborator to the private repo "+repoName+", please add the user to the repo and try again"));
+								responseVO.setErrors(errors);
+								responseVO.setWarnings(new ArrayList<>());
+								responseVO.setSuccess("FAILED");
+								responseVO.setData(null);
+								return responseVO;
+							}
+							log.info("Added user {} as collaborator to private repo {}/{} with status {}", collaborator.getId(), orgName, repoName, addStatus);
 						}
 					}
 					ownerCollab.add(workspaceAssembler.toUserInfo(collaborator));
@@ -1506,6 +1530,8 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 					 collabData.setProjectDetails(ownerEntity.getData().getProjectDetails());
 					 collabData.setStatus(ConstantsUtility.COLLABREQUESTEDSTATE);
 					 collabData.setActiveInGroup(Boolean.FALSE);
+					 collabData.setIsWorkspaceMigratedToGHE(ownerEntity.getData().getIsWorkspaceMigratedToGHE());
+					 collabData.setIsWorkspaceMigrated(ownerEntity.getData().getIsWorkspaceMigrated());
 					 Long collabWsSeqId = jpaRepo.getNextWorkspaceSeqId();
 					 String collabWsId = ConstantsUtility.WORKSPACEPREFIX + String.valueOf(collabWsSeqId);
 					 collabData.setWorkspaceId(collabWsId);
@@ -1627,15 +1653,280 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
   
 	 @Override
 	 public CodeServerWorkspaceVO getById(String userId, String id) {
-		CodeServerWorkspaceNsql entity = new CodeServerWorkspaceNsql();
-		 if(technicalId.equalsIgnoreCase(userId)){
-			 entity = workspaceCustomRepository.findByWorkspaceId(id);
-			}
-		 else{
-		  entity = workspaceCustomRepository.findById(userId, id);
-		 }
-		 return workspaceAssembler.toVo(entity);
+		 return getById(userId, id, false);
 	 }
+
+	 @Transactional
+	 @Override
+	 public CodeServerWorkspaceVO getById(String userId, String id, boolean refreshTriggeredByUser) {
+		log.info("getById - ENTRY: userId={}, id={}, refreshTriggeredByUser={}", userId, id, refreshTriggeredByUser);
+			CodeServerWorkspaceNsql entity = new CodeServerWorkspaceNsql();
+			if (technicalId.equalsIgnoreCase(userId)) {
+				entity = workspaceCustomRepository.findByWorkspaceId(id);
+				log.info("getById - lookup by workspaceId (technical user) for id={}", id);
+			} else {
+				entity = workspaceCustomRepository.findById(userId, id);
+				log.info("getById - lookup by userId+id: userId={}, id={}", userId, id);
+			}
+			// Status reconciliation (ArgoCD, GitHub Actions, backfill) is handled
+			// by DeploymentStatusMonitorJob which runs every 20s. Keeping getById
+			// as a pure DB read avoids slow synchronous HTTP calls to ArgoCD/GitHub
+			// on every card refresh.
+
+			// If status is BUILD_REQUESTED and has a gitJobRunId, check if it's stale and
+			// fetch latest from GitHub.
+			// Note: DEPLOY_REQUESTED is NOT handled here — deployment status is managed by
+			// ArgoCD.
+			// This reconciliation only runs when explicitly triggered by user refresh
+			// (refreshTriggeredByUser=true).
+			// Auto-poll requests (every 20s) skip this entirely and return DB state only.
+			if (refreshTriggeredByUser && entity != null && entity.getData() != null
+					&& entity.getData().getProjectDetails() != null
+					&& entity.getData().getProjectDetails().getLastBuildOrDeployedStatus() != null) {
+
+				String currentStatus = entity.getData().getProjectDetails().getLastBuildOrDeployedStatus();
+				boolean isBuildRequested = "BUILD_REQUESTED".equalsIgnoreCase(currentStatus);
+
+				log.info("getById - User-triggered refresh: project={}, status={}, isBuildRequested={}",
+						entity.getData().getProjectDetails().getProjectName(), currentStatus, isBuildRequested);
+
+				if (isBuildRequested) {
+					String projectName = entity.getData().getProjectDetails().getProjectName();
+					String environment = entity.getData().getProjectDetails().getLastBuildOrDeployedEnv();
+					CodeServerBuildDetails buildDetails = "int".equalsIgnoreCase(environment)
+							? entity.getData().getProjectDetails().getIntBuildDetails()
+							: entity.getData().getProjectDetails().getProdBuildDetails();
+					// measure from the env-specific build start (lastBuildOn), NOT the
+					// shared
+					// project-level lastBuildOrDeployedOn (which also reflects deploys / the other
+					// env).
+					log.info("getById - entering BUILD_REQUESTED reconciliation for project={}", projectName);
+					Date requestedOn = (buildDetails != null && buildDetails.getLastBuildOn() != null)
+							? buildDetails.getLastBuildOn()
+							: entity.getData().getProjectDetails().getLastBuildOrDeployedOn();
+					if (requestedOn != null) {
+						long minutesSinceRequest = Duration.between(requestedOn.toInstant(), Instant.now()).toMinutes();
+						log.info(
+								"getById - project={}, status={}, env={}, minutesSinceRequest={}, staleThreshold={}min",
+								projectName, currentStatus, environment, minutesSinceRequest, staleThresholdMinutes);
+
+						if (minutesSinceRequest >= staleThresholdMinutes) {
+							log.info("getById - Stale threshold exceeded for project={}, proceeding to call GitHub API",
+									entity.getData().getProjectDetails().getProjectName());
+							// Determine if gitJobRunId exists for the build
+							String gitJobRunId = buildDetails != null ? buildDetails.getGitjobRunID() : null;
+							if (gitJobRunId != null && !gitJobRunId.isBlank()) {
+								log.info("getById - Fetching latest status from GitHub for project={}, runId={}",
+										entity.getData().getProjectDetails().getProjectName(), gitJobRunId);
+
+								GitHubWorkflowJobsResponseDto.Job buildDeployJob = gitClient
+										.getBuildDeployJob(gitJobRunId);
+								if (buildDeployJob != null && "completed".equalsIgnoreCase(buildDeployJob.getStatus())
+										&& buildDeployJob.getConclusion() != null) {
+									String finalStatus = resolveFinalStatus(currentStatus,
+											buildDeployJob.getConclusion());
+
+									log.info(
+											"getById - Build/Deploy job completed for project={}, conclusion={}, resolvedStatus={}",
+											projectName, buildDeployJob.getConclusion(), finalStatus);
+
+									try {
+										SimpleDateFormat isoFormat = new SimpleDateFormat(
+												"yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
+										Date now = isoFormat.parse(isoFormat.format(new Date()));
+										Date completionTime = resolveWorkflowCompletionTime(buildDeployJob, now);
+
+										CodeServerBuildDetails resolvedBuildDetails = "int"
+												.equalsIgnoreCase(environment)
+														? entity.getData().getProjectDetails().getIntBuildDetails()
+														: entity.getData().getProjectDetails().getProdBuildDetails();
+										CodeServerDeploymentDetails deploymentDetails = "int"
+												.equalsIgnoreCase(environment)
+														? entity.getData().getProjectDetails().getIntDeploymentDetails()
+														: entity.getData().getProjectDetails()
+																.getProdDeploymentDetails();
+
+										// Update workspace entity status
+										entity.getData().getProjectDetails().setLastBuildOrDeployedStatus(finalStatus);
+										entity.getData().getProjectDetails().setLastBuildOrDeployedOn(completionTime);
+
+										Boolean keepBuildImage = false;
+
+										if ("BUILD_SUCCESS".equalsIgnoreCase(finalStatus)
+												|| "BUILD_FAILED".equalsIgnoreCase(finalStatus)) {
+											resolvedBuildDetails.setLastBuildStatus(finalStatus);
+											resolvedBuildDetails.setLastBuildOn(completionTime);
+											resolvedBuildDetails.setLastBuildBy(entity.getData().getWorkspaceOwner());
+											resolvedBuildDetails.setGitjobRunID(gitJobRunId);
+											resolvedBuildDetails.setLastBuildFailureReason(null);   // clear stale BUILD_TIMEOUT on a real GitHub result
+											workspaceCustomRepository.updateBuildDetails(projectName, environment,
+													resolvedBuildDetails);
+										} else if ("DEPLOYED".equalsIgnoreCase(finalStatus)
+												|| "DEPLOYMENT_FAILED".equalsIgnoreCase(finalStatus)) {
+											deploymentDetails.setLastDeploymentStatus(finalStatus);
+											deploymentDetails.setGitjobRunID(gitJobRunId);
+											if ("DEPLOYED".equalsIgnoreCase(finalStatus)) {
+												deploymentDetails.setLastDeployedOn(completionTime);
+												deploymentDetails
+														.setLastDeployedBy(entity.getData().getWorkspaceOwner());
+											}
+											workspaceCustomRepository.updateDeploymentDetails(projectName, environment,
+													deploymentDetails, finalStatus);
+										}
+
+										// Update build/deploy audit logs
+										CodeServerBuildDeployNsql buildDeployEntity = buildDeployCustomRepo
+												.findByProjectName(projectName);
+										if (buildDeployEntity != null) {
+											CodeServerBuildDeploy buildDeployData = buildDeployEntity.getData();
+											if ("BUILD_SUCCESS".equalsIgnoreCase(finalStatus)
+													|| "BUILD_FAILED".equalsIgnoreCase(finalStatus)) {
+														List<BuildAudit> envLogs = "int".equalsIgnoreCase(environment)
+														? buildDeployData.getIntBuildAuditLogs()
+														: buildDeployData.getProdBuildAuditLogs();
+												BuildAudit auditEntry = findAuditByVersion(envLogs,
+														resolvedBuildDetails.getVersion());
+												if (auditEntry != null) {
+													auditEntry.setBuildOn(completionTime);
+													auditEntry.setBuildStatus(finalStatus);
+													auditEntry.setFailureReason(null);
+													keepBuildImage = auditEntry.isKeepBuildImage();
+												}
+											} else if ("DEPLOYED".equalsIgnoreCase(finalStatus)
+													|| "DEPLOYMENT_FAILED".equalsIgnoreCase(finalStatus)) {
+												if ("int".equalsIgnoreCase(environment)
+														&& buildDeployData.getIntDeploymentAuditLogs() != null
+														&& !buildDeployData.getIntDeploymentAuditLogs().isEmpty()) {
+													int lastIndex = buildDeployData.getIntDeploymentAuditLogs().size()
+															- 1;
+													buildDeployData.getIntDeploymentAuditLogs().get(lastIndex)
+															.setDeploymentStatus(finalStatus);
+													if ("DEPLOYED".equalsIgnoreCase(finalStatus)) {
+														buildDeployData.getIntDeploymentAuditLogs().get(lastIndex)
+																.setDeployedOn(completionTime);
+													}
+												} else if (buildDeployData.getProdDeploymentAuditLogs() != null
+														&& !buildDeployData.getProdDeploymentAuditLogs().isEmpty()) {
+													int lastIndex = buildDeployData.getProdDeploymentAuditLogs().size()
+															- 1;
+													buildDeployData.getProdDeploymentAuditLogs().get(lastIndex)
+															.setDeploymentStatus(finalStatus);
+													if ("DEPLOYED".equalsIgnoreCase(finalStatus)) {
+														buildDeployData.getProdDeploymentAuditLogs().get(lastIndex)
+																.setDeployedOn(completionTime);
+													}
+												}
+											}
+											buildDeployEntity.setData(buildDeployData);
+											buildDeployRepo.save(buildDeployEntity);
+										}
+
+										log.info(
+												"getById - Stale auto-correct: updated status for project={}, finalStatus={}, env={}",
+												projectName, finalStatus, environment);
+
+										// Auto-trigger deploy if buildAndDeploy and build succeeded
+										if ("BUILD_SUCCESS".equalsIgnoreCase(finalStatus)
+												&& resolvedBuildDetails.getLastBuildType() != null
+												&& resolvedBuildDetails.getLastBuildType()
+														.equalsIgnoreCase("buildAndDeploy")) {
+											boolean isPrivateRecipe = entity.getData().getProjectDetails()
+													.getRecipeDetails().getRecipeId() != null
+													&& entity.getData().getProjectDetails().getRecipeDetails()
+															.getRecipeId().toString().toLowerCase()
+															.startsWith("private");
+											String branch = resolvedBuildDetails.getLastBuildBranch();
+											String version = resolvedBuildDetails.getVersion();
+											log.info(
+													"getById - Stale auto-correct: auto-triggering deploy for project={}, branch={}, version={}, env={}",
+													projectName, branch, version, environment);
+											this.deployWorkspace(userId, entity.getId(), environment, branch,
+													isPrivateRecipe, version, "buildAndDeploy", keepBuildImage);
+										}
+
+									} catch (Exception e) {
+										log.error("getById - Stale auto-correct failed for project={}, error={}",
+												projectName, e.getMessage(), e);
+									}
+								} else if (buildDeployJob == null) {
+									log.warn("getById - Build/Deploy job not found for project={}, runId={}",
+											entity.getData().getProjectDetails().getProjectName(), gitJobRunId);
+								} else {
+									log.info(
+											"getById - Build/Deploy job not completed yet for project={}, status={}, conclusion={}",
+											entity.getData().getProjectDetails().getProjectName(),
+											buildDeployJob.getStatus(), buildDeployJob.getConclusion());
+								}
+							} else {
+								// No runId generated within threshold -> time the build out.
+								log.warn("getById - No gitJobRunId within {} min for project={}, env={}. Marking BUILD_FAILED (timeout).",
+										staleThresholdMinutes, projectName, environment);
+								try {
+									SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
+									Date now = isoFormat.parse(isoFormat.format(new Date()));
+									entity.getData().getProjectDetails().setLastBuildOrDeployedStatus("BUILD_FAILED");
+									entity.getData().getProjectDetails().setLastBuildOrDeployedOn(now);
+									if (buildDetails != null) {
+										buildDetails.setLastBuildStatus("BUILD_FAILED");
+										buildDetails.setLastBuildFailureReason("BUILD_TIMEOUT");
+										buildDetails.setLastBuildOn(now);
+									}
+									if (buildDetails != null) {
+										workspaceCustomRepository.updateBuildDetails(projectName, environment,
+												buildDetails);
+									}
+									CodeServerBuildDeployNsql buildDeployEntity = buildDeployCustomRepo.findByProjectName(projectName);
+									if (buildDeployEntity != null) {
+										CodeServerBuildDeploy buildDeployData = buildDeployEntity.getData();
+										List<BuildAudit> auditLogs = "int".equalsIgnoreCase(environment)
+												? buildDeployData.getIntBuildAuditLogs()
+												: buildDeployData.getProdBuildAuditLogs();
+										BuildAudit last = findAuditByVersion(auditLogs,
+												buildDetails != null ? buildDetails.getVersion() : null);
+										if (last != null) {
+											last.setBuildStatus("BUILD_FAILED");
+											last.setBuildOn(now);
+											last.setFailureReason("BUILD_TIMEOUT");
+										}
+										buildDeployEntity.setData(buildDeployData);
+										buildDeployRepo.save(buildDeployEntity);
+									}
+									log.info("getById - Timeout auto-fail applied for project={}, env={}", projectName, environment);
+								} catch (Exception e) {
+									log.error("getById - Timeout auto-fail failed for project={}: {}", projectName, e.getMessage(), e);
+								}
+							}
+						} else {
+							log.info(
+									"getById - Stale threshold NOT exceeded for project={}, minutesSinceRequest={}, threshold={}min. Skipping.",
+									projectName, minutesSinceRequest, staleThresholdMinutes);
+						}
+					}
+				}
+			}
+
+			if (refreshTriggeredByUser && entity != null && entity.getData() != null
+					&& entity.getData().getProjectDetails() != null) {
+				boolean deploymentReconciled = deploymentStatusMonitorJob
+						.reconcileDeploymentOnDemand(entity, "int");
+				deploymentReconciled |= deploymentStatusMonitorJob
+						.reconcileDeploymentOnDemand(entity, "prod");
+				if (deploymentReconciled) {
+					CodeServerWorkspaceNsql refreshedEntity = technicalId.equalsIgnoreCase(userId)
+							? workspaceCustomRepository.findByWorkspaceId(id)
+							: workspaceCustomRepository.findById(userId, id);
+					if (refreshedEntity != null) {
+						entity = refreshedEntity;
+					} else {
+						log.warn("getById - Re-read after deployment reconciliation returned no row for id={}", id);
+					}
+				}
+			}
+
+			return workspaceAssembler.toVo(entity);
+		}
+	 
+
   
 	 @Override
 	 public CodeSpaceReadmeVo getCodeSpaceReadmeFile(String id) throws Exception {
@@ -1753,7 +2044,11 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
                  
                  DeploymentAudit auditLog = new DeploymentAudit();
                  auditLog.setTriggeredOn(now);
-                 auditLog.setTriggeredBy(entity.getData().getWorkspaceOwner().getGitUserName());
+					String triggeredByUser = userId;
+					if (userStore.getUserInfo() != null) {
+						triggeredByUser = userStore.getUserInfo().getId();
+					}
+					auditLog.setTriggeredBy(triggeredByUser);
                  auditLog.setBranch(branch);
                  auditLog.setDeploymentStatus("APPROVAL_PENDING");
 				 auditLog.setVersion(version);
@@ -1764,6 +2059,10 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 				 if(optionalBuildDeployentity != null){
 					auditLogEntity = optionalBuildDeployentity;
 					buildDeployLogs =  auditLogEntity.getData();						
+					if(buildDeployLogs.getIntBuildAuditLogs() == null) buildDeployLogs.setIntBuildAuditLogs(new ArrayList<>());
+					if(buildDeployLogs.getProdBuildAuditLogs() == null) buildDeployLogs.setProdBuildAuditLogs(new ArrayList<>());
+					if(buildDeployLogs.getIntDeploymentAuditLogs() == null) buildDeployLogs.setIntDeploymentAuditLogs(new ArrayList<>());
+					if(buildDeployLogs.getProdDeploymentAuditLogs() == null) buildDeployLogs.setProdDeploymentAuditLogs(new ArrayList<>());						
 				 }else{
 					 buildDeployLogs = new CodeServerBuildDeploy();
 					 auditLogEntity = new CodeServerBuildDeployNsql();
@@ -1799,7 +2098,6 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
      }
  
       @Override
-	 @Transactional
 	 	public GenericMessage deployWorkspace(String userId, String id, String environment, String branch,
 				 boolean isprivateRecipe,String version,String deployType, Boolean keepImage) {
 		 GenericMessage responseMessage = new GenericMessage();
@@ -1877,12 +2175,21 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 			 String serviceName = projectName;
 			 String workspaceId = entity.getData().getWorkspaceId();
 
+			 if (!isprivateRecipe && repoName == null) {
+				 repoName = entity.getData().getProjectDetails().getGitRepoName();
+				 log.info("Initialized repoName from entity for project {}: {}", projectName, repoName);
+			 }
 			 
 			 CodeServerDeploymentDetails deploymentDetails = entity.getData().getProjectDetails().getIntDeploymentDetails();
 					 if (!"int".equalsIgnoreCase(environment)) {
 						 deploymentDetails = entity.getData().getProjectDetails().getProdDeploymentDetails();
 					 }
 			 String lastBuildOrDeployStatus = "";
+			 			 if (deploymentDetails.getLastDeployedOn() == null && !Boolean.TRUE.equals(deploymentDetails.getScopedCookiePath())) {
+				 deploymentDetails.setScopedCookiePath(true);
+				 workspaceCustomRepository.updateScopedCookiePath(projectName, environment, true);
+			 }
+			 String kongSetupError = null;
 			 boolean isApiRecipe = deploymentDetails.getDeploymentType() == ConstantsUtility.UI ? false : true;
 			 boolean secureWithIAMRequired = (deploymentDetails.getSecureWithIAMRequired() != null) ? deploymentDetails.getSecureWithIAMRequired() : false;
 			 boolean secureWithDnaRequired = (deploymentDetails.getSecureWithDnaRequired() != null) ? deploymentDetails.getSecureWithDnaRequired() : false;
@@ -1946,7 +2253,12 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 				responseMessage = this.buildWorkSpace(userId, id, branch, buildRequestDto, isprivateRecipe, environment,lastBuildType);
 				if(responseMessage.getSuccess().equalsIgnoreCase("SUCCESS")){
 					if(deploymentDetails.getDeploymentUrl() == null || deploymentDetails.getDeploymentUrl().isEmpty()){
-						authenticatorClient.callingKongApis(workspaceId, projectName, environment, isApiRecipe, deploymentDetails.getClientId(), "", deploymentDetails.getRedirectUri(), deploymentDetails.getIgnorePaths(), deploymentDetails.getScope(), deploymentDetails.getOneApiVersionShortName(), isSecuredWithCookie, secureWithIAMRequired, deploymentDetails.getSsoType(), secureWithDnaRequired, false, false, deploymentDetails.getSelectedAliceRoles(), cloudServiceProvider);
+						authenticatorClient.callingKongApis(workspaceId, projectName, environment, isApiRecipe, deploymentDetails.getClientId(), "", deploymentDetails.getRedirectUri(), deploymentDetails.getIgnorePaths(), deploymentDetails.getScope(), deploymentDetails.getOneApiVersionShortName(), isSecuredWithCookie, secureWithIAMRequired, deploymentDetails.getSsoType(), secureWithDnaRequired, false, false, deploymentDetails.getSelectedAliceRoles(), cloudServiceProvider, true);
+						try {
+							createOpenTelemetryPlugin(workspaceId, environment, projectName.toLowerCase() + "-" + environment.toLowerCase());
+						} catch (Exception otelEx) {
+							log.warn("Failed to create OpenTelemetry plugin for workspace {} in {} environment: {}", workspaceId, environment, otelEx.getMessage());
+						}
 					}
 					status = "SUCCESS";
 					lastBuildOrDeployStatus = "BUILD_REQUESTED";
@@ -1990,7 +2302,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 					isValutInjectorEnable = VaultClient.enableVaultInjector(projectName.toLowerCase(), environment);
 				} catch (Exception e) {
 					MessageDescription error = new MessageDescription();
-					error.setMessage("Some error occured during deployment, with exception " + e.getMessage());
+					error.setMessage("Vault service is unavailable. Unable to check vault injector status for deployment. Please try again later or contact admin. (Details: " + e.getMessage() + ")");
 					errors.add(error);
 					responseMessage.setErrors(errors);
 					responseMessage.setWarnings(warnings);
@@ -1999,15 +2311,72 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 				}
 				 String workspaceOwnerWsId = entity.getData().getWorkspaceId();
 				 //String projectOwnerWsId = ownerEntity.getData().getWorkspaceId();
-				 deployJobInputDto.setWsid(workspaceOwnerWsId);
-				 deployJobInputDto.setProjectName(projectName.toLowerCase());
-				 deployJobInputDto.setValutInjectorEnable(isValutInjectorEnable);
-				 deploymentJobDto.setInputs(deployJobInputDto);
-				 deploymentJobDto.setRef(codeServerEnvRef);
-				 GenericMessage jobResponse = client.manageDeployment(deploymentJobDto, gheWorkspaceMigrated);
-				 if (jobResponse != null && "SUCCESS".equalsIgnoreCase(jobResponse.getSuccess())) {
-					 
-					
+                deployJobInputDto.setWsid(workspaceOwnerWsId);
+                deployJobInputDto.setProjectName(projectName.toLowerCase());
+                deployJobInputDto.setValutInjectorEnable(isValutInjectorEnable);
+                deploymentJobDto.setInputs(deployJobInputDto);
+                deploymentJobDto.setRef(codeServerEnvRef);
+                
+                GenericMessage jobResponse = new GenericMessage();
+                jobResponse.setErrors(new ArrayList<>());
+                String argoDeployResult = "failed";
+                String argoErrorMessage = null;
+                String argoToken = null;
+                
+                try {
+                    argoToken = argoCdService.getArgoToken();
+                    if (argoToken != null) {
+                        String gitRepoUrl;
+                        if (isprivateRecipe) {
+                            String freshRepoUrl = entity.getData().getProjectDetails().getRecipeDetails().getRepodetails();
+                            if (freshRepoUrl != null) {
+                                if (freshRepoUrl.endsWith("/")) {
+                                    freshRepoUrl = freshRepoUrl.substring(0, freshRepoUrl.length() - 1);
+                                }
+                                if (!freshRepoUrl.endsWith(".git")) {
+                                    freshRepoUrl = freshRepoUrl + ".git";
+                                }
+                            }
+                            gitRepoUrl = freshRepoUrl;
+                        } else {
+                            if (repoName == null || repoName.isEmpty()) {
+                                throw new Exception("Git repository name is not set for this workspace. Cannot deploy to ArgoCD.");
+                            }
+                            if (gheWorkspaceMigrated) {
+                                gitRepoUrl = codeserverGheOrgUri + gitOrgName + "/" + repoName + ".git";
+                            } else {
+                                gitRepoUrl = codeserverGitOrgUri + gitOrgName + "/" + repoName + ".git";
+                            }
+                        }
+                        
+                        String imageTag = (version != null && !version.isEmpty()) ? version : environment + "-latest";
+                        
+                        log.info("ArgoCD deployment - projectName: {}, gitRepoUrl: {}, imageTag: {}, repoName: {}, gheWorkspaceMigrated: {}, isprivateRecipe: {}", 
+                                 projectName, gitRepoUrl, imageTag, repoName, gheWorkspaceMigrated, isprivateRecipe);
+                        
+                        if (isprivateRecipe) {
+                            try {
+                                log.info("[Private Recipe] Registering repository with ArgoCD: {}", gitRepoUrl);
+                                argoCdService.registerRepository(argoToken, gitRepoUrl, "oauth2", 
+                                    gitRepoUrl.contains("ghe.com") ? argoCdService.getGhePat() : argoCdService.getGitPat());
+                                log.info("[Private Recipe] Repository registered successfully with ArgoCD");
+                            } catch (Exception regEx) {
+                                log.warn("[Private Recipe] Failed to register repository (may already exist): {}", regEx.getMessage());
+                            }
+                        }
+                        
+                        argoDeployResult = argoCdService.createArgoApp(argoToken, projectName.toLowerCase(), workspaceOwner, 
+                                                                        environment, gitRepoUrl, imageTag, isValutInjectorEnable, branch);
+                    } else {
+                        argoErrorMessage = "Failed to get ArgoCD token for deployment";
+                        log.error("Failed to get ArgoCD token for deployment: {}-{}", projectName, environment);
+                    }
+                } catch (Exception e) {
+                    argoErrorMessage = e.getMessage();
+                    log.error("ArgoCD deployment error for {}-{}: {}", projectName, environment, e.getMessage());
+                } 
+                if ("success".equalsIgnoreCase(argoDeployResult)) {
+                    jobResponse.setSuccess("SUCCESS");					
 					 List<DeploymentAudit> auditLogs = new ArrayList<>();
 					CodeServerBuildDeployNsql optionalBuildDeployentity =  buildDeployCustomRepo.findByProjectName(projectName);	
 					if(optionalBuildDeployentity != null){
@@ -2030,7 +2399,11 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 					 else{
 												
 						auditLog.setTriggeredOn(now);
-						auditLog.setTriggeredBy(entity.getData().getWorkspaceOwner().getGitUserName());
+						String triggeredByUser = userId;
+						if (userStore.getUserInfo() != null) {
+							triggeredByUser = userStore.getUserInfo().getId();
+						}
+						auditLog.setTriggeredBy(triggeredByUser);
 						auditLog.setBranch(branch);					
 					 }
 
@@ -2047,10 +2420,10 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 							
 						}
 						if(commitId == null){
-						MessageDescription warning = new MessageDescription();
-						warning.setMessage("Error while adding commit id to deployment audit log");
-					}else{
-						auditLog.setCommitId(commitId.getSha());
+							log.warn("Error while adding commit id to deployment audit log for project {} and branch {}", projectName, branch);
+						}else{
+							auditLog.setCommitId(commitId.getSha());
+						}
 						auditLog.setDeploymentStatus("DEPLOY_REQUESTED");
 						auditLog.setVersion(version);
 						if("APPROVAL_PENDING".equalsIgnoreCase(deploymentDetails.getLastDeploymentStatus())){
@@ -2063,7 +2436,6 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 						}else{
 							auditLogs.add(auditLog);
 						}
-					}
 
 					 CodeServerBuildDeploy buildDeployLogs = null;
 					 CodeServerBuildDeployNsql auditLogEntity = null;
@@ -2088,26 +2460,89 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 					 auditLogEntity.setData(buildDeployLogs);
 					 buildDeployRepo.save(auditLogEntity);
 
-					 if(deployType.equalsIgnoreCase("deploy") && (deploymentDetails.getDeploymentUrl() == null || deploymentDetails.getDeploymentUrl().isEmpty())){
-						 authenticatorClient.callingKongApis(workspaceId, projectName, environment, isApiRecipe, deploymentDetails.getClientId(), "", deploymentDetails.getRedirectUri(), deploymentDetails.getIgnorePaths(), deploymentDetails.getScope(), deploymentDetails.getOneApiVersionShortName(), isSecuredWithCookie, secureWithIAMRequired, deploymentDetails.getSsoType(), secureWithDnaRequired, false, false, deploymentDetails.getSelectedAliceRoles(), cloudServiceProvider);
+				 String kongServiceName = projectName.toLowerCase() + "-" + environment.toLowerCase();
+				 if (!authenticatorClient.isKongServiceAndRouteAvailable(kongServiceName, cloudServiceProvider)) {
+					 log.info("Kong service/route {} missing, creating it for deployment of project {}", kongServiceName, projectName);
+					 authenticatorClient.callingKongApis(workspaceId, projectName, environment, isApiRecipe, deploymentDetails.getClientId(), "", deploymentDetails.getRedirectUri(), deploymentDetails.getIgnorePaths(), deploymentDetails.getScope(), deploymentDetails.getOneApiVersionShortName(), isSecuredWithCookie, secureWithIAMRequired, deploymentDetails.getSsoType(), secureWithDnaRequired, false, false, deploymentDetails.getSelectedAliceRoles(), cloudServiceProvider, true);
+					 try {
+						 createOpenTelemetryPlugin(workspaceId, environment, kongServiceName);
+					 } catch (Exception otelEx) {
+						 log.warn("Failed to create OpenTelemetry plugin for workspace {} in {} environment: {}", workspaceId, environment, otelEx.getMessage());
 					 }
-					
-					// deploymentDetails.setLastDeployedBranch(branch);
-					// deploymentDetails.setLastDeployedVersion(version);	
-					lastBuildOrDeployStatus = "DEPLOY_REQUESTED";				
-					deploymentDetails.setLastDeploymentStatus("DEPLOY_REQUESTED");
-					
-					status = "SUCCESS";
-				 } else {
-					 status = "FAILED";
-					 errors.addAll(jobResponse.getErrors());
+				 }
+				
+				String appName = projectName.toLowerCase() + "-" + environment;
+				
+				String projectRecipe = entity.getData().getProjectDetails().getRecipeDetails().getRecipeId().toString();
+				String pythonRecipeId = RecipeIdEnum.PY_FASTAPI.toString();
+				String quarkusRecipeId = RecipeIdEnum.QUARKUS.toString();
+				String micronautRecipeId = RecipeIdEnum.MICRONAUT.toString();
+				String deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + environment + "/";
+				if (pythonRecipeId.equalsIgnoreCase(projectRecipe)) {
+					deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + environment + "/docs";
+				}
+				if (quarkusRecipeId.equalsIgnoreCase(projectRecipe)) {
+					deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + environment + "/q/swagger-ui";
+				}
+				if (micronautRecipeId.equalsIgnoreCase(projectRecipe)) {
+					deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + environment + "/swagger-ui/index.html";
+				}
+				deploymentDetails.setDeploymentUrl(deploymentUrl);
+				log.info("Setting deployment URL for {}: {} (recipe: {})", appName, deploymentUrl, projectRecipe);
+				
+				String argocdBaseUrl = argoCdService.getArgocdBaseUrl();
+				String argocdAppUrl = argocdBaseUrl + "/applications/" + appName;
+				log.info("ArgoCD application URL: {}", argocdAppUrl);
+				
+			String finalDeployStatus = "DEPLOY_REQUESTED";
+			lastBuildOrDeployStatus = "DEPLOY_REQUESTED";
+			deploymentDetails.setLastDeploymentStatus("DEPLOY_REQUESTED");
+			deploymentDetails.setLastDeploymentError(kongSetupError);
+			deploymentDetails.setLastDeployedVersion(version);
+			deploymentDetails.setLastDeployedBranch(branch);
+			deploymentDetails.setLastDeployedOn(now);
+			workspaceCustomRepository.updateDeploymentDetails(projectName, environment, deploymentDetails,
+					"DEPLOY_REQUESTED");
+				status = "SUCCESS";
+			} else {
+				status = "FAILED";
+				deploymentDetails.setLastDeploymentStatus("DEPLOYMENT_FAILED");
+				deploymentDetails.setLastDeployedVersion(version);
+				deploymentDetails.setLastDeployedBranch(branch);
+				deploymentDetails.setLastDeployedOn(now);
+					 workspaceCustomRepository.updateDeploymentDetails(projectName, environment, deploymentDetails, "DEPLOYMENT_FAILED");
+					 try {
+						 CodeServerBuildDeployNsql auditEntity = buildDeployCustomRepo.findByProjectName(projectName);
+						 if (auditEntity != null) {
+							 List<DeploymentAudit> deployAuditLogs = "int".equalsIgnoreCase(environment)
+								 ? auditEntity.getData().getIntDeploymentAuditLogs()
+								 : auditEntity.getData().getProdDeploymentAuditLogs();
+							 if (deployAuditLogs != null && !deployAuditLogs.isEmpty()) {
+								 DeploymentAudit lastAudit = deployAuditLogs.get(deployAuditLogs.size() - 1);
+								 if ("DEPLOY_REQUESTED".equalsIgnoreCase(lastAudit.getDeploymentStatus())) {
+								 lastAudit.setDeploymentStatus("DEPLOYMENT_FAILED");
+								 auditEntity.setData(auditEntity.getData());
+								 buildDeployRepo.save(auditEntity);
+								 }
+							 }
+						 }
+					 } catch (Exception auditEx) {
+						 log.warn("Failed to update audit log to DEPLOYMENT_FAILED for {}: {}", projectName, auditEx.getMessage());
+					 }
+					 if (argoErrorMessage != null && !argoErrorMessage.isEmpty()) {
+						 MessageDescription error = new MessageDescription();
+						 error.setMessage("Error in deploying code space. " + argoErrorMessage);
+						 errors.add(error);
+					 } else {
+						 errors.addAll(jobResponse.getErrors());
+					 }
 				 }
 			 }
 			 log.info("project name {} updating deployment details to db",serviceName);	
 			 workspaceCustomRepository.updateDeploymentDetails(projectName, environment,deploymentDetails,lastBuildOrDeployStatus);
 			 }
 		 } catch (Exception e) {
-			log.error("Failed while deploying codeserver workspace project with exception : {} ", e.getMessage());
+			log.error("Failed while deploying codeserver workspace project with exception : {} ", e.getMessage(), e);
 			 MessageDescription error = new MessageDescription();
 			 error.setMessage("Failed while deploying codeserver workspace project with exception " + e.getMessage());
 			 errors.add(error);
@@ -2117,7 +2552,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 		 responseMessage.setSuccess(status);
 		 return responseMessage;
 	 }
- 
+
 	 @Override
 	 @Transactional
 	 public GenericMessage deployedAppConfig(String userId, String id, String environment, DeployedAppConfigDto deployedAppConfigDto){
@@ -2181,16 +2616,33 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 				 }
 				 boolean isSecuredWithCookie = false; //disable for now 
 				 String deploymentType = deployedAppConfigDto.isIsApiRecipe() ? ConstantsUtility.API : ConstantsUtility.UI;
-				 authenticatorClient.callingKongApis(workspaceId, projectName, environment, deployedAppConfigDto.isIsApiRecipe(), deployedAppConfigDto.getClientID(), clientSecret, deployedAppConfigDto.getRedirectUri(), deployedAppConfigDto.getIgnorePaths(), deployedAppConfigDto.getScope(), deployedAppConfigDto.getOneApiVersionShortName(), isSecuredWithCookie, secureWithIAMRequired, deployedAppConfigDto.getSsoType().toString(), secureWithDnaRequired, deployedAppConfigDto.isAliceRoleEnabled(), deployedAppConfigDto.isEntitlementPrefixEnabled(), deployedAppConfigDto.getSelectedAliceRoles(), cloudServiceProvider);
+				 String ssoType = deployedAppConfigDto.getSsoType() != null ? deployedAppConfigDto.getSsoType().toString() : null;
+				 GenericMessage kongResponse = authenticatorClient.callingKongApis(workspaceId, projectName, environment, deployedAppConfigDto.isIsApiRecipe(), deployedAppConfigDto.getClientID(), clientSecret, deployedAppConfigDto.getRedirectUri(), deployedAppConfigDto.getIgnorePaths(), deployedAppConfigDto.getScope(), deployedAppConfigDto.getOneApiVersionShortName(), isSecuredWithCookie, secureWithIAMRequired, ssoType, secureWithDnaRequired, deployedAppConfigDto.isAliceRoleEnabled(), deployedAppConfigDto.isEntitlementPrefixEnabled(), deployedAppConfigDto.getSelectedAliceRoles(), cloudServiceProvider);
 				 workspaceCustomRepository.updateDeployedAppConfig(projectName, environmentJsonbName,
 						 secureWithIAMRequired, deployedAppConfigDto.getOneApiVersionShortName(),
 						 isSecuredWithCookie, deploymentType, deployedAppConfigDto.getClientID(),
 						 deployedAppConfigDto.getRedirectUri(), deployedAppConfigDto.getIgnorePaths(),
-						 deployedAppConfigDto.getScope(), deployedAppConfigDto.getSsoType().toString(),
+						 deployedAppConfigDto.getScope(), ssoType,
 						 secureWithDnaRequired, deployedAppConfigDto.isAliceRoleEnabled(),
 						 deployedAppConfigDto.isEntitlementPrefixEnabled(),
 						 deployedAppConfigDto.getSelectedAliceRoles());
+				 boolean kongHasErrors = kongResponse == null
+						 || (kongResponse.getErrors() != null && !kongResponse.getErrors().isEmpty())
+						 || !"SUCCESS".equalsIgnoreCase(kongResponse.getSuccess());
+				 if (kongHasErrors) {
+					 log.error("Kong configuration failed while updating deployed app config for project {} env {}, errors: {}",
+							 projectName, environment, kongResponse != null ? kongResponse.getErrors() : null);
+					 if (kongResponse != null && kongResponse.getErrors() != null && !kongResponse.getErrors().isEmpty()) {
+						 errors.addAll(kongResponse.getErrors());
+					 } else {
+						 MessageDescription error = new MessageDescription();
+						 error.setMessage("Failed while configuring Kong for deployed app config of workspace project.");
+						 errors.add(error);
+					 }
+					 status = "FAILED";
+				 } else {
 					 status = "SUCCESS";
+				 }
 			 }
 			 
 		 } catch (Exception e) {
@@ -2261,6 +2713,10 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 					 deploymentDetails = entity.getData().getProjectDetails().getProdDeploymentDetails();
 					 configPublishedAppId = entity.getData().getProjectDetails().getSecurityConfig().getProduction().getPublished().getAppID();
 				 }
+				 String cloudServiceProvider = ConstantsUtility.DHC_CAAS;
+				 if(Objects.nonNull(deploymentDetails) && Objects.nonNull(deploymentDetails.getDeploymentUrl()) && deploymentDetails.getDeploymentUrl().contains(codeServerBaseUriAws)){
+					 cloudServiceProvider = ConstantsUtility.DHC_CAAS_AWS;
+				 }
 				 if("oidc".equalsIgnoreCase(pluginName) && !Boolean.TRUE.equals(deploymentDetails.getSecureWithIAMRequired() || deploymentDetails.getSecureWithDnaRequired())){
 					 MessageDescription error = new MessageDescription();
 					 error.setMessage("No OIDC plugin found. Please secure with IAM first.");
@@ -2281,14 +2737,14 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 				 }
 				 if("oidc".equalsIgnoreCase(pluginName)){
 					if(!enable && Objects.nonNull(configPublishedAppId)){
-						authenticatorClient.changePluginStatus(projectName.toLowerCase()+"-"+environment, "oidc", enable);
-						authenticatorClient.changePluginStatus(projectName.toLowerCase()+"-"+environment, "apiauthoriser", enable);
+						authenticatorClient.changePluginStatus(projectName.toLowerCase()+"-"+environment, "oidc", enable, cloudServiceProvider);
+						authenticatorClient.changePluginStatus(projectName.toLowerCase()+"-"+environment, "apiauthoriser", enable, cloudServiceProvider);
 				 	} else {
-						authenticatorClient.changePluginStatus(projectName.toLowerCase()+"-"+environment, "oidc", enable);
+						authenticatorClient.changePluginStatus(projectName.toLowerCase()+"-"+environment, "oidc", enable, cloudServiceProvider);
 					}
 				 }
 				 if("apiauthoriser".equalsIgnoreCase(pluginName)){
-					 authenticatorClient.changePluginStatus(projectName.toLowerCase()+"-"+environment, "apiauthoriser", enable);
+					 authenticatorClient.changePluginStatus(projectName.toLowerCase()+"-"+environment, "apiauthoriser", enable, cloudServiceProvider);
 				 }
 				 status = "SUCCESS";
 			 }
@@ -2520,6 +2976,16 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 				 String projectName = entity.getData().getProjectDetails().getProjectName();
   
 				 Boolean isWorkspaceMigratedToGHE = entity.getData().getIsWorkspaceMigratedToGHE();
+				 if (isWorkspaceMigratedToGHE == null) {
+					 CodeServerWorkspaceNsql ownerEntity = workspaceCustomRepository.findbyProjectName(projectOwnerId,
+							 projectName);
+					 if (ownerEntity != null && ownerEntity.getData() != null) {
+						 isWorkspaceMigratedToGHE = ownerEntity.getData().getIsWorkspaceMigratedToGHE();
+					 }
+				 }
+				 if (isWorkspaceMigratedToGHE == null) {
+					 isWorkspaceMigratedToGHE = Boolean.FALSE;
+				 }
 				 log.info("Adding collaborator to workspace - isWorkspaceMigratedToGHE: {}", isWorkspaceMigratedToGHE);
 
 				 UserInfo collaborator = new UserInfo();
@@ -2570,17 +3036,19 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 					Boolean isGHE = gitUrl.contains("ghe.com");
 					status = gitClient.isUserCollaborator(repoOwner, gitUser, repoName, isGHE);
 					if(!status.is2xxSuccessful()) {
-						log.info(
-								"Cannot add User {} as collaborator because the user is  not a collaborator to the private repo {}",
-								userRequestDto.getGitUserName(), repoName);
-						MessageDescription msg = new MessageDescription("Cannot add User "
-								+ userRequestDto.getGitUserName()
-								+ " as collaborator because the user is  not a collaborator to the private repo "
-								+ repoName + " add the user to the repo and try again");
-						errors.add(msg);
-						responseMessage.setSuccess("FAILED");
-						responseMessage.setErrors(errors);
-						return responseMessage;
+						HttpStatus addStatus = gitClient.addUserToRepo(gitUser, repoName, repoOwner, Boolean.TRUE.equals(isGHE));
+						if(!addStatus.is2xxSuccessful()) {
+							log.info("Cannot add User {} as collaborator to the private repo {} with status {}", gitUser, repoName, addStatus);
+							MessageDescription msg = new MessageDescription("Cannot add User "
+									+ gitUser
+									+ " as collaborator to the private repo "
+									+ repoName + ", please add the user to the repo and try again");
+							errors.add(msg);
+							responseMessage.setSuccess("FAILED");
+							responseMessage.setErrors(errors);
+							return responseMessage;
+						}
+						log.info("Added user {} as collaborator to private repo {}/{} with status {}", gitUser, repoOwner, repoName, addStatus);
 					}
 				}
 			}
@@ -2610,7 +3078,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 						 warnings.add(errMsg);
 					 }
 				 }
-				  HttpStatus addAdminAccessToGitUser = gitClient.addAdminAccessToRepo(projectOwnerId, repoName);
+				  HttpStatus addAdminAccessToGitUser = gitClient.addAdminAccessToRepo(projectOwnerId, repoName, isWorkspaceMigratedToGHE);
 				 if(!addAdminAccessToGitUser.is2xxSuccessful())
 				 {
 					 MessageDescription warnMsg = new MessageDescription("Failed while adding " +projectOwnerId
@@ -2627,14 +3095,18 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 					 collabData.setGitUserName(collaborator.getGitUserName());
 					 collabData.setIntiatedOn(null);
 					 collabData.setProjectDetails(entity.getData().getProjectDetails());
+					 collabData.setAutoDeploy(entity.getData().getAutoDeploy());
 					 collabData.setStatus(ConstantsUtility.COLLABREQUESTEDSTATE);
 					 collabData.setActiveInGroup(Boolean.FALSE);
+					 collabData.setIsWorkspaceMigratedToGHE(entity.getData().getIsWorkspaceMigratedToGHE());
+					 collabData.setIsWorkspaceMigrated(entity.getData().getIsWorkspaceMigrated());
 					 Long collabWsSeqId = jpaRepo.getNextWorkspaceSeqId();
 					 String collabWsId = ConstantsUtility.WORKSPACEPREFIX + String.valueOf(collabWsSeqId);
 					 collabData.setWorkspaceId(collabWsId);
 					 UserInfo collabUser = workspaceAssembler.toUserInfo(userRequestDto);
 					 collabData.setWorkspaceOwner(collabUser);
 					 collabData.setWorkspaceUrl("");
+					 collabData.setIsWorkspaceMigratedToGHE(isWorkspaceMigratedToGHE);
 					 collabEntity.setId(null);
 					 collabEntity.setData(collabData);
   
@@ -2742,7 +3214,11 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 					 Date now = isoFormat.parse(isoFormat.format(new Date()));
 					 DeploymentAudit auditLog = new DeploymentAudit();
 					 auditLog.setTriggeredOn(now);
-					 auditLog.setTriggeredBy(entity.getData().getWorkspaceOwner().getGitUserName());
+						String triggeredByUser = userId;
+						if (userStore.getUserInfo() != null) {
+							triggeredByUser = userStore.getUserInfo().getId();
+						}
+						auditLog.setTriggeredBy(triggeredByUser);
 					 auditLog.setBranch(branch);					
 					 auditLog.setDeploymentStatus("UNDEPLOY_REQUESTED");
 					 auditLogs.add(auditLog);
@@ -2802,11 +3278,41 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 	 
   
 	 @Override
-	 @Transactional
 	 public GenericMessage update(String userId, String wsId, String projectName, String existingStatus,
 			 String latestStatus, String targetEnv, String branch, String gitJobRunId,String version) {
+		 PendingDeployment pendingDeployment = new PendingDeployment();
+		 GenericMessage response = self.updateStatus(userId, wsId, projectName, existingStatus,
+				 latestStatus, targetEnv, branch, gitJobRunId, version, pendingDeployment);
+		 if (pendingDeployment.required) {
+			 try {
+				 self.deployWorkspace(pendingDeployment.userId, pendingDeployment.workspaceId,
+						 pendingDeployment.environment, pendingDeployment.branch,
+						 pendingDeployment.isPrivateRecipe, pendingDeployment.version,
+						 pendingDeployment.deployType, pendingDeployment.keepImage);
+			 } catch (Exception e) {
+				 log.error("caught exception while deploying workspace {} project {} after build success",
+						 pendingDeployment.workspaceId, projectName, e);
+				 MessageDescription error = new MessageDescription();
+				 error.setMessage("Failed while deploying codeserver workspace project with exception "
+						 + e.getMessage());
+				 List<MessageDescription> responseErrors = response.getErrors() != null ? response.getErrors()
+						 : new ArrayList<>();
+				 responseErrors.add(error);
+				 response.setErrors(responseErrors);
+				 response.setSuccess("FAILED");
+			 }
+		 }
+		 return response;
+	 }
+
+	 @Override
+	 @Transactional
+	 public GenericMessage updateStatus(String userId, String wsId, String projectName, String existingStatus,
+			 String latestStatus, String targetEnv, String branch, String gitJobRunId, String version,
+			 PendingDeployment pendingDeployment) {
 		 GenericMessage responseMessage = new GenericMessage();
 		 String status = "FAILED";
+		 boolean statusUpdateFailed = false;
 		 List<MessageDescription> warnings = new ArrayList<>();
 		 List<MessageDescription> errors = new ArrayList<>();
 		 String cloudServiceProvider = null;
@@ -3043,8 +3549,23 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 					 deploymentDetails.setLastDeploymentStatus(latestStatus);
 					 deploymentDetails.setGitjobRunID(gitJobRunId);	
 					 deploymentDetails.setLastDeployedVersion(version);	
-						 workspaceCustomRepository.updateDeploymentDetails(projectName, targetEnv,
-							 deploymentDetails,latestStatus);	 
+							 GenericMessage deploymentDetailsResponse = null;
+							 try {
+								 deploymentDetailsResponse = workspaceCustomRepository.updateDeploymentDetails(projectName,
+										 targetEnv, deploymentDetails, latestStatus);
+							 } catch (Exception dbEx) {
+								 log.error("Failed to update deployment status for project {}, environment {}, status {}",
+										 projectName, targetEnv, latestStatus, dbEx);
+							 }
+							 if (deploymentDetailsResponse == null
+									 || !"SUCCESS".equalsIgnoreCase(deploymentDetailsResponse.getSuccess())) {
+								 log.error("Failed to update deployment status for project {}, environment {}, status {}",
+										 projectName, targetEnv, latestStatus);
+								 statusUpdateFailed = true;
+								 errors.add(new MessageDescription(
+										 "Failed to update deployment status for project " + projectName
+												 + ", environment " + targetEnv + ", status " + latestStatus + "."));
+							 }
 						 
 						 //setting audit log details
 					 if(optionalBuildDeployentity != null){
@@ -3071,8 +3592,17 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 					// String lastDeployedVersion = (sortedList.size() > 0 && sortedList.size() != 1) ? sortedList.get(sortedList.size() - 1).getVersion():null;
 					
 					// if(lastDeployedVersion != null &&  buildAuditLogs.stream().anyMatch( i -> (i.getVersion().equalsIgnoreCase(lastDeployedVersion) && !i.isImageDeleted()))){
+							String newestSuccessfulVersion = null;
+							for (BuildAudit build : buildAuditLogs) {
+								if (build.getVersion() != null && "BUILD_SUCCESS".equalsIgnoreCase(build.getBuildStatus())) {
+									newestSuccessfulVersion = build.getVersion();
+								}
+							}
+							final String newestSuccessfulBuildVersion = newestSuccessfulVersion;
 							buildAuditLogs.stream().forEach(i ->{
-								if(!i.getVersion().equalsIgnoreCase(version) && !i.isKeepBuildImage() && !i.isImageDeleted()){
+								if(i.getVersion() != null && !i.getVersion().equalsIgnoreCase(version)
+										&& !i.getVersion().equalsIgnoreCase(newestSuccessfulBuildVersion)
+										&& !i.isKeepBuildImage() && !i.isImageDeleted()){
 									GenericMessage deleteApiResonse = client.deleteBuild(projectName, i.getVersion());
 									if(deleteApiResonse.getSuccess().equalsIgnoreCase("SUCCESS")){
 										i.setImageDeleted(true);
@@ -3088,7 +3618,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 						 buildDeployentity.setData(buildDeployData);
 						 buildDeployRepo.save(buildDeployentity);
 					 }
-					 status = "SUCCESS";
+					 status = statusUpdateFailed ? "FAILED" : "SUCCESS";
 					 log.info(
 							 "updated deployment details successfully for projectName {} , branch {} , targetEnv {} and status {}",
 							 projectName, branch, targetEnv, latestStatus);
@@ -3109,8 +3639,23 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 					 deploymentDetails.setLastDeploymentStatus(latestStatus);
 					}
 					 
-						 workspaceCustomRepository.updateDeploymentDetails(projectName, targetEnv,
-						 deploymentDetails,latestStatus);
+							 GenericMessage deploymentDetailsResponse = null;
+							 try {
+								 deploymentDetailsResponse = workspaceCustomRepository.updateDeploymentDetails(projectName,
+										 targetEnv, deploymentDetails, latestStatus);
+							 } catch (Exception dbEx) {
+								 log.error("Failed to update deployment status for project {}, environment {}, status {}",
+										 projectName, targetEnv, latestStatus, dbEx);
+							 }
+							 if (deploymentDetailsResponse == null
+									 || !"SUCCESS".equalsIgnoreCase(deploymentDetailsResponse.getSuccess())) {
+								 log.error("Failed to update deployment status for project {}, environment {}, status {}",
+										 projectName, targetEnv, latestStatus);
+								 statusUpdateFailed = true;
+								 errors.add(new MessageDescription(
+										 "Failed to update deployment status for project " + projectName
+												 + ", environment " + targetEnv + ", status " + latestStatus + "."));
+							 }
 					 if(optionalBuildDeployentity != null){
 						 buildDeployentity = optionalBuildDeployentity;
 						 buildDeployData = buildDeployentity.getData();
@@ -3125,84 +3670,172 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 						 buildDeployentity.setData(buildDeployData);
 						 buildDeployRepo.save(buildDeployentity);
 					 }
-					 status = "SUCCESS";
+					 status = statusUpdateFailed ? "FAILED" : "SUCCESS";
 					 log.info(
 							 "updated deployment details successfully for projectName {} , branch {} , targetEnv {} and status {}",
 							 projectName, branch, targetEnv, latestStatus);
 				 }else if("BUILD_SUCCESS".equalsIgnoreCase(latestStatus) || "BUILD_FAILED".equalsIgnoreCase(latestStatus)){
-					buildDetails.setLastBuildStatus(latestStatus);
-					buildDetails.setLastBuildOn(now);
-					buildDetails.setLastBuildBy(entity.getData().getWorkspaceOwner());
-					buildDetails.setGitjobRunID(gitJobRunId);
-					buildDetails.setLastBuildBranch(branch);
+						// Stale / late-workflow protection
+						String currentBuildVersion = buildDetails != null ? buildDetails.getVersion() : null;
+						String currentBuildStatus = buildDetails != null ? buildDetails.getLastBuildStatus() : null;
+						boolean versionMismatch = version != null && currentBuildVersion != null
+								&& !version.equalsIgnoreCase(currentBuildVersion);
+						boolean alreadyTerminal = isBuildTerminal(currentBuildStatus);
+						if (versionMismatch || alreadyTerminal) {
+							log.warn(
+									"update - Ignoring late {} (stale/terminal) project={}, env={}, incomingVersion={}, currentVersion={}, currentStatus={}, runId={}.",
+									latestStatus, projectName, targetEnv, version, currentBuildVersion,
+									currentBuildStatus, gitJobRunId);
+							// Clean up the orphaned Harbor artifact for the superseded/timed-out request on
+							// BOTH late success AND late failure — a late run may still have pushed an
+							// image.
+							// Guarded so we never delete the current build's own (successful/deployed)
+							// image.
+							boolean safeToDelete = versionMismatch
+									|| "BUILD_FAILED".equalsIgnoreCase(currentBuildStatus);
+							if (safeToDelete) {
+								String deployedVersion = deploymentDetails != null
+										? deploymentDetails.getLastDeployedVersion()
+										: null;
+								deleteStaleBuildImage(projectName, targetEnv, version, deployedVersion);
+							}
+							responseMessage.setSuccess("SUCCESS"); // ack the callback; DB intentionally unchanged
+							responseMessage.setWarnings(warnings);
+							responseMessage.setErrors(errors);
+							return responseMessage;
+						}
 
-						workspaceCustomRepository.updateBuildDetails(projectName, targetEnv,
-						buildDetails);	
-				   
-				   Boolean keepBuildImage = false;
-				   
-				   if(optionalBuildDeployentity != null){
-					   buildDeployentity = optionalBuildDeployentity;
-					   buildDeployData = buildDeployentity.getData();
-					   Boolean buildImageDeleted = false;
-					   if("int".equalsIgnoreCase(targetEnv)){							
-						   int lastIndex = buildDeployData.getIntBuildAuditLogs().size() - 1;
-						   buildDeployData.getIntBuildAuditLogs().get(lastIndex).setBuildOn(now);
-						   buildDeployData.getIntBuildAuditLogs().get(lastIndex).setBuildStatus(latestStatus);
-						   keepBuildImage = buildDeployData.getIntBuildAuditLogs().get(lastIndex).isKeepBuildImage();
-					   }else{
-						   int lastIndex = buildDeployData.getProdBuildAuditLogs().size() - 1;
-						   buildDeployData.getProdBuildAuditLogs().get(lastIndex).setBuildOn(now);
-						   buildDeployData.getProdBuildAuditLogs().get(lastIndex).setBuildStatus(latestStatus);
-						   keepBuildImage = buildDeployData.getProdBuildAuditLogs().get(lastIndex).isKeepBuildImage();
-					   }
-					   if("BUILD_SUCCESS".equalsIgnoreCase(latestStatus) && buildDetails.getLastBuildType().equalsIgnoreCase("build")){
-					if(!keepBuildImage){
-							GenericMessage deleteApiResonse = client.deleteBuild(projectName, version);
-									if(deleteApiResonse.getSuccess().equalsIgnoreCase("SUCCESS")){
+						buildDetails.setLastBuildStatus(latestStatus);
+						buildDetails.setLastBuildOn(now);
+						buildDetails.setLastBuildBy(entity.getData().getWorkspaceOwner());
+						buildDetails.setGitjobRunID(gitJobRunId);
+						buildDetails.setLastBuildBranch(branch);
+						buildDetails.setLastBuildFailureReason(null);
+
+							GenericMessage buildDetailsResponse = null;
+							try {
+								buildDetailsResponse = workspaceCustomRepository.updateBuildDetails(projectName,
+										targetEnv, buildDetails);
+							} catch (Exception dbEx) {
+								log.error("Failed to update build status for project {}, environment {}, status {}",
+										projectName, targetEnv, latestStatus, dbEx);
+							}
+							if (buildDetailsResponse == null
+									|| !"SUCCESS".equalsIgnoreCase(buildDetailsResponse.getSuccess())) {
+								log.error("Failed to update build status for project {}, environment {}, status {}",
+										projectName, targetEnv, latestStatus);
+								statusUpdateFailed = true;
+								errors.add(new MessageDescription(
+										"Failed to update build status for project " + projectName
+												+ ", environment " + targetEnv + ", status " + latestStatus + "."));
+							}
+
+						Boolean keepBuildImage = false;
+
+						if (optionalBuildDeployentity != null) {
+							buildDeployentity = optionalBuildDeployentity;
+							buildDeployData = buildDeployentity.getData();
+							Boolean buildImageDeleted = false;
+							List<BuildAudit> envLogs = "int".equalsIgnoreCase(targetEnv)
+									? buildDeployData.getIntBuildAuditLogs()
+									: buildDeployData.getProdBuildAuditLogs();
+							BuildAudit auditEntry = findAuditByVersion(envLogs, version);
+							if (auditEntry != null) {
+								auditEntry.setBuildOn(now);
+								auditEntry.setBuildStatus(latestStatus);
+								auditEntry.setFailureReason(null);
+								keepBuildImage = auditEntry.isKeepBuildImage();
+							}
+
+							boolean isPrivateRecipeForDeletion = entity.getData().getProjectDetails().getRecipeDetails()
+									.getRecipeId().toString().toLowerCase().startsWith("private");
+
+							if ("BUILD_SUCCESS".equalsIgnoreCase(latestStatus)
+									&& buildDetails.getLastBuildType().equalsIgnoreCase("build")
+									&& !isPrivateRecipeForDeletion) {
+								if (!keepBuildImage) {
+									GenericMessage deleteApiResonse = client.deleteBuild(projectName, version);
+									if (deleteApiResonse.getSuccess().equalsIgnoreCase("SUCCESS")) {
 										buildImageDeleted = true;
 									}
-					}
-					}
-					if(buildImageDeleted){
-						if("int".equalsIgnoreCase(targetEnv)){
-							int lastIndex = buildDeployData.getIntBuildAuditLogs().size() - 1;
-							buildDeployData.getIntBuildAuditLogs().get(lastIndex).setImageDeleted(true);
-						}else{
-							int lastIndex = buildDeployData.getProdBuildAuditLogs().size() - 1;
-							buildDeployData.getProdBuildAuditLogs().get(lastIndex).setImageDeleted(true);
-						}
-					}
+								}
+							}
+							if (buildImageDeleted && auditEntry != null) {
+								auditEntry.setImageDeleted(true);
+							}
 
-					   buildDeployentity.setData(buildDeployData);
-					   buildDeployRepo.save(buildDeployentity);
-				   }
-				   status = "SUCCESS";
-				   boolean isPrivateRecipe = false;
-				   if(entity.getData().getProjectDetails().getRecipeDetails().getRecipeId().toString().toLowerCase().startsWith("private")){
-					isPrivateRecipe = true;
-				   }
-					log.info(
-							"updated build details successfully for projectName {} , branch {} , targetEnv {} and status {}",
-							projectName, branch, targetEnv, latestStatus);
-							if("BUILD_SUCCESS".equalsIgnoreCase(latestStatus) && buildDetails.getLastBuildType().equalsIgnoreCase("buildAndDeploy")){
-								this.deployWorkspace(userId, entity.getId(), targetEnv, branch,
-								isPrivateRecipe,version,"buildAndDeploy", keepBuildImage);
-				   log.info("User {} deployed workspace {} project {}", userId, wsId,
-						   entity.getData().getProjectDetails().getRecipeDetails().getRecipeId());
-							   
-					}
-					// else{
-					// 	log.info("User {} deployed workspace failed because of build failure {} project {}", userId, wsId,
-					// 	   entity.getData().getProjectDetails().getRecipeDetails().getRecipeId());
-					// }
+							buildDeployentity.setData(buildDeployData);
+							buildDeployRepo.save(buildDeployentity);
+						}
+						status = statusUpdateFailed ? "FAILED" : "SUCCESS";
+						boolean isPrivateRecipe = false;
+						if (entity.getData().getProjectDetails().getRecipeDetails().getRecipeId().toString()
+								.toLowerCase().startsWith("private")) {
+							isPrivateRecipe = true;
+						}
+						log.info(
+								"updated build details successfully for projectName {} , branch {} , targetEnv {} and status {}",
+								projectName, branch, targetEnv, latestStatus);
+						if ("BUILD_SUCCESS".equalsIgnoreCase(latestStatus)
+								&& buildDetails.getLastBuildType().equalsIgnoreCase("buildAndDeploy")) {
+							pendingDeployment.required = true;
+							pendingDeployment.userId = userId;
+							pendingDeployment.workspaceId = entity.getId();
+							pendingDeployment.environment = targetEnv;
+							pendingDeployment.branch = branch;
+							pendingDeployment.isPrivateRecipe = isPrivateRecipe;
+							pendingDeployment.version = version;
+							pendingDeployment.deployType = "buildAndDeploy";
+							pendingDeployment.keepImage = keepBuildImage;
+							log.info("User {} deployed workspace {} project {}", userId, wsId,
+									entity.getData().getProjectDetails().getRecipeDetails().getRecipeId());
+
+						}
+						if ("BUILD_SUCCESS".equalsIgnoreCase(latestStatus)
+								&& buildDetails.getLastBuildType().equalsIgnoreCase("build") && isPrivateRecipe) {
+							pendingDeployment.required = true;
+							pendingDeployment.userId = userId;
+							pendingDeployment.workspaceId = entity.getId();
+							pendingDeployment.environment = targetEnv;
+							pendingDeployment.branch = branch;
+							pendingDeployment.isPrivateRecipe = isPrivateRecipe;
+							pendingDeployment.version = version;
+							pendingDeployment.deployType = "build";
+							pendingDeployment.keepImage = keepBuildImage;
+							log.info(
+									"[Private Recipe] User {} auto-deploying workspace {} project {} after successful build",
+									userId, wsId,
+									entity.getData().getProjectDetails().getRecipeDetails().getRecipeId());
+						}
+						// else{
+						// log.info("User {} deployed workspace failed because of build failure {}
+						// project {}", userId, wsId,
+						// entity.getData().getProjectDetails().getRecipeDetails().getRecipeId());
+						// }
 				} else {
-					 deploymentDetails.setDeploymentUrl(deploymentUrl);
+					 if (!"DEPLOYMENT_FAILED".equalsIgnoreCase(latestStatus) && !"FAILED".equalsIgnoreCase(latestStatus)) {
+						 deploymentDetails.setDeploymentUrl(deploymentUrl);
+					 }
 					 deploymentDetails.setLastDeploymentStatus(latestStatus);
 					 deploymentDetails.setGitjobRunID(gitJobRunId);
 					
-						 workspaceCustomRepository.updateDeploymentDetails(projectName, targetEnv,
-						 deploymentDetails,latestStatus);
+								 GenericMessage deploymentDetailsResponse = null;
+								 try {
+									 deploymentDetailsResponse = workspaceCustomRepository.updateDeploymentDetails(projectName,
+											 targetEnv, deploymentDetails, latestStatus);
+								 } catch (Exception dbEx) {
+									 log.error("Failed to update deployment status for project {}, environment {}, status {}",
+											 projectName, targetEnv, latestStatus, dbEx);
+								 }
+							 if (deploymentDetailsResponse == null
+									 || !"SUCCESS".equalsIgnoreCase(deploymentDetailsResponse.getSuccess())) {
+								 log.error("Failed to update deployment status for project {}, environment {}, status {}",
+										 projectName, targetEnv, latestStatus);
+								 statusUpdateFailed = true;
+								 errors.add(new MessageDescription(
+										 "Failed to update deployment status for project " + projectName
+												 + ", environment " + targetEnv + ", status " + latestStatus + "."));
+							 }
 					 if(optionalBuildDeployentity != null){
 						 buildDeployentity = optionalBuildDeployentity;
 						 buildDeployData = buildDeployentity.getData();
@@ -3216,7 +3849,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 						 }
 						 buildDeployentity.setData(buildDeployData);
 						 buildDeployRepo.save(buildDeployentity);
-						 status = "SUCCESS";
+						 status = statusUpdateFailed ? "FAILED" : "SUCCESS";
 					 }
 					 log.info(
 							 "updated deployment details successfully for projectName {} , branch {} , targetEnv {} and status {}",
@@ -3230,7 +3863,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 				 return responseMessage;
 			 }
 		 } catch (Exception e) {
-			 log.error("caught exception while updating status {}", e.getMessage());
+			 log.error("caught exception while updating status {}", e.getMessage(), e);
 			 MessageDescription error = new MessageDescription();
 			 error.setMessage(
 					 "Failed while deploying codeserver workspace project, couldnt fetch project owner details");
@@ -3248,6 +3881,11 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 	 @Override
 	 public CodeServerWorkspaceValidateVO validateCodespace(String id, String userId) {
 		 return workspaceCustomRepository.validateCodespace(id, userId);
+	 }
+
+	 @Override
+	 public boolean isProjectOwnerOrAdmin(String userId) {
+		 return workspaceCustomRepository.isProjectOwnerOrAdmin(userId);
 	 }
   
 	 @Override
@@ -3481,6 +4119,26 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 		 }else{
 			 return new ArrayList<>();
 		 }
+	 }
+
+	 
+	 @Override
+	 public List<CodespaceResourceExemptionVO> getAllResourceCapExemptions(Integer offset, Integer limit, String projectName) {
+		 List<CodespaceResourceExemptionDto> dtos = workspaceCustomRepository.getAllResourceCapExemptions(offset, limit, projectName);
+		 if (dtos == null) {
+			 return new ArrayList<>();
+		 }
+		 return dtos.stream().map(n -> workspaceAssembler.dtoToVo(n)).collect(Collectors.toList());
+	 }
+
+	 @Override
+	 public Integer getResourceCapExemptionsCount(String projectName) {
+		 return workspaceCustomRepository.getResourceCapExemptionsCount(projectName);
+	 }
+
+	 @Override
+	 public GenericMessage updateResourceCapExemption(String projectName, String environment, boolean exempt) {
+		 return workspaceCustomRepository.updateResourceCapExemption(projectName, environment, exempt);
 	 }
   
 	 // public void notifyAllCodespaceAdminUsers(String eventType, String resourceId, String message, String triggeringUser,
@@ -4119,9 +4777,16 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 					responseMessage.setErrors(errors);
 					return responseMessage;
 				}
-				if(("int".equalsIgnoreCase(env)&& !"DEPLOYED".equalsIgnoreCase(entity.getData().getProjectDetails()
-				.getIntDeploymentDetails().getLastDeploymentStatus())) || "prod".equalsIgnoreCase(env)&& !"DEPLOYED".equalsIgnoreCase(entity.getData().getProjectDetails()
-				.getProdDeploymentDetails().getLastDeploymentStatus())){
+				String intDeployStatus = entity.getData().getProjectDetails().getIntDeploymentDetails()
+						.getLastDeploymentStatus();
+				String prodDeployStatus = entity.getData().getProjectDetails().getProdDeploymentDetails()
+						.getLastDeploymentStatus();
+				if (("int".equalsIgnoreCase(env) && !"DEPLOYED".equalsIgnoreCase(intDeployStatus)
+						&& !"RESTARTED".equalsIgnoreCase(intDeployStatus)
+						&& !"RESTART_FAILED".equalsIgnoreCase(intDeployStatus))
+						|| ("prod".equalsIgnoreCase(env) && !"DEPLOYED".equalsIgnoreCase(prodDeployStatus)
+								&& !"RESTARTED".equalsIgnoreCase(prodDeployStatus)
+								&& !"RESTART_FAILED".equalsIgnoreCase(prodDeployStatus))) {
 					MessageDescription error = new MessageDescription();
 					error.setMessage(
 							"Failed while restarting  codeserver workspace project, couldnt restart project Which is not in deployed state");
@@ -4148,8 +4813,35 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 				deployJobInputDto.setValutInjectorEnable(isValutInjectorEnable);
 				deploymentJobDto.setInputs(deployJobInputDto);
 				deploymentJobDto.setRef(codeServerEnvRef);
-				GenericMessage jobResponse = client.manageDeployment(deploymentJobDto, gheWorkspaceMigrated);
-				if (jobResponse != null && "SUCCESS".equalsIgnoreCase(jobResponse.getSuccess())) {
+				
+					String argoToken = argoCdService.getArgoToken();
+					String argoRestartResult = "failed";
+					if (argoToken != null) {
+						// Use ArgoCD resource actions API for rolling restart (no delete)
+						argoRestartResult = argoCdService.restartArgoApp(argoToken, projectName.toLowerCase(), env);
+					} else {
+						log.error("Failed to get ArgoCD token for restart: {}-{}", projectName, env);
+						MessageDescription error = new MessageDescription();
+						error.setMessage("Cannot restart. Please deploy the application via Deploy code first before attempting to restart.");
+						errors.add(error);
+						responseMessage.setSuccess("FAILED");
+						responseMessage.setErrors(errors);
+						return responseMessage;
+					}
+				
+				if ("not_found".equalsIgnoreCase(argoRestartResult)) {
+					MessageDescription notFoundError = new MessageDescription();
+					notFoundError.setMessage("Cannot restart. Please deploy the application via Deploy code first before attempting to restart.");
+					errors.add(notFoundError);
+					responseMessage.setSuccess("FAILED");
+					responseMessage.setErrors(errors);
+					return responseMessage;
+				}
+				
+				GenericMessage jobResponse = new GenericMessage();
+				jobResponse.setErrors(new ArrayList<>());
+				if ("success".equalsIgnoreCase(argoRestartResult)) {
+					jobResponse.setSuccess("SUCCESS");
 					// String environmentJsonbName = "intDeploymentDetails";
 					// CodeServerDeploymentDetails deploymentDetails = entity.getData().getProjectDetails()
 					// 		.getIntDeploymentDetails();
@@ -4177,7 +4869,11 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 					}
 					DeploymentAudit auditLog = new DeploymentAudit();
 					auditLog.setTriggeredOn(now);
-					auditLog.setTriggeredBy(entity.getData().getWorkspaceOwner().getGitUserName());				
+					String triggeredByUser = userId;
+					if (userStore.getUserInfo() != null) {
+						triggeredByUser = userStore.getUserInfo().getId();
+					}
+					auditLog.setTriggeredBy(triggeredByUser);		
 					auditLog.setDeploymentStatus("RESTART_REQUESTED");
 					auditLogs.add(auditLog);
 
@@ -4208,7 +4904,9 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 					
 				} else {
 					status = "FAILED";
-					errors.addAll(jobResponse.getErrors());
+					MessageDescription error = new MessageDescription();
+					error.setMessage("Unable to restart application. Please redeploy the application and try restarting again.");
+					errors.add(error);
 				}
 			}
 		} catch (Exception e) {
@@ -4712,12 +5410,37 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 				 if (ownerEntity == null || ownerEntity.getData() == null
 						 || ownerEntity.getData().getWorkspaceId() == null) {
 					 MessageDescription error = new MessageDescription();
-					 error.setMessage(
-							 "Failed while deploying codeserver workspace project, couldnt fetch project owner details");
+					 error.setMessage("Failed while building codeserver workspace project, couldn't fetch project owner details");
 					 errors.add(error);
 					 responseMessage.setErrors(errors);
+					 responseMessage.setSuccess("FAILED");
 					 return responseMessage;
 				 }
+				 
+				 String currentStatus = ownerEntity.getData().getProjectDetails().getLastBuildOrDeployedStatus();
+				 String currentEnv = ownerEntity.getData().getProjectDetails().getLastBuildOrDeployedEnv();
+				 
+				 if (environment.equalsIgnoreCase(currentEnv)) {
+					 if ("BUILD_REQUESTED".equalsIgnoreCase(currentStatus)) {
+						 MessageDescription error = new MessageDescription();
+						 error.setMessage("Build is already in progress for " + environment + " environment. Please wait for the current build to complete.");
+						 errors.add(error);
+						 responseMessage.setErrors(errors);
+						 responseMessage.setSuccess("FAILED");
+						 log.warn("Blocked build for {} - build already in progress on {}", projectName, environment);
+						 return responseMessage;
+					 }
+					 if ("DEPLOY_REQUESTED".equalsIgnoreCase(currentStatus) || "DEPLOYING".equalsIgnoreCase(currentStatus)) {
+						 MessageDescription error = new MessageDescription();
+						 error.setMessage("Deployment is already in progress for " + environment + " environment. Please wait for the current deployment to complete before starting a new build.");
+						 errors.add(error);
+						 responseMessage.setErrors(errors);
+						 responseMessage.setSuccess("FAILED");
+						 log.warn("Blocked build for {} - deployment in progress on {}", projectName, environment);
+						 return responseMessage;
+					 }
+				 }
+				 
 				 Boolean isValutInjectorEnable = false;
 				 try{
 					isValutInjectorEnable = VaultClient.enableVaultInjector(projectName.toLowerCase(), environment);
@@ -4763,6 +5486,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 					buildDetails.setLastBuildBy(entity.getData().getWorkspaceOwner());
 					buildDetails.setLastBuildOn(now);
 					buildDetails.setLastBuildStatus("BUILD_REQUESTED");
+					buildDetails.setLastBuildFailureReason(null);
 					buildDetails.setVersion(appVersion);
 					buildDetails.setLastBuildType(lastBuildType);
 					buildDetails.setGitjobRunID("");
@@ -4801,12 +5525,16 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 					} else {
 						auditLog.setCommitId(commitId.getSha());
 					}
-					 auditLog.setCommitId(commitId.getSha());
 					 auditLog.setImageDeleted(Boolean.FALSE);
 					 auditLog.setTriggeredOn(now);
-					 auditLog.setTriggeredBy(entity.getData().getWorkspaceOwner().getGitUserName());
+						String triggeredByUser = userId;
+						if (userStore.getUserInfo() != null) {
+							triggeredByUser = userStore.getUserInfo().getId();
+						}
+						auditLog.setTriggeredBy(triggeredByUser);
 					 auditLog.setBranch(branch);
 					 auditLog.setBuildStatus("BUILD_REQUESTED");
+					 auditLog.setFailureReason(null);
 					 auditLog.setComments(buildRequestDto.getComments());
 					 auditLog.setVersion(appVersion);
 					 auditLog.setKeepBuildImage(buildRequestDto.isKeepBuildImage() != null && buildRequestDto.isKeepBuildImage());
@@ -5167,7 +5895,8 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 		List<MessageDescription> warnings = new ArrayList<>();
 		List<MessageDescription> errors = new ArrayList<>();
 		try {
-			CodeServerBuildDeployNsql optionalBuildDeployentity =  buildDeployCustomRepo.findByProjectName(projectName);
+			// CodeServerBuildDeployNsql optionalBuildDeployentity =  buildDeployCustomRepo.findByProjectName(projectName);
+			CodeServerBuildDeployNsql optionalBuildDeployentity = buildDeployCustomRepo.findByProjectNameIncludingDeleted(projectName);
 			CodeServerBuildDeploy data = optionalBuildDeployentity.getData();
 			 List<BuildAudit> builds = new ArrayList<>();
 			//   List<BuildAudit> newBuilds = new ArrayList<>();
@@ -5183,9 +5912,10 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 							builds.stream().forEach(i ->{
 								if(i.getVersion().equalsIgnoreCase(version)){
 									GenericMessage deleteApiResonse = client.deleteBuild(projectName, version);
-									if(deleteApiResonse.getSuccess().equalsIgnoreCase("SUCCESS")){
-										i.setImageDeleted(true);
-									}									
+									i.setImageDeleted(true);
+									if(!deleteApiResonse.getSuccess().equalsIgnoreCase("SUCCESS")){
+										log.warn("Image deletion from registry failed for version {}, but marking as deleted in audit logs", version);
+									}
 								}
 							});
 						}
@@ -5327,6 +6057,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 		try {
 			CodeServerWorkspaceNsql entity = workspaceCustomRepository.findByWorkspaceId(requestVo.getWsId());
 			CodeServerWorkspace data = entity.getData();
+			String projectName = data.getProjectDetails().getProjectName();
 			String currentStatus = data.getProjectDetails().getLastBuildOrDeployedStatus();
 			String currentEnv = data.getProjectDetails().getLastBuildOrDeployedEnv();
 			
@@ -5339,41 +6070,44 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 				return response;
 			}
 			
-			CodeServerBuildDeployNsql optionalBuildDeployentity =  buildDeployCustomRepo.findByProjectName(requestVo.getProjectName());	
+			CodeServerBuildDeployNsql optionalBuildDeployentity =  buildDeployCustomRepo.findByProjectName(projectName);
 			CodeServerBuildDeployNsql buildDeployentity = null;
 			CodeServerBuildDeploy buildDeployData = null;
 			log.info("updateGitJobRunId called for wsId={}, projectName={}, currentStatus={}, currentEnv={}, runId={}",
 					requestVo.getWsId(), requestVo.getProjectName(),
 					data.getProjectDetails().getLastBuildOrDeployedStatus(),
 					data.getProjectDetails().getLastBuildOrDeployedEnv(), requestVo.getGitJobRunId());
-			if(currentStatus.equalsIgnoreCase("BUILD_REQUESTED") || currentStatus.equalsIgnoreCase("BUILD_SUCCESS") || currentStatus.equalsIgnoreCase("BUILD_FAILED")){
+			if (isBuildTerminal(currentStatus)) {
+				// Build already reached a terminal state (e.g. timed-out BUILD_FAILED). A runId
+				// arriving now
+				// belongs to a stale workflow; do not attach it (that would let reconcilers
+				// revive the build).
+				log.warn(
+						"updateGitJobRunId - Ignoring late runId={} for wsId={}, project={}: build already terminal ({}).",
+						requestVo.getGitJobRunId(), requestVo.getWsId(), requestVo.getProjectName(), currentStatus);
+				return response; // "FAILED" — not attached
+			} else if (currentStatus.equalsIgnoreCase("BUILD_REQUESTED")) {
 				CodeServerBuildDetails buildDetails = entity.getData().getProjectDetails().getIntBuildDetails();
 					 if (!"int".equalsIgnoreCase(data.getProjectDetails().getLastBuildOrDeployedEnv())) {
 						 buildDetails = entity.getData().getProjectDetails().getProdBuildDetails();
 					 }
 				buildDetails.setGitjobRunID(requestVo.getGitJobRunId());
-				workspaceCustomRepository.updateBuildDetails(requestVo.getProjectName(),data.getProjectDetails().getLastBuildOrDeployedEnv(),buildDetails);	 
+				workspaceCustomRepository.updateBuildDetails(projectName,data.getProjectDetails().getLastBuildOrDeployedEnv(),buildDetails);
 				if(optionalBuildDeployentity != null){
 					   buildDeployentity = optionalBuildDeployentity;
 					   buildDeployData = buildDeployentity.getData();
 					   if(buildDeployData != null) {
-						   if("int".equalsIgnoreCase(data.getProjectDetails().getLastBuildOrDeployedEnv())){
-							   List<BuildAudit> intLogs = buildDeployData.getIntBuildAuditLogs();
-							   if(intLogs != null && !intLogs.isEmpty()) {
-								   int lastIndex = intLogs.size() - 1;
-								   intLogs.get(lastIndex).setGitjobRunID(requestVo.getGitJobRunId());
-							   } else {
-								   log.warn("No int build audit logs found for wsId={}, projectName={}", requestVo.getWsId(), requestVo.getProjectName());
-							   }
-						   }else{
-							   List<BuildAudit> prodLogs = buildDeployData.getProdBuildAuditLogs();
-							   if(prodLogs != null && !prodLogs.isEmpty()) {
-								   int lastIndex = prodLogs.size() - 1;
-								   prodLogs.get(lastIndex).setGitjobRunID(requestVo.getGitJobRunId());
-							   } else {
-								   log.warn("No prod build audit logs found for wsId={}, projectName={}", requestVo.getWsId(), requestVo.getProjectName());
-							   }
-						   }
+						   	List<BuildAudit> envLogs = "int"
+									.equalsIgnoreCase(data.getProjectDetails().getLastBuildOrDeployedEnv())
+											? buildDeployData.getIntBuildAuditLogs()
+											: buildDeployData.getProdBuildAuditLogs();
+							BuildAudit auditEntry = findAuditByVersion(envLogs, buildDetails.getVersion());
+							if (auditEntry != null) {
+								auditEntry.setGitjobRunID(requestVo.getGitJobRunId());
+							} else {
+								log.warn("No build audit entry (version={}) found for wsId={}, projectName={}",
+										buildDetails.getVersion(), requestVo.getWsId(), requestVo.getProjectName());
+							}
 						   buildDeployentity.setData(buildDeployData);
 						   buildDeployRepo.save(buildDeployentity);
 					   } else {
@@ -5388,7 +6122,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 						 deploymentDetails = entity.getData().getProjectDetails().getProdDeploymentDetails();
 					 }
 				deploymentDetails.setGitjobRunID(requestVo.getGitJobRunId());
-				workspaceCustomRepository.updateDeploymentDetails(requestVo.getProjectName(), data.getProjectDetails().getLastBuildOrDeployedEnv(),deploymentDetails,data.getProjectDetails().getLastBuildOrDeployedStatus()); 				
+				workspaceCustomRepository.updateDeploymentDetails(projectName, data.getProjectDetails().getLastBuildOrDeployedEnv(),deploymentDetails,data.getProjectDetails().getLastBuildOrDeployedStatus());
 				 //setting audit log details
 					 if(optionalBuildDeployentity != null){
 						 buildDeployentity = optionalBuildDeployentity;
@@ -5482,22 +6216,37 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 			return vo;
 		}
 
-		/* Requested states → call GitHub */
-		if (isRequestedStatus(currentStatus)) {
+
+		/* BUILD_REQUESTED → call GitHub only when a runId exists */
+		if ("BUILD_REQUESTED".equalsIgnoreCase(currentStatus)) {
 			if(dto.getGitjobRunId() == null || dto.getGitjobRunId().isBlank()) {
-				MessageDescription error = new MessageDescription();
-				error.setMessage("Workspace is queued for build/deploy generating GitJobRunId wait for some time.");
-				vo.setWarnings(List.of(error));
+				MessageDescription info = new MessageDescription();
+				info.setMessage("Workspace is queued for build, generating GitJobRunId. Please wait.");
+				vo.setWarnings(List.of(info));
 				return vo;
 			}
-			GitHubWorkflowRunDto run = gitClient.getWorkflowRun(dto.getGitjobRunId());
-			if (run == null) {
-				MessageDescription warning = new MessageDescription();
-					warning.setMessage(
-							"Failed to fetch GitHub workflow run details for Job Run ID: " + dto.getGitjobRunId()
-					);
+			log.info("getGitRunIdStatus - GitJobRunId EXISTS for project={}, runId={}, currentStatus=BUILD_REQUESTED, environment={}",
+				projectName, dto.getGitjobRunId(), dto.getEnvironment());
 
-					vo.setWarnings(List.of(warning));
+			GitHubWorkflowJobsResponseDto.Job buildDeployJob = gitClient.getBuildDeployJob(dto.getGitjobRunId());
+			if (buildDeployJob == null) {
+				log.warn("getGitRunIdStatus - Build job not found for project={}, runId={}. Marking as BUILD_FAILED.",
+					projectName, dto.getGitjobRunId());
+
+				workspaceCustomRepository.updateGitRunIdStatus(
+					projectName, "BUILD_FAILED", dto.getEnvironment()
+				);
+				workspaceCustomRepository.updateBuildDeployAuditStatus(
+					projectName, "BUILD_FAILED", dto.getEnvironment(), dto.getGitjobRunId()
+				);
+
+				statusVo.setStatus("BUILD_FAILED");
+				MessageDescription warning = new MessageDescription();
+				warning.setMessage(
+					"Failed to fetch GitHub workflow run details for Job Run ID: " + dto.getGitjobRunId() +
+					". Marked as BUILD_FAILED"
+				);
+				vo.setWarnings(List.of(warning));
 				return vo;
 			}
 
@@ -5505,13 +6254,13 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 			// status = "completed"
 			// conclusion = "success"
 			// conclusion = failure | cancelled | timed_out | skipped | neutral | action_required
-			if ("completed".equalsIgnoreCase(run.getStatus()) && run.getConclusion() != null) {
+			if ("completed".equalsIgnoreCase(buildDeployJob.getStatus()) && buildDeployJob.getConclusion() != null) {
 				String finalStatus = resolveFinalStatus(
 						currentStatus,
-						run.getConclusion()
+						buildDeployJob.getConclusion()
 				);
 
-				boolean statusUpdated =workspaceCustomRepository.updateGitRunIdStatus(
+				boolean statusUpdated = workspaceCustomRepository.updateGitRunIdStatus(
 										projectName,
 										finalStatus,
 										dto.getEnvironment()
@@ -5526,24 +6275,23 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 								);
 
 				if (!statusUpdated || !auditUpdated) {
-					MessageDescription error = new MessageDescription();
-					error.setMessage("Failed to persist Git build/deploy status");
-					vo.setErrors(List.of(error));
-					return vo;
+					log.warn("Intermittent failure updating status for project {}. statusUpdated={}, auditUpdated={}. Will retry on next poll.",
+						projectName, statusUpdated, auditUpdated);
+					MessageDescription warning = new MessageDescription();
+					warning.setMessage("Status update pending, will be retried on next poll.");
+					vo.setWarnings(List.of(warning));
 				}
+				// Always return the resolved status from GitHub so the UI knows the real outcome
 				statusVo.setStatus(finalStatus);
 			}
 			else {
-				// status = queued | in_progress
-				// conclusion = null
-
 				statusVo.setStatus(null);
 
 				MessageDescription warning = new MessageDescription();
 				warning.setMessage(
-					"GitHub workflow is not completed yet. " +
-					"Status=" + run.getStatus() +
-					", Conclusion=" + run.getConclusion()
+					"Build job is not completed yet. " +
+					"Status=" + buildDeployJob.getStatus() +
+					", Conclusion=" + buildDeployJob.getConclusion()
 				);
 
 				vo.setWarnings(List.of(warning));
@@ -5559,16 +6307,119 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 		return Set.of(
 			"DEPLOYED",
 			"BUILD_SUCCESS",
-			"DEPLOY_FAILED",
+			"DEPLOYMENT_FAILED",
 			"BUILD_FAILED"
 		).contains(status);
+	}
+
+	private boolean isBuildTerminal(String status) {
+		return "BUILD_SUCCESS".equalsIgnoreCase(status) || "BUILD_FAILED".equalsIgnoreCase(status);
+	}
+
+	/**
+	 * Deletes the Harbor image for a specific (project, version) — the artifact of
+	 * a stale/superseded
+	 * build request. Safe: never deletes the currently-deployed version, respects
+	 * keepBuildImage,
+	 * is idempotent via imageDeleted, and only ever targets the exact version
+	 * passed in.
+	 */
+	private void deleteStaleBuildImage(String projectName, String environment,
+			String staleVersion, String deployedVersion) {
+		try {
+			if (staleVersion == null || staleVersion.isBlank()) {
+				return; // nothing to delete
+			}
+			if (deployedVersion != null && staleVersion.equalsIgnoreCase(deployedVersion)) {
+				log.warn("deleteStaleBuildImage - SKIP: version={} is the currently-deployed version for project={}",
+						staleVersion, projectName);
+				return;
+			}
+			CodeServerBuildDeployNsql buildDeployEntity = buildDeployCustomRepo.findByProjectName(projectName);
+			if (buildDeployEntity == null || buildDeployEntity.getData() == null) {
+				return;
+			}
+			CodeServerBuildDeploy data = buildDeployEntity.getData();
+			List<BuildAudit> logs = "int".equalsIgnoreCase(environment)
+					? data.getIntBuildAuditLogs()
+					: data.getProdBuildAuditLogs();
+			BuildAudit target = null;
+			if (logs != null) {
+				for (BuildAudit b : logs) {
+					if (staleVersion.equalsIgnoreCase(b.getVersion())) {
+						target = b;
+						break;
+					}
+				}
+			}
+			if (target != null && (target.isKeepBuildImage() || target.isImageDeleted())) {
+				log.info("deleteStaleBuildImage - SKIP project={} version={} (keepBuildImage={}, imageDeleted={})",
+						projectName, staleVersion, target.isKeepBuildImage(), target.isImageDeleted());
+				return; // idempotent: already deleted / retained
+			}
+			GenericMessage resp = client.deleteBuild(projectName, staleVersion); // 404 -> SUCCESS, never throws
+			if (resp != null && "SUCCESS".equalsIgnoreCase(resp.getSuccess())) {
+				log.info("deleteStaleBuildImage - Deleted (or already-absent) stale artifact {}:{} (env={})",
+						projectName, staleVersion, environment);
+				if (target != null) {
+					target.setImageDeleted(true);
+					buildDeployEntity.setData(data);
+					buildDeployRepo.save(buildDeployEntity);
+				}
+			} else {
+				// Non-fatal: log and move on; the ignore/ack path still completes normally.
+				log.warn(
+						"deleteStaleBuildImage - Could not delete stale artifact {}:{} (registry returned non-success); continuing.",
+						projectName, staleVersion);
+			}
+		} catch (Exception e) {
+			// Absolutely never let artifact cleanup break the status-update flow.
+			log.warn("deleteStaleBuildImage - error deleting {}:{}: {} (ignored, flow continues)",
+					projectName, staleVersion, e.getMessage());
+		}
+	}
+
+	private BuildAudit findAuditByVersion(List<BuildAudit> logs, String version) {
+		if (logs == null || logs.isEmpty()) {
+			return null;
+		}
+		if (version != null) {
+			for (int i = logs.size() - 1; i >= 0; i--) { // newest-first
+				if (version.equalsIgnoreCase(logs.get(i).getVersion())) {
+					return logs.get(i);
+				}
+			}
+		}
+		return logs.get(logs.size() - 1); // fallback: last
 	}
 
 	private boolean isRequestedStatus(String status) {
 		return Set.of(
 			"DEPLOY_REQUESTED",
 			"BUILD_REQUESTED"
-		).contains(status);
+		).contains(status != null ? status.toUpperCase() : "");
+	}
+
+	private Date resolveWorkflowCompletionTime(GitHubWorkflowJobsResponseDto.Job job, Date now) {
+		String completedAt = job != null ? job.getCompletedAt() : null;
+		if (completedAt == null || completedAt.isBlank()) {
+			log.debug("GitHub workflow completion timestamp is missing; using refresh time");
+			return now;
+		}
+		try {
+			Date parsedCompletionTime = Date.from(
+					DateTimeFormatter.ISO_DATE_TIME.parse(completedAt, Instant::from));
+			if (parsedCompletionTime.after(now)) {
+				log.warn("GitHub workflow completion timestamp {} is in the future; using refresh time",
+						completedAt);
+				return now;
+			}
+			return parsedCompletionTime;
+		} catch (DateTimeParseException e) {
+			log.warn("Unable to parse GitHub workflow completion timestamp {}; using refresh time",
+					completedAt);
+			return now;
+		}
 	}
 
 	private String resolveFinalStatus(String requestedStatus, String conclusion) {
@@ -5580,7 +6431,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 		}
 
 		if ("DEPLOY_REQUESTED".equalsIgnoreCase(requestedStatus)) {
-			return success ? "DEPLOYED" : "DEPLOY_FAILED";
+			return success ? "DEPLOYED" : "DEPLOYMENT_FAILED";
 		}
 
 		return requestedStatus;
@@ -5744,5 +6595,381 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
             responseMessage.setErrors(errors);
         }
         return responseMessage;
+    }
+
+	/**
+	 * Existing workspaces retain an authoritative migration flag; only legacy records
+	 * without that flag should derive the host from their repository URL.
+	 */
+	private boolean resolveWorkspaceMigratedToGHE(CodeServerWorkspaceVO vo, String repoDetails) {
+		Boolean persistedFlag = null;
+		String persistedFlagSource = "workspace";
+		if (vo != null && vo.getWorkspaceId() != null) {
+			CodeServerWorkspaceNsql persistedWorkspace =
+					workspaceCustomRepository.findByWorkspaceId(vo.getWorkspaceId());
+			if (persistedWorkspace != null && persistedWorkspace.getData() != null) {
+				persistedFlag = persistedWorkspace.getData().getIsWorkspaceMigratedToGHE();
+			}
+		}
+		if (persistedFlag == null && vo != null && vo.getProjectDetails() != null
+				&& vo.getProjectDetails().getProjectOwner() != null
+				&& vo.getProjectDetails().getProjectName() != null) {
+			CodeServerWorkspaceNsql ownerWorkspace = workspaceCustomRepository.findbyProjectName(
+					vo.getProjectDetails().getProjectOwner().getId(),
+					vo.getProjectDetails().getProjectName());
+			if (ownerWorkspace != null && ownerWorkspace.getData() != null) {
+				persistedFlag = ownerWorkspace.getData().getIsWorkspaceMigratedToGHE();
+				if (persistedFlag != null) {
+					persistedFlagSource = "owner";
+				}
+			}
+		}
+		boolean urlDerivedFlag = repoDetails != null && repoDetails.contains("ghe.com");
+		if (persistedFlag != null) {
+			if (persistedFlag != urlDerivedFlag) {
+				log.warn("Workspace host signals disagree: persistedMigratedToGHE={}, "
+						+ "urlDerivedMigratedToGHE={}, selectedHost={}, source={}",
+						persistedFlag, urlDerivedFlag, persistedFlag ? "GHE" : "git.i", persistedFlagSource);
+			}
+			return persistedFlag;
+		}
+		return urlDerivedFlag;
+	}
+
+	/**
+	 * Keep all workspace entry points aligned so missing credentials, rejected credentials,
+	 * SSO authorization, and ordinary permission failures remain distinguishable to users.
+	 */
+	private MessageDescription getGitPatValidationError(
+			GitClient.GitPatValidationResult validation, String orgName) {
+		if (validation.isMissingToken()) {
+			return new MessageDescription(
+					"Git Personal Access Token is missing. Please provide a token and retry.");
+		}
+		if (validation.getStatus() == HttpStatus.UNAUTHORIZED) {
+			return new MessageDescription(
+					"Git Personal Access Token was rejected by the Git server. "
+							+ "Please verify it is valid for the selected host and retry.");
+		}
+		if (validation.getSsoAuthorizationUrl() != null) {
+			return new MessageDescription(
+					"Personal Access Token requires SSO authorization for " + orgName
+							+ ". Authorize it here: " + validation.getSsoAuthorizationUrl());
+		}
+		if (validation.getStatus() == HttpStatus.FORBIDDEN) {
+			return new MessageDescription(
+					"Git Personal Access Token lacks permission to access " + orgName
+							+ ". Please verify its organization permissions and retry.");
+		}
+		return new MessageDescription(
+				"Git Personal Access Token validation failed. Please verify the token and retry.");
+	}
+
+	@Override
+	public ResponseEntity<GenericMessage> preValidateDeployment(ManageDeployRequestDto deployRequestDto, String id, String userId,
+		boolean isTriggeredByAutoDeploy) {
+
+        boolean isPrivateRecipe = false;
+        // CreatedByVO currentUser = this.userStore.getVO();
+        // String userId = currentUser != null ? currentUser.getId() : "";
+        CodeServerWorkspaceVO vo = getById(userId, id);
+        Boolean isOwner = false;
+        CodeServerWorkspaceVO ownerVo = null;
+        if (vo == null || vo.getWorkspaceId() == null) {
+            log.debug("No workspace found, returning empty");
+            GenericMessage emptyResponse = new GenericMessage();
+            List<MessageDescription> errors = new ArrayList<>();
+            MessageDescription msg = new MessageDescription();
+            msg.setMessage("No workspace found for given id and the user");
+            errors.add(msg);
+            emptyResponse.setErrors(errors);
+            return new ResponseEntity<>(emptyResponse, HttpStatus.NOT_FOUND);
+        }
+        if (!vo.getProjectDetails().getProjectOwner().getId().equals(vo.getWorkspaceOwner().getId())) {
+            ownerVo = getByProjectName(vo.getProjectDetails().getProjectOwner().getId(),
+                    vo.getProjectDetails().getProjectName());
+        } else {
+            ownerVo = vo;
+            isOwner = true;
+        }
+        if (Objects.isNull(ownerVo.getProjectDetails().getIntDeploymentDetails().getDeploymentUrl())
+                && Objects.isNull(ownerVo.getProjectDetails().getProdDeploymentDetails().getDeploymentUrl())) {
+            if ((Objects.isNull(ownerVo.isIsWorkspaceMigrated()) || !ownerVo.isIsWorkspaceMigrated())
+                    && ownerVo.getProjectDetails().getRecipeDetails().getCloudServiceProvider().toString()
+                            .equals(ConstantsUtility.DHC_CAAS)) {
+                GenericMessage emptyResponse = new GenericMessage();
+                List<MessageDescription> errors = new ArrayList<>();
+                MessageDescription msg = new MessageDescription();
+                msg.setMessage("Kindly ask the owner of your workspace to migrate to AWS before you deploy.");
+                errors.add(msg);
+                emptyResponse.setErrors(errors);
+                return new ResponseEntity<>(emptyResponse, HttpStatus.FORBIDDEN);
+            }
+        }
+        List<String> authorizedUsers = new ArrayList<>();
+        if (vo.getProjectDetails() != null && vo.getProjectDetails().getProjectOwner() != null) {
+            String owner = vo.getProjectDetails().getProjectOwner().getId();
+            authorizedUsers.add(owner);
+        }
+        if (vo.getProjectDetails().getProjectCollaborators() != null
+                && !vo.getProjectDetails().getProjectCollaborators().isEmpty()) {
+            List<String> collabUsers = vo.getProjectDetails().getProjectCollaborators().stream().map(n -> n.getId())
+                    .collect(Collectors.toList());
+            authorizedUsers.addAll(collabUsers);
+        }
+        if (!authorizedUsers.contains(userId)) {
+            MessageDescription notAuthorizedMsg = new MessageDescription();
+            notAuthorizedMsg.setMessage(
+                    "Not authorized to deploy project for workspace. User does not have privileges.");
+            GenericMessage errorMessage = new GenericMessage();
+            errorMessage.addErrors(notAuthorizedMsg);
+            log.info("User {} cannot deploy project for workspace {}, insufficient privileges.", userId,
+                    vo.getWorkspaceId());
+            return new ResponseEntity<>(errorMessage, HttpStatus.FORBIDDEN);
+        }
+        if (vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().toLowerCase().startsWith("public")
+                || vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().equalsIgnoreCase("default")) {
+            MessageDescription invalidTypeMsg = new MessageDescription();
+            invalidTypeMsg.setMessage(
+                    "Invalid type, cannot deploy this type of recipe");
+            GenericMessage errorMessage = new GenericMessage();
+            errorMessage.addErrors(invalidTypeMsg);
+            log.info("User {} cannot deploy project of recipe {} for workspace {}, invalid type.", userId,
+                    vo.getProjectDetails().getRecipeDetails().getRecipeId().name(), vo.getWorkspaceId());
+            return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
+        }
+        if (vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().toLowerCase().startsWith("private")) {
+            isPrivateRecipe = true;
+            deployRequestDto.setRepo(vo.getProjectDetails().getRecipeDetails().getRepodetails());
+        }
+        String environment = "int";
+        String branch = "main";
+        if (deployRequestDto != null && !"int".equalsIgnoreCase(deployRequestDto.getTargetEnvironment().name())) {
+            environment = "prod";
+        }
+        if (deployRequestDto != null && deployRequestDto.getBranch() != null) {
+            branch = deployRequestDto.getBranch();
+        }
+        String intDeployStatus = "";
+        String prodDeployStatus = "";
+        String intBuildStatus = "";
+        String prodBuildStatus = "";
+        String status = "";
+        intBuildStatus = vo.getProjectDetails().getIntBuildDetails().getLastBuildStatus();
+        prodBuildStatus = vo.getProjectDetails().getProdBuildDetails().getLastBuildStatus();
+        intDeployStatus = vo.getProjectDetails().getIntDeploymentDetails().getLastDeploymentStatus();
+        prodDeployStatus = vo.getProjectDetails().getProdDeploymentDetails().getLastDeploymentStatus();
+        if (environment.equalsIgnoreCase("int")) {
+            status = intDeployStatus;
+        } else {
+            status = prodDeployStatus;
+        }
+		
+		if(isTriggeredByAutoDeploy){
+
+			List<String> teamMembersList = vo.getProjectDetails().getProjectCollaborators().stream().map(collabUser -> collabUser.getId()).collect(Collectors.toList());
+			List<String> teamMembersEmailList = vo.getProjectDetails().getProjectCollaborators().stream().map(collabUser -> collabUser.getEmail()).collect(Collectors.toList());
+			
+			if(environment.equalsIgnoreCase("prod") && ((prodDeployStatus != null && (prodDeployStatus.equalsIgnoreCase("DEPLOY_REQUESTED")
+					|| prodDeployStatus.equalsIgnoreCase("APPROVAL_PENDING"))) || (prodBuildStatus != null && prodBuildStatus.equalsIgnoreCase("BUILD_REQUESTED")))){
+				MessageDescription invalidTypeMsg = new MessageDescription();
+				invalidTypeMsg.setMessage(
+						"cannot deploy workspace since it is already in " + prodDeployStatus + " state");
+				GenericMessage errorMessage = new GenericMessage();
+				errorMessage.addErrors(invalidTypeMsg);
+				log.info("User {} cannot deploy project of recipe {} for workspace {}, since it is alredy in {} state.",
+						userId,
+						vo.getProjectDetails().getRecipeDetails().getRecipeId().name(), vo.getWorkspaceId(),
+						prodDeployStatus);
+
+				kafkaProducer.send("Auto Codespace-Deploy Failed For PROD Environment", vo.getWorkspaceId(), "", userId,
+						"Failed to deploy Codespace " + vo.getProjectDetails().getProjectName() + " with branch " + branch
+								+ " on " + environment + " triggered by " + userId,
+						true, teamMembersList, teamMembersEmailList, null);
+
+				return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
+			} else if(environment.equalsIgnoreCase("int") && ((intDeployStatus != null && intDeployStatus.equalsIgnoreCase("DEPLOY_REQUESTED")) 
+				|| (intBuildStatus != null && intBuildStatus.equalsIgnoreCase("BUILD_REQUESTED")))){
+				MessageDescription invalidTypeMsg = new MessageDescription();
+				invalidTypeMsg.setMessage(
+						"cannot deploy workspace since it is already in " + intDeployStatus + " state");
+				GenericMessage errorMessage = new GenericMessage();
+				errorMessage.addErrors(invalidTypeMsg);
+				log.info("User {} cannot deploy project of recipe {} for workspace {}, since it is alredy in {} state.",
+						userId,
+						vo.getProjectDetails().getRecipeDetails().getRecipeId().name(), vo.getWorkspaceId(),
+						intDeployStatus);
+				
+				kafkaProducer.send("Auto Codespace-Deploy Failed For INT Environment", vo.getWorkspaceId(), "", userId,
+						"Failed to deploy Codespace " + vo.getProjectDetails().getProjectName() + " with branch " + branch
+								+ " on " + environment + " triggered by " + userId,
+						true, teamMembersList, teamMembersEmailList, null);
+				
+				return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
+			}
+		} else {
+			
+			if (intDeployStatus != null && (intDeployStatus.equalsIgnoreCase("DEPLOY_REQUESTED"))) {
+				MessageDescription invalidTypeMsg = new MessageDescription();
+				invalidTypeMsg.setMessage(
+						"cannot deploy workspace since it is already in " + intDeployStatus + " state");
+				GenericMessage errorMessage = new GenericMessage();
+				errorMessage.addErrors(invalidTypeMsg);
+				log.info("User {} cannot deploy project of recipe {} for workspace {}, since it is alredy in {} state.",
+						userId,
+						vo.getProjectDetails().getRecipeDetails().getRecipeId().name(), vo.getWorkspaceId(),
+						intDeployStatus);
+				return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
+			} else if (intBuildStatus != null && intBuildStatus.equalsIgnoreCase("BUILD_REQUESTED")) {
+				MessageDescription invalidTypeMsg = new MessageDescription();
+				invalidTypeMsg.setMessage(
+						"cannot deploy workspace since it is already in BUILD_REQUESTED state");
+				GenericMessage errorMessage = new GenericMessage();
+				errorMessage.addErrors(invalidTypeMsg);
+				log.info(
+						"User {} cannot deploy project of recipe {} for workspace {}, since it is alredy in BUILD_REQUESTED state.",
+						userId,
+						vo.getProjectDetails().getRecipeDetails().getRecipeId().name(), vo.getWorkspaceId());
+				return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
+			}
+
+			if (prodDeployStatus != null && (prodDeployStatus.equalsIgnoreCase("DEPLOY_REQUESTED")
+					|| (prodDeployStatus.equalsIgnoreCase("APPROVAL_PENDING") && environment.equalsIgnoreCase("int")))) {
+				MessageDescription invalidTypeMsg = new MessageDescription();
+				invalidTypeMsg.setMessage(
+						"cannot deploy workspace since it is already in " + prodDeployStatus + " state");
+				GenericMessage errorMessage = new GenericMessage();
+				errorMessage.addErrors(invalidTypeMsg);
+				log.info("User {} cannot deploy project of recipe {} for workspace {}, since it is alredy in {} state.",
+						userId,
+						vo.getProjectDetails().getRecipeDetails().getRecipeId().name(), vo.getWorkspaceId(),
+						prodDeployStatus);
+				return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
+			} else if (prodBuildStatus != null && prodBuildStatus.equalsIgnoreCase("BUILD_REQUESTED")) {
+				MessageDescription invalidTypeMsg = new MessageDescription();
+				invalidTypeMsg.setMessage(
+						"cannot deploy workspace since it is already in BUILD_REQUESTED state");
+				GenericMessage errorMessage = new GenericMessage();
+				errorMessage.addErrors(invalidTypeMsg);
+				log.info(
+						"User {} cannot deploy project of recipe {} for workspace {}, since it is alredy in BUILD_REQUESTED state.",
+						userId,
+						vo.getProjectDetails().getRecipeDetails().getRecipeId().name(), vo.getWorkspaceId());
+				return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
+			}
+		}
+
+        // if ((Objects.nonNull(deployRequestDto.isSecureWithIAMRequired())
+        // && deployRequestDto.isSecureWithIAMRequired())
+        // && (Objects.nonNull(deployRequestDto.getTechnicalUserDetailsForIAMLogin())))
+        // {
+        // UserRequestVO userRequestVO = new UserRequestVO();
+        // com.daimler.data.auth.client.UserInfoVO userInfoVO = new
+        // com.daimler.data.auth.client.UserInfoVO();
+        // com.daimler.data.auth.client.UserInfoVO userInfoVOResponse = new
+        // com.daimler.data.auth.client.UserInfoVO();
+        // userInfoVO.setId(deployRequestDto.getTechnicalUserDetailsForIAMLogin());
+        // userRequestVO.setData(userInfoVO);
+        // userInfoVOResponse = dnaAuthClient.onboardTechnicalUser(userRequestVO);
+        // if (Objects.nonNull(userInfoVOResponse) &&
+        // Objects.isNull(userInfoVOResponse.getId())) {
+        // log.info(
+        // "Failed to onboard/fetch technical user {}, returning from controller without
+        // triggering deploy action",
+        // deployRequestDto.getTechnicalUserDetailsForIAMLogin());
+        // MessageDescription exceptionMsg = new MessageDescription(
+        // "Failed to onboard/fetch technical user, Please try again.");
+        // GenericMessage errorMessage = new GenericMessage();
+        // errorMessage.addErrors(exceptionMsg);
+        // return new ResponseEntity<>(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);
+        // }
+        // }
+        // if(deployRequestDto.isValutInjectorEnable()!=null)
+        // {
+        // deployRequestDto.setValutInjectorEnable(deployRequestDto.isValutInjectorEnable());
+        // }
+        // else
+        // {
+        // deployRequestDto.setValutInjectorEnable(false);
+        // }
+        // if approval enabled workspace and and deployment tp prod then go to
+        // service.approveWorkspace
+        GenericMessage responseMsg;
+        Boolean isApprover = false;
+
+        List<UserInfoVO> collabList = vo.getProjectDetails().getProjectCollaborators();
+        if (collabList != null) {
+            for (UserInfoVO user : collabList) {
+                if (userId.equalsIgnoreCase(user.getId())) {
+                    if (user.isIsApprover()) {
+                        isApprover = true;
+                    }
+                }
+            }
+        }
+        Boolean deploymentApprovalEnabled = false;
+        Boolean keepImage = deployRequestDto.isKeepBuildImage();
+        deploymentApprovalEnabled = Boolean.TRUE
+                .equals(vo.getProjectDetails().getDataGovernance().isEnableDeployApproval());
+        if (environment.equalsIgnoreCase("prod") && deploymentApprovalEnabled
+                && !"APPROVAL_PENDING".equalsIgnoreCase(status) && !isApprover && !isOwner) {
+            responseMsg = approveRequestWorkspace(userId, id, environment, branch,
+                    isPrivateRecipe, deployRequestDto.getVersion());
+            log.info("User {} deployed workspace {} project {}", userId, vo.getWorkspaceId(),
+                    vo.getProjectDetails().getRecipeDetails().getRecipeId().name());
+            log.info("workspace deployment requires approval");
+        } else {
+
+            if (environment.equalsIgnoreCase("prod") && deploymentApprovalEnabled
+                    && "APPROVAL_PENDING".equalsIgnoreCase(status) && !isApprover && !isOwner) {
+                MessageDescription invalidTypeMsg = new MessageDescription();
+                invalidTypeMsg.setMessage(
+                        "cannot deploy workspace since it is already in APPROVAL_PENDING state");
+                GenericMessage errorMessage = new GenericMessage();
+                errorMessage.addErrors(invalidTypeMsg);
+                log.info(
+                        "User {} cannot deploy project of recipe {} for workspace {}, since it is alredy in APPROVAL_PENDING state.",
+                        userId,
+                        vo.getProjectDetails().getRecipeDetails().getRecipeId().name(), vo.getWorkspaceId());
+                return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
+            } else {
+                responseMsg = deployWorkspace(userId, id, environment, branch,
+                        isPrivateRecipe, deployRequestDto.getVersion(), "deploy", keepImage);
+
+                // Create OpenTelemetry plugin once deployment is triggered (route exists at
+                // this point)
+                try {
+                    String serviceName = vo.getProjectDetails().getProjectName() + "-" + environment;
+                    createOpenTelemetryPlugin(id, environment, serviceName);
+                    log.info("OpenTelemetry plugin created for workspace {} in {} environment",
+                            vo.getWorkspaceId(), environment);
+                } catch (Exception e) {
+                    log.warn("Failed to create OpenTelemetry plugin for workspace {} in {} environment: {}",
+                            vo.getWorkspaceId(), environment, e.getMessage());
+                    // Don't fail the deployment if plugin creation fails
+                }
+
+                if ("FAILED".equalsIgnoreCase(responseMsg.getSuccess())) {
+                    return new ResponseEntity<>(responseMsg, HttpStatus.BAD_REQUEST);
+                }
+                log.info("User {} deployed workspace {} project {}", userId, vo.getWorkspaceId(),
+                        vo.getProjectDetails().getRecipeDetails().getRecipeId().name());
+            }
+        }
+
+        // if
+        // (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public"))
+        // {
+        // log.info("User {} deployed workspace {} project {}", userId,
+        // vo.getWorkspaceId(),
+        // vo.getProjectDetails().getRecipeDetails().getRecipeId().name());
+        // }
+
+        if ("FAILED".equalsIgnoreCase(responseMsg.getSuccess())) {
+            return new ResponseEntity<>(responseMsg, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        log.info("User {} deployed workspace {} project {}", userId, vo.getWorkspaceId(),
+                vo.getProjectDetails().getRecipeDetails().getRecipeId().name());
+        return new ResponseEntity<>(responseMsg, HttpStatus.OK);
     }
  }

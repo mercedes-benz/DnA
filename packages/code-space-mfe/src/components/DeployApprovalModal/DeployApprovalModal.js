@@ -44,6 +44,16 @@ const DeployApprovalModal = (props) => {
         if (res.data.success === 'SUCCESS') {
           // setCreatedCodeSpaceName(res.data.name);
           props.setCodeDeploying(true);
+          if (props.startDeploymentStatusListener) {
+            props.startDeploymentStatusListener(
+              codeSpace.projectDetails?.projectName,
+              'prod',
+              props.onDeploymentStatusUpdate,
+              props.onDeploymentComplete,
+              props.onDeploymentSSEError
+            );
+          }
+          
           ProgressIndicator.hide();
           Notification.show(
             'Production deployment of your project ' + codeSpace.projectDetails?.projectName +' is approved.'

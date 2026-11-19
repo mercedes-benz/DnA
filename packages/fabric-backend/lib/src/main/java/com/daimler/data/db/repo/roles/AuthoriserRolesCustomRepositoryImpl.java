@@ -32,12 +32,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Expression;
-import javax.persistence.criteria.Root;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.TypedQuery;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Expression;
+import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.TypedQuery;
 
 import org.springframework.stereotype.Repository;
 
@@ -58,11 +58,14 @@ public class AuthoriserRolesCustomRepositoryImpl extends CommonDataRepositoryImp
     public List<AuthoriserRolesNsql> getAll(String userId) {
         try {
             
-            String jsonPath = "$.ownerDetails[*] ? (@.id == \"" + userId + "\")";
-            String query = "SELECT * FROM user_created_roles_nsql WHERE jsonb_path_exists(data, cast(:jsonPath AS jsonpath))";
+            String jsonPath = "$.ownerDetails[*] ? (@.id == $uid)";
+            String query = "SELECT * FROM user_created_roles_nsql "
+                    + "WHERE jsonb_path_exists(data, cast(:jsonPath AS jsonpath), "
+                    + "jsonb_build_object('uid', cast(:userId AS text)))";
     
             return em.createNativeQuery(query, AuthoriserRolesNsql.class)
                         .setParameter("jsonPath", jsonPath)
+                        .setParameter("userId", userId)
                         .getResultList();
     
         } catch (Exception e) {
