@@ -188,7 +188,7 @@ public class CodeServerVaultConfig {
 					.get(versionPath(userId, version));
 			if (response == null || !response.hasData()) {
 				item.setStatus("REVOKED");
-				return item;
+				return null;
 			}
 			Map<String, Object> data = response.getData();
 			if ("REVOKED".equalsIgnoreCase(stringValue(data.get("status"))) || data.get("secret") == null) {
