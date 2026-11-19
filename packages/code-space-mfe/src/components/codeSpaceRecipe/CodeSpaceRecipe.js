@@ -34,6 +34,7 @@ const CodeSpaceRecipe = (props) => {
   const [isPublic, setIsPublic] = useState(false);
   const [isDeployEnabled, setIsDeployEnabled] =  useState(false);
   const [gitUrl, setGitUrl] = useState('');
+  const [pidError, setPidError] = useState('');
   const [hardware, setHardware] = useState('small');
   const [software, setSoftware] = useState([]);
   const [gitPath] = useState('');
@@ -182,6 +183,7 @@ const CodeSpaceRecipe = (props) => {
   const githubUrlVal = e.currentTarget.value;
   setGitUrl(githubUrlVal);
   setEnableCreate(false);
+  setPidError('');
 
   const trimmedUrl = githubUrlVal.trim();
   const gitIHost = Envs.CODE_SPACE_GIT_PAT_APP_URL ? new URL(Envs.CODE_SPACE_GIT_PAT_APP_URL).host : '';
@@ -329,8 +331,9 @@ const CodeSpaceRecipe = (props) => {
   const verifyRequest = () => {
     ProgressIndicator.show();
     CodeSpaceApiClient.verifyGitUser(gitHubUrl)
-      .then((response) => {
+            .then((response) => {
         ProgressIndicator.hide();
+        setPidError('');
         if (response?.data.success === 'SUCCESS') {
           if (!isGitIRepo) {
             setEnableCreate(true);
@@ -342,7 +345,8 @@ const CodeSpaceRecipe = (props) => {
       .catch((err) => {
         ProgressIndicator.hide();
         Notification.show(err?.response?.data?.errors[0]?.message, 'alert');
-        if (err.message === 'Value or Item already exist!') {
+        const isPidNotAuthorized = err?.response?.data?.warnings?.some((w) => w?.message === 'GHE_PID_NOT_AUTHORIZED');
+        setPidError(isPidNotAuthorized ? err?.response?.data?.errors?.[0]?.message || '' : '');        if (err.message === 'Value or Item already exist!') {
           setErrorObj((prevState) => ({
             ...prevState,
             recipeName: repeatedError,
@@ -641,6 +645,23 @@ const CodeSpaceRecipe = (props) => {
                           </button>
                         )}
                       </div>
+                                            {pidError && !enableCreate && (
+                        <div className={classNames(Styles.pidError)}>
+                          <i className="icon mbc-icon alert circle" />
+                          <div>
+                            <p>{pidError}</p>
+                            {Envs.CODESPACE_TEAMS_LINK && (
+                              <p>
+                                Please contact the DnA team via the{' '}
+                                <a href={Envs.CODESPACE_TEAMS_LINK} target="_blank" rel="noopener noreferrer">
+                                  DnA Codespaces Teams channel
+                                </a>
+                                {' '}for admin access.
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      )}
                       <p className={classNames(Styles.giturlsuccess, enableCreate ? '' : ' hide')}>
                         <i className="icon mbc-icon alert circle"></i>PID6C39 onboarded successfully.
                       </p>

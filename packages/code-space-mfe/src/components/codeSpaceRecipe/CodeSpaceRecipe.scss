@@ -161,6 +161,35 @@
       }
     }
 
+    .pidError {
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+      margin-top: -10px;
+      padding: 8px 10px;
+      border-left: 3px solid var(--color-red, #e54747);
+      background: rgba(229, 71, 71, 0.08);
+      color: var(--color-red, #e54747);
+      font-size: 12px;
+
+      i {
+        margin-top: 2px;
+      }
+
+      p {
+        margin: 0 0 4px;
+ 
+        &:last-child {
+          margin-bottom: 0;
+        }
+      }
+
+      a {
+        color: #00adef;
+        text-decoration: underline;
+      }
+    }
+    
     .giturlsuccess { 
       color: var(--color-green);
       margin-top: -20px;
