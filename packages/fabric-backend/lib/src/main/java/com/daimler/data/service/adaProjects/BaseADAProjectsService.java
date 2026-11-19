@@ -9,12 +9,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.daimler.data.application.client.FabricWorkspaceClient;
+import com.daimler.data.application.client.PlanningITClient;
 import com.daimler.data.assembler.ADAProjectsAssembler;
 import com.daimler.data.assembler.FabricWorkspaceAssembler;
 import com.daimler.data.db.entities.ADAProjectsNsql;
 import com.daimler.data.db.entities.CapacityNsql;
 import com.daimler.data.db.entities.FabricWorkspaceNsql;
 import com.daimler.data.db.json.Capacity;
+import com.daimler.data.db.json.LeanIXDetails;
 import com.daimler.data.db.repo.adaProjects.ADAProjectsCustomRepository;
 import com.daimler.data.db.repo.adaProjects.ADAProjectsRepository;
 import com.daimler.data.db.repo.capacity.CapacityRepository;
@@ -25,6 +27,7 @@ import com.daimler.data.dto.adaProjects.ADAProjectDetailsVO;
 import com.daimler.data.dto.adaProjects.CapacityVO;
 import com.daimler.data.dto.fabric.ErrorResponseDto;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceVO;
+import com.daimler.data.dto.planningit.PlanningITApiItemVO;
 import com.daimler.data.service.common.BaseCommonService;
 
 import lombok.extern.slf4j.Slf4j;
@@ -60,6 +63,9 @@ public class BaseADAProjectsService extends BaseCommonService<ADAProjectDetailsV
 
 	@Autowired 
 	private FabricWorkspaceClient fabricWorkspaceClient;
+
+	@Autowired
+	private PlanningITClient planningITClient;
 
 	@Value("${fabricWorkspaces.fabricCapacityId}")
 	private String fabricCapacityId;
@@ -141,7 +147,7 @@ public class BaseADAProjectsService extends BaseCommonService<ADAProjectDetailsV
 			log.info("Creating new ADA Project with projectID {}", project.getProjectID());
 			updateCapacityForFabricWorkspaces(project);
 			project.setRegion(project.getCapacity().getRegion());
-			log.info("Successfully updated capacity for associated Fabric workspaces for project id {}", project.getProjectID());
+			log.info("Successfully updated capacity and LeanIX for associated Fabric workspaces for project id {}", project.getProjectID());
 			ADAProjectsNsql entity = assembler.toEntity(project);
 			jpaRepo.save(entity);
 			message.setSuccess("CREATED");
@@ -178,7 +184,7 @@ public class BaseADAProjectsService extends BaseCommonService<ADAProjectDetailsV
 			}
 
 			updateCapacityForFabricWorkspaces(project);
-			log.info("Successfully updated capacity for associated Fabric workspaces for project id {}", project.getProjectID());
+			log.info("Successfully updated capacity and LeanIX for associated Fabric workspaces for project id {}", project.getProjectID());
 			ADAProjectsNsql entity = assembler.toEntity(project);
 			entity.setId(id);
 			jpaRepo.save(entity);
@@ -246,6 +252,11 @@ public class BaseADAProjectsService extends BaseCommonService<ADAProjectDetailsV
 	private void updateCapacityForFabricWorkspaces(ADAProjectDetailsVO adaProject){
 		try {
 			CapacityVO capacityVO = null;
+			String leanIX = adaProject.getLeanIX();
+			String appId = null;
+			LeanIXDetails leanIXDetails = null;
+			boolean hasLeanIX = leanIX != null && !leanIX.isBlank();
+			
 			if(adaProject.getCapacity() == null && adaProject.getRegion() == null){
 				log.info("Capacity details and region are null for project id {}.", adaProject.getProjectID());
 				CapacityNsql capacityNsql = capacityRepo.findById(defaultRegion.toLowerCase()).orElse(null);
@@ -294,6 +305,27 @@ public class BaseADAProjectsService extends BaseCommonService<ADAProjectDetailsV
 
 			List<FabricWorkspaceNsql> workspaces = fabricWorkspaceCustomRepository.getAllByProjectId(adaProject.getProjectID());
 			if(workspaces != null && !workspaces.isEmpty()) {
+				if (hasLeanIX) {
+					String trimmedLeanIX = leanIX.trim();
+					List<PlanningITApiItemVO> planningITItems = planningITClient.searchPlanningIT(trimmedLeanIX);
+					Optional<PlanningITApiItemVO> matched = planningITItems == null ? Optional.empty()
+							: planningITItems.stream()
+									.filter(item -> item != null && trimmedLeanIX.equalsIgnoreCase(item.getId()))
+									.findFirst();
+					if (matched.isPresent()) {
+						PlanningITApiItemVO item = matched.get();
+						appId = item.getId();
+						leanIXDetails = toLeanIXDetails(item);
+					} else {
+						appId = trimmedLeanIX;
+						log.warn("No exact PlanningIT entry found for LeanIX id {} while updating associated Fabric workspaces",
+								trimmedLeanIX);
+					}
+				} else {
+					log.info("No LeanIX value on project {}, leaving associated Fabric workspace LeanIX details unchanged",
+							adaProject.getProjectID());
+				}
+
 				for(FabricWorkspaceNsql workspace : workspaces) {
 					Capacity capacity = new Capacity();
 					capacity.setId(adaProject.getCapacity().getId());
@@ -310,13 +342,30 @@ public class BaseADAProjectsService extends BaseCommonService<ADAProjectDetailsV
 						throw new IllegalArgumentException("Failed to assign the capacity for the workspace while updating the ADA project, Please contact ADA team!");
 					}
 					workspace.getData().setCapacity(capacity);
+					if (hasLeanIX) {
+						workspace.getData().setAppId(appId);
+						workspace.getData().setLeanIXDetails(leanIXDetails);
+					}
 					fabricWorkspaceRepo.save(workspace);
 				}
 			}
 		} catch (Exception e) {
-			log.error("Error updating capacity for associated Fabric workspaces for project id {}: {}", adaProject.getProjectID(), e.getMessage(), e);
-			throw new RuntimeException("ERROR while creating/updating the project with id " + adaProject.getProjectID() + " with error: " + e.getMessage(), e);
+			log.error("Error updating capacity and LeanIX for associated Fabric workspaces for project id {}: {}", adaProject.getProjectID(), e.getMessage(), e);
+			throw new RuntimeException("ERROR while creating/updating the Project or updating the capacity and LeanIX for associated Fabric workspaces for project id " + adaProject.getProjectID() + " with error: " + e.getMessage(), e);
 		}
+	}
+
+	private LeanIXDetails toLeanIXDetails(PlanningITApiItemVO item) {
+		LeanIXDetails details = new LeanIXDetails();
+		details.setAppReferenceStr(item.getAppReferenceStr());
+		details.setName(item.getName());
+		details.setShortName(item.getShortName());
+		details.setObjectState(item.getObjectState());
+		details.setProviderOrgRefstr(item.getProviderOrgRefstr());
+		details.setProviderOrgId(item.getProviderOrgId());
+		details.setProviderOrgShortname(item.getProviderOrgShortname());
+		details.setProviderOrgDeptid(item.getProviderOrgDeptid());
+		return details;
 	}
 	
 }

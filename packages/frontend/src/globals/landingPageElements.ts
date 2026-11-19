@@ -46,6 +46,8 @@ const clamavImagwUrl = Envs.CLAMAV_IMAGE_URL;
 // const formbricksSurveyUrl = Envs.FORMBRICKS_SURVEY_URL;
 const pgAdminUrl = Envs.PGADMIN_URL;
 const enableDbService = false;
+const enableSolutions = Envs.ENABLE_SOLUTIONS;
+const masspUrl = Envs.MASSP_URL;
 
 export const DataGovernanceElements = [
   {
@@ -616,29 +618,37 @@ export const ToolsLandingPageElements = [
   },
 ];
 
+// Portfolio is only offered while the in-platform solution transparency is enabled,
+// otherwise the Solutions card links out to MASSP as the single source of truth.
+const portfolioLandingPageElements = enableSolutions
+  ? [
+      {
+        name: 'Portfolio',
+        description: 'All your solutions at a glance and visualized for steering.',
+        tags: ['Self Service', 'FOSS'],
+        url: '/portfolio',
+        isExternalLink: false,
+        isTextAlignLeft: false,
+        isDisabled: false,
+        isSmallCard: false,
+        isMediumCard: true,
+        svgIcon: 'portfolio',
+      },
+    ]
+  : [];
+
 export const TranparencyLandingPageElements = [
-  {
-    name: 'Portfolio',
-    description:
-      'All your solutions at a glance and visualized for steering.',
-    tags: ['Self Service', 'FOSS'],
-    url: '/portfolio',
-    isExternalLink: false,
-    isTextAlignLeft: false,
-    isDisabled: false,
-    isSmallCard: false,
-    isMediumCard: true,
-    svgIcon: 'portfolio',
-  },
+  ...portfolioLandingPageElements,
   {
     name: 'Solutions',
-    description:
-      'Central place to search, find and create all MB Data & Analytics Solutions.',
+    description: enableSolutions
+      ? 'Central place to search, find and create all MB Data & Analytics Solutions.'
+      : 'Central place to search and find all MB Data & Analytics Solutions in MASSP.',
     tags: ['Self Service', 'FOSS'],
-    url: '/allsolutions',
-    isExternalLink: false,
+    url: enableSolutions ? '/allsolutions' : masspUrl,
+    isExternalLink: !enableSolutions,
     isTextAlignLeft: false,
-    isDisabled: false,
+    isDisabled: !enableSolutions && !masspUrl?.startsWith('http'),
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'solutionoverview',

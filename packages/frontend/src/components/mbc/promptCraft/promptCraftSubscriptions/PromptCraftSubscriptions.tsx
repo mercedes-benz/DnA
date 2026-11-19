@@ -279,6 +279,7 @@ const PromptCraftSubscriptions = ({ user }: any) => {
                 onNextClick={onPaginationNextClick}
                 onViewByNumbers={onViewByPageNum}
                 displayByPage={true}
+                showOneTwenty={true}
               />
             )}
           </div>

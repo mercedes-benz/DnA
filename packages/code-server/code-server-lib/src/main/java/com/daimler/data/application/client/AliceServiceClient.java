@@ -1,6 +1,7 @@
 package com.daimler.data.application.client;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -29,6 +30,7 @@ public class AliceServiceClient {
     private String authToken;
 
     @Autowired
+    @Qualifier("kongRestTemplate")
     private RestTemplate restTemplate;
 
     public EntitlementsDto getEntitlements(String roleId) {

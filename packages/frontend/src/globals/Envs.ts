@@ -83,6 +83,11 @@ export const Envs = {
     getInjectedEnv('ENABLE_TRAININGS') !== undefined
       ? getInjectedEnv('ENABLE_TRAININGS')
       : EnvParser.parseBool(process.env.ENABLE_TRAININGS, false),
+  ENABLE_SOLUTIONS:
+    getInjectedEnv('ENABLE_SOLUTIONS') !== undefined
+      ? getInjectedEnv('ENABLE_SOLUTIONS')
+      : EnvParser.parseBool(process.env.ENABLE_SOLUTIONS, false),
+  MASSP_URL: getInjectedEnv('MASSP_URL') || process.env.MASSP_URL,
   ENABLE_JUPYTER_WORKSPACE:
     getInjectedEnv('ENABLE_JUPYTER_WORKSPACE') !== undefined
       ? getInjectedEnv('ENABLE_JUPYTER_WORKSPACE')

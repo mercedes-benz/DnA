@@ -37,6 +37,7 @@ import com.daimler.data.db.json.CodeServerDeploymentDetails;
 import com.daimler.data.db.json.CodeServerLeanGovernanceFeilds;
 import com.daimler.data.db.json.UserInfo;
 import com.daimler.data.db.repo.common.CommonDataRepository;
+import com.daimler.data.dto.CodespaceResourceExemptionDto;
 import com.daimler.data.dto.CodespaceSecurityConfigCollectionDto;
 import com.daimler.data.dto.CodespaceSecurityConfigDto;
 import com.daimler.data.dto.GitRunIdDetailsDto;
@@ -50,6 +51,8 @@ public interface WorkspaceCustomRepository extends CommonDataRepository<CodeServ
 
 	List<CodeServerWorkspaceNsql>  findAll();
 
+	List<CodeServerWorkspaceNsql> findDeploymentReconciliationWorkspaces();
+
 	Integer getCount(String userId);
 
 	CodeServerWorkspaceNsql findbyUniqueLiteral(String userId, String uniqueLiteral, String value);
@@ -61,12 +64,25 @@ public interface WorkspaceCustomRepository extends CommonDataRepository<CodeServ
 	GenericMessage updateDeploymentDetails(String projectName, String environment,
 			CodeServerDeploymentDetails deploymentDetails,String lastBuildOrDeployStatus);
 
+	GenericMessage updateReconciledDeploymentStatus(String projectName, String environment,
+			CodeServerDeploymentDetails deploymentDetails, String lastBuildOrDeployStatus);
+
+	GenericMessage updateDeploymentGitJobRunId(String projectName, String environment, String gitjobRunID);
+
+	GenericMessage updateCancelledDeploymentStatus(String projectName, String environment,
+			String lastDeploymentStatus, String lastDeploymentError, Date lastDeployedOn);
+
+	GenericMessage updateDeploymentCrashLoopStatus(String projectName, String environment,
+			Boolean newPodCrashLooping, String crashLoopReason);
+
 	GenericMessage updateDeployedAppConfig(String projectName, String environment, boolean secureWithIAMRequired,
 			String oneApiVersionShortName, boolean isSecuredWithCookie, String deploymentType, String clientID,
 			String redirectUri, String ignorePaths, String scope, String ssoType, boolean secureWithDnaRequired,
 			boolean isAliceRoleEnabled, boolean isEntitlementPrefixEnabled, List<String> selectedAliceRoles);
 
 	GenericMessage updateBuildDetails(String projectName, String environment,CodeServerBuildDetails buildDetails);
+
+	GenericMessage updateScopedCookiePath(String projectName, String environment, Boolean scopedCookiePath);
 	
 	GenericMessage updateLatestBuildOrDeployStatus(String status, String environment,Date date,String projectName);
 
@@ -91,6 +107,8 @@ public interface WorkspaceCustomRepository extends CommonDataRepository<CodeServ
 	List<String> getAllWorkspaceIds();
 
 	CodeServerWorkspaceValidateVO validateCodespace(String id, String userId);
+
+	boolean isProjectOwnerOrAdmin(String userId);
 	
 	CodeServerWorkspaceNsql findByWorkspaceId(String wsId);
 
@@ -109,4 +127,32 @@ public interface WorkspaceCustomRepository extends CommonDataRepository<CodeServ
     boolean updateGitRunIdStatus(String projectName, String status, String string);
 
 	boolean updateBuildDeployAuditStatus(String projectName, String status, String environment, String gitjobRunId);
+
+	boolean isResourceCapExempt(String projectName, String environment);
+
+	List<CodespaceResourceExemptionDto> getAllResourceCapExemptions(Integer offset, Integer limit, String projectName);
+
+	Integer getResourceCapExemptionsCount(String projectName);
+
+	GenericMessage updateResourceCapExemption(String projectName, String environment, boolean exempt);
+	/**
+	 * get the code space details by git repo name, this method will return the workspaceNsql object for the given git repo name 
+	 * @param repoName git repo name
+	 * @return workspace details for the given git repo name
+	 */
+	List<CodeServerWorkspaceNsql> findAllByRepoName(String repoName);
+
+	/**
+	 * get all the workspace by the webhook id 
+	 * @param webhookId web hook id configured in the workspace
+	 * @return list of workspace details 
+	 */
+	List<CodeServerWorkspaceNsql> findAllByWebhookId(String webhookId);
+
+	/**
+	 * get all the workspace by the unique lateral 
+	 * @param uniqueLiteral string unique Literal i.e. will be the JSON key or column 
+	 * @param value the value based on which it will compare i.e. WHERE uniqueLiteral = value
+	 */
+	List<CodeServerWorkspaceNsql> findAllbyProjectName(String projectName);
 }

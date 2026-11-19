@@ -4,9 +4,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
+
+import com.daimler.data.util.ConstantsUtility;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,6 +24,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
+import com.daimler.data.db.json.DdxMirroredCatalogProduct;
+import com.daimler.data.dto.fabric.CreateMirrorCatalogDataDto;
+import com.daimler.data.dto.fabric.UiLicioueMirrorCatalogStepsDto;
 import com.daimler.data.dto.fabric.UiLicioueStepsDto;
 import com.daimler.data.dto.fabricCatalogManagement.GroupStatusResponseVO;
 import com.daimler.data.service.catalogManagement.BaseFabricCatalogManagementService;
@@ -61,6 +69,9 @@ public class UiLiciousClient {
 
     @Value("${uilicious.filePath}")
     private String filePath;
+
+    @Value("${uilicious.filePathMirrorCatalog}")
+    private String filePathMirrorCatalog;
 
     @Value("${uilicious.projectID}")
     private String projectID;
@@ -200,6 +211,81 @@ public class UiLiciousClient {
         }
  
         return groupStatusList;
+    }
+
+    public Map<String, String> createMirroredCatalog(String dataProductName, String catalogName,
+            String schemaName, String ddxGroup, String connectionName,
+            String workspaceId, String workspaceName, String networkConnectionName,
+            List<String> objects, boolean isNewCatalog) {
+
+        log.info("Calling Uilicious for mirrored catalog: catalog={}, group={}, isNew={}", catalogName, ddxGroup, isNewCatalog);
+
+CreateMirrorCatalogDataDto mirrorData = CreateMirrorCatalogDataDto.builder()
+        .email(email)
+        .password(password)
+        .dataProduct(dataProductName)
+        .catalogName(catalogName)
+        .groups(new ArrayList<>(List.of(ddxGroup)))
+        .connectionName(connectionName)
+        .workspaceIdMirrorCreation(workspaceId)
+        .workspaceName(workspaceName)
+        .networkConnectionName(networkConnectionName)
+        .selection(new ArrayList<>(List.of(
+                CreateMirrorCatalogDataDto.Selection.builder()
+                        .schema(schemaName)
+                        .tables(objects)
+                        .build())))
+        .build();
+
+        String data;
+        try {
+            data = objectMapper.writeValueAsString(mirrorData);
+        } catch (Exception e) {
+            log.error("Error serializing mirrored catalog data to JSON: {}", e.getMessage());
+            throw new RuntimeException("Failed to serialize mirrored catalog request", e);
+        }
+
+        Map<String, Object> requestBody = new HashMap<>();
+        requestBody.put("projectID", projectID);
+        requestBody.put("filePath", filePathMirrorCatalog);
+        requestBody.put("data", data);
+        requestBody.put("browser", browser);
+        requestBody.put("width", width);
+        requestBody.put("height", height);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("accessKey", accessKey);
+        headers.set("User-Agent", userAgent);
+        headers.set("Content-Type", contentType);
+
+        JsonNode response = callUiLiciousApi(baseURL + "start", JsonNode.class, requestBody, HttpMethod.POST, headers);
+
+        Map<String, String> result = new HashMap<>();
+        JsonNode resultNode = response.get("result");
+
+        String testRunId = null;
+        if (resultNode != null && resultNode.get("testRunIDs") != null) {
+            List<String> testRunIds = objectMapper.convertValue(
+                    resultNode.get("testRunIDs"), new TypeReference<List<String>>() {});
+            if (!testRunIds.isEmpty()) {
+                testRunId = testRunIds.get(0);
+            }
+        }
+
+        result.put("testRunId", testRunId);
+        result.put("groupAddedStatus", ConstantsUtility.MIRRORED_CATALOG_IN_PROGRESS);
+        result.put("grantPermissionStatus", ConstantsUtility.MIRRORED_CATALOG_IN_PROGRESS);
+        result.put("message", ConstantsUtility.MIRRORED_CATALOG_MESSAGE_IN_PROGRESS);
+
+        if (isNewCatalog) {
+            result.put("mirrorCatalogName", dataProductName);
+            result.put("catalogId", "Request in process");
+            result.put("catalogStatus", ConstantsUtility.MIRRORED_CATALOG_IN_PROGRESS);
+            result.put("mirroredCatalogUrl","Request in process");
+        }
+
+        return result;
     }
 
     public String addServicePrincipalToLakehouse(String workspaceId, String lakehouseId,
@@ -371,5 +457,210 @@ public class UiLiciousClient {
             throw new RuntimeException("Error calling UiLicious API", e);
         }
     }
+
+    public Map<String, String> getStatusForMirrorCatalog(DdxMirroredCatalogProduct data, String testRunID) {
+
+    Map<String, Object> requestBody = new HashMap<>();
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    headers.set("accessKey", accessKey);
+    headers.set("User-Agent", userAgent);
+    headers.set("Content-Type", contentType);
+
+    JsonNode response;
+    requestBody.put("id", testRunID);
+
+    try {
+        response = callUiLiciousApi(baseURL + "get", JsonNode.class, requestBody, HttpMethod.POST, headers);
+    } catch (Exception e) {
+        log.error("Error calling UiLicious API for testRunID {}: {}", testRunID, e.getMessage());
+        return Map.of("error", "Error calling UiLicious API: " + e.getMessage());
+    }
+
+    if (response == null || response.isNull() || response.isEmpty()) {
+        log.warn("Received null response from UiLicious API for testRunID: {}", testRunID);
+        return Map.of("error", "Received null response from UiLicious API for testRunID: " + testRunID);
+    }
+
+    if(response.has("ERROR")){
+        String errorMessage = response.get("ERROR").get("message").asText();
+        log.warn("Received error from UiLicious API for testRunID {}: {}", testRunID, errorMessage);
+        return Map.of("error", "Received error from UiLicious API: " + errorMessage);
+    } 
+
+    JsonNode resultNode = response.get("result");
+    if (resultNode == null) {
+        log.warn("No 'result' node in UiLicious API response for testRunID: {}", testRunID);
+        return Map.of("error", "No 'result' node in UiLicious API response for testRunID: " + testRunID);
+    }
+
+    if(!resultNode.get("status").asText().equalsIgnoreCase("success") && !resultNode.get("status").asText().equalsIgnoreCase("failure")){
+        String errorMessage = resultNode.has("message") ? resultNode.get("message").asText() : "Unknown error";
+        log.warn("Test run ended with error status for testRunID {}: {}", testRunID, errorMessage);
+        return Map.of("error", "Mirror catalog creation is in process");
+    }
+
+    JsonNode innerResultNode = resultNode.get("result");
+    if (innerResultNode == null || innerResultNode.get("steps") == null) {
+        log.warn("No 'result.result.steps' in UiLicious API response for testRunID: {}", testRunID);
+        return Map.of("error", "No steps found in UiLicious API response for testRunID: " + testRunID);
+    }
+
+    JsonNode stepsNode = innerResultNode.get("steps");
+
+    String createdAt = resultNode.has("createdAt") ? resultNode.get("createdAt").toString() : null;
+
+    List<UiLicioueMirrorCatalogStepsDto> steps;
+    try {
+        steps = objectMapper.convertValue(
+            stepsNode,
+            new TypeReference<List<UiLicioueMirrorCatalogStepsDto>>() {}
+        );
+    } catch (IllegalArgumentException e) {
+        log.error("Error deserializing steps for testRunID {}: {}", testRunID, e.getMessage());
+        return Map.of("error", "Error deserializing steps: " + e.getMessage());
+    }
+
+    if (steps == null || steps.isEmpty()) {
+        log.warn("No steps found in UiLicious API response for testRunID: {}", testRunID);
+        return Map.of("error", "No steps found in UiLicious API response for testRunID: " + testRunID);
+    }
+
+    Map<String, String> ErrorResultMap = steps.stream()
+        .filter(dto -> dto != null && dto.getDescription() != null)
+        .flatMap(dto -> {
+            String desc = dto.getDescription();
+            List<Map.Entry<String, String>> entries = new ArrayList<>();
+            if (desc.contains("Error:") && (desc.contains("Connection") || desc.contains("Catalog")) && desc.length() > "Error: ".length()) {
+                entries.add(Map.entry("error", desc.substring("Error: ".length())));
+            }
+            return entries.stream();
+        }).collect(Collectors.toMap(
+                Map.Entry::getKey,
+                Map.Entry::getValue,
+                (existing, replacement) -> existing
+        ));
+
+    if(!ErrorResultMap.isEmpty()){
+        log.warn("Error found in steps description for testRunID {}: {}", testRunID, ErrorResultMap.get("error"));
+        return ErrorResultMap;
+    }
+
+
+    Map<String, String> resultMap = steps.stream()
+        .filter(dto -> dto != null && dto.getDescription() != null)
+        .flatMap(dto -> {
+            String desc = dto.getDescription();
+            String status = dto.getStatus();
+            List<Map.Entry<String, String>> entries = new ArrayList<>();
+            if (desc.contains("Group added")) {
+                entries.add(Map.entry("Group", status));
+            }
+            if (desc.contains("granted permissions")) {
+                entries.add(Map.entry("Permissions", status));
+            }
+            if (desc.contains("Lakehouse ID") && desc.length() > "Lakehouse ID: ".length()) {
+                entries.add(Map.entry("LakehouseID", desc.substring("Lakehouse ID: ".length())));
+                entries.add(Map.entry("catalogStatus", status));
+            }
+            if (desc.contains("mirrorCatalogURL") && desc.length() > "mirrorCatalogURL: ".length()) {
+                entries.add(Map.entry("mirrorCatalogURL", desc.substring("mirrorCatalogURL: ".length())));
+            }
+            if (desc.contains("Error:") && desc.length() > "Error: ".length()) {
+                entries.add(Map.entry("error", desc.substring("Error: ".length())));
+            }
+            return entries.stream();
+        }).collect(Collectors.toMap(
+                Map.Entry::getKey,
+                Map.Entry::getValue,
+                (existing, replacement) -> existing
+        ));
+
+    if (createdAt != null) {
+        resultMap.put("createdAt", createdAt);
+    }
+
+    List<UiLicioueMirrorCatalogStepsDto> groupsStatusStep = steps
+            .stream()
+            .filter(step -> step != null && step.getDescription() != null && step.getDescription().contains((ConstantsUtility.UILICIOUS_GROUP_STATUS_CONSTANT)) &&
+                       step.getDescription().contains(ConstantsUtility.UILICIOUS_GROUP_CONSTANT))
+            .toList();
+
+    if (groupsStatusStep.isEmpty()) {
+        log.warn("===============No group detail found in the API response=================");
+        resultMap.put("error", "Failed to add group in MirrorCatalog ");
+        return resultMap;
+    }
+        
+    final List<Map<String, String>> responseGroupsStatusList;
+        try {
+            responseGroupsStatusList = objectMapper.readValue(
+                groupsStatusStep.get(0).getDescription(),
+                new TypeReference<List<Map<String, String>>>() {}
+            );  
+        } catch (Exception e) {
+            log.error("Error parsing group status from API response with error", e.getMessage());
+            resultMap.put("error", "Error parsing group status: " + e.getMessage());
+            return resultMap;
+        }
+
+    log.info("=================groupsStatusStep=========" + groupsStatusStep);
+
+    data.getDdxGroupDetails().forEach(groupDetail -> {
+        String groupName = groupDetail.getGroupName();
+        String groupStatus = responseGroupsStatusList.stream()
+                .filter(groupData -> groupData.get(ConstantsUtility.UILICIOUS_GROUP_CONSTANT).equals(groupName))
+                .map(groupData -> groupData.get(ConstantsUtility.UILICIOUS_GROUP_STATUS_CONSTANT))
+                .findFirst()
+                .orElse(ConstantsUtility.MIRRORED_CATALOG_FAILURE);
+        groupDetail.setGroupAddedStatus(groupStatus);
+        groupDetail.setGrantPermissionStatus(resultMap.get("Permissions").equalsIgnoreCase("success") ? ConstantsUtility.SUCCESS_STATE : ConstantsUtility.FAILED_STATE);
+        groupDetail.setUpdatedOn(new Date());
+    });
+    
+    if(!data.getFullSchema()){
+
+        List<UiLicioueMirrorCatalogStepsDto> tableStatusStep = steps
+                .stream()
+                .filter(step -> step != null && step.getDescription() != null && step.getDescription().contains((ConstantsUtility.UILICIOUS_GROUP_STATUS_CONSTANT)) &&
+                           step.getDescription().contains(ConstantsUtility.UILICIOUS_TABLE_CONSTANT))
+                .toList();
+        if (tableStatusStep.isEmpty()) {
+            log.warn("===============No table status found in the API response=================");
+            resultMap.put("error", "No table status found in API response for MirrorCatalog ");
+            return resultMap;
+        }
+            
+        final List<Map<String, String>> responseTableStatusList;
+            try {
+                responseTableStatusList = objectMapper.readValue(
+                    tableStatusStep.get(0).getDescription(),
+                    new TypeReference<List<Map<String, String>>>() {}
+                );  
+            } catch (Exception e) {
+                log.error("Error parsing table status from API response with error", e.getMessage());
+                resultMap.put("error", "Error parsing table status: " + e.getMessage());
+                return resultMap;
+            }
+    
+        log.info("=================tableStatusStep=========" + tableStatusStep);
+    
+        data.getObjects().forEach(tableDetails -> {
+            String tableName = tableDetails.getObjectName();
+            String tableStatus = responseTableStatusList.stream()
+                    .filter(tableData -> tableName.equals(tableData.get(ConstantsUtility.UILICIOUS_NAME_CONSTANT)))
+                    .map(tableData -> tableData.get(ConstantsUtility.UILICIOUS_GROUP_STATUS_CONSTANT))
+                    .findFirst()
+                    .orElse(ConstantsUtility.MIRRORED_CATALOG_FAILURE);
+            tableDetails.setObjectStatus(ConstantsUtility.UILICIOUS_KEPT_CONSTANT.equalsIgnoreCase(tableStatus) ? ConstantsUtility.SUCCESS_STATE : tableStatus);
+        });
+    }else{
+        data.setObjects(null);
+    }
+
+
+    return resultMap;
+}
 
 }

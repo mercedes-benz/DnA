@@ -1,0 +1,43 @@
+.intMigrationWarning {
+  text-align: left !important;
+}
+
+.intMigrationWarning p {
+    margin-bottom: 15px;
+    margin-top: 0;
+    font-size: medium;
+    text-align: left !important;
+}
+
+.intMigrationWarning a {
+    font-size: inherit;
+}
+
+.copySection {
+    background: #1e1e1e;
+    padding: 12px 16px;
+    border-radius: 4px;
+    margin-bottom: 16px;
+}
+
+.copySectionHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.copySectionDetails {
+    font-family: monospace;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.copyHint {
+    color: red;
+    font-size: medium !important;
+    font-weight: bold;
+    line-height: 1.5;
+    text-align: left !important;
+    margin-top: 0;
+}

@@ -6,5 +6,6 @@ import com.daimler.data.db.repo.common.CommonDataRepository;
 public interface WorkspaceCustomBuildDeployRepo extends CommonDataRepository<CodeServerBuildDeployNsql,String> {
 
     CodeServerBuildDeployNsql findByProjectName(String projectName);
+    CodeServerBuildDeployNsql findByProjectNameIncludingDeleted(String projectName);
 
 }

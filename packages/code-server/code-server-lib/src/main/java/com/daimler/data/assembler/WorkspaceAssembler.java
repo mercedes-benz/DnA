@@ -57,6 +57,7 @@
  import com.daimler.data.db.json.CodespaceSecurityRole;
  import com.daimler.data.db.json.CodespaceSecurityUserRoleMap;
  import com.daimler.data.db.json.UserInfo;
+ import com.daimler.data.dto.CodespaceResourceExemptionDto;
  import com.daimler.data.dto.CodespaceSecurityConfigDto;
  import com.daimler.data.dto.workspace.CodeServerDeploymentDetailsVO;
  import com.daimler.data.dto.workspace.CodeServerBuildDetailsVO;
@@ -79,6 +80,7 @@
  import com.daimler.data.dto.workspace.CodespaceSecurityEntitlementVO;
  import com.daimler.data.dto.workspace.CodespaceSecurityApiListVO;
  import com.daimler.data.dto.workspace.admin.CodespacePublishedSecurityConfigVO;
+ import com.daimler.data.dto.workspace.admin.CodespaceResourceExemptionVO;
  import com.daimler.data.dto.workspace.admin.CodespaceSecurityConfigDetailsVO;
  import com.daimler.data.dto.workspace.CodespaceSecurityRoleVO;
  import com.daimler.data.dto.workspace.CodespaceSecurityUserRoleMapResponseVO;
@@ -290,6 +292,8 @@ import com.daimler.data.dto.workspace.DeploymentAuditVO;
 		 CodeServerDeploymentDetails deploymentDetails = new CodeServerDeploymentDetails();
 		 if (vo != null) {
 			 BeanUtils.copyProperties(vo, deploymentDetails);
+			 deploymentDetails.setNewPodCrashLooping(vo.isNewPodCrashLooping());
+			 deploymentDetails.setCrashLoopReason(vo.getCrashLoopReason());
 			 if(vo.isSecureWithIAMRequired()!=null)
 			 {
 				deploymentDetails.setSecureWithIAMRequired(vo.isSecureWithIAMRequired());
@@ -335,6 +339,7 @@ import com.daimler.data.dto.workspace.DeploymentAuditVO;
 				deploymentDetails.setEntitlementPrefixEnabled(false);
 			 }
 			 deploymentDetails.setLastDeployedBy(toUserInfo(vo.getLastDeployedBy()));
+			 deploymentDetails.setScopedCookiePath(vo.isScopedCookiePath());
 			//  List<DeploymentAudit> auditDetails = this.toDeploymentAuditDetails(vo.getDeploymentAuditLogs());
 			//  deploymentDetails.setDeploymentAuditLogs(auditDetails);
 		 }
@@ -394,6 +399,8 @@ import com.daimler.data.dto.workspace.DeploymentAuditVO;
 		 SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
 		 if (deploymentDetails != null) {
 			 BeanUtils.copyProperties(deploymentDetails, deploymentDetailsVO);
+			 deploymentDetailsVO.setNewPodCrashLooping(deploymentDetails.getNewPodCrashLooping());
+			 deploymentDetailsVO.setCrashLoopReason(deploymentDetails.getCrashLoopReason());
 			 deploymentDetailsVO.setLastDeployedBy(toUserInfoVO(deploymentDetails.getLastDeployedBy()));
 			 if (Objects.isNull(deploymentDetails.getSecureWithIAMRequired())) {
 				 deploymentDetailsVO.setSecureWithIAMRequired(false);
@@ -439,6 +446,7 @@ import com.daimler.data.dto.workspace.DeploymentAuditVO;
 			 {
 			   deploymentDetailsVO.setEntitlementPrefixEnabled(deploymentDetails.getEntitlementPrefixEnabled());
 			 }
+			deploymentDetailsVO.setScopedCookiePath(deploymentDetails.getScopedCookiePath());
 			//  if(deploymentDetails.getDeploymentAuditLogs()!=null && !deploymentDetails.getDeploymentAuditLogs().isEmpty())
 			//  {
 			// 	 List<DeploymentAuditVO> auditDetails = this.toDeploymentAuditDetailsVO(deploymentDetails.getDeploymentAuditLogs());
@@ -777,6 +785,7 @@ import com.daimler.data.dto.workspace.DeploymentAuditVO;
 						 UserInfoVO codespaceUser = this.toUserInfoVO(codespaceUserDetails);
 						 vo.setWorkspaceOwner(codespaceUser);
 					 }
+					 vo.setAutoDeploy(data.getAutoDeploy());
 					 CodeServerProjectDetails projectDetails = data.getProjectDetails();
 					 CodeServerProjectDetailsVO projectDetailsVO = new CodeServerProjectDetailsVO();
 					 if (projectDetails != null) {
@@ -847,6 +856,9 @@ import com.daimler.data.dto.workspace.DeploymentAuditVO;
 							 projectDetailsVO.setLastBuildOrDeployedOn(isoFormat.parse(isoFormat.format(projectDetails.getLastBuildOrDeployedOn())));
 						projectDetailsVO.setLastBuildOrDeployedEnv(projectDetails.getLastBuildOrDeployedEnv());
 						projectDetailsVO.setLastBuildOrDeployedStatus(projectDetails.getLastBuildOrDeployedStatus());
+						projectDetailsVO.setWebHookId(projectDetails.getWebHookId());
+						projectDetailsVO.setIntAutoDeployBranchName(projectDetails.getIntAutoDeployBranchName());
+						projectDetailsVO.setProdAutoDeployBranchName(projectDetails.getProdAutoDeployBranchName());
 					 }
 					 vo.setProjectDetails(projectDetailsVO);
 					 
@@ -891,13 +903,9 @@ import com.daimler.data.dto.workspace.DeploymentAuditVO;
 			 BeanUtils.copyProperties(vo, data);
 			 if(vo.isIsWorkspaceMigrated()!=null){
 				data.setIsWorkspaceMigrated(vo.isIsWorkspaceMigrated());
-			 }else{
-				data.setIsWorkspaceMigratedToGHE(false);
 			 }
 			if(vo.isIsWorkspaceMigratedToGHE()!=null){
 				data.setIsWorkspaceMigratedToGHE(vo.isIsWorkspaceMigratedToGHE());
-			}else{
-				data.setIsWorkspaceMigratedToGHE(false);
 			}
 			 if(vo.isActiveInGroup() !=null){
 				data.setActiveInGroup(vo.isActiveInGroup());
@@ -965,6 +973,8 @@ import com.daimler.data.dto.workspace.DeploymentAuditVO;
 				// 	 projectDetails.setPublishedSecurityConfig(this.toSecurityConfig(codespacePublishSecurityConfigVo));
 				//  }
 				projectDetails.setRecipeName(projectDetailsVO.getRecipeName());
+				projectDetails.setIntAutoDeployBranchName(projectDetailsVO.getIntAutoDeployBranchName());
+				projectDetails.setProdAutoDeployBranchName(projectDetailsVO.getProdAutoDeployBranchName());
 				 data.setProjectDetails(projectDetails);
 				 entity.setData(data);
 			 }
@@ -1178,6 +1188,18 @@ import com.daimler.data.dto.workspace.DeploymentAuditVO;
 			 }
 		 } catch (Exception e) {
 			 log.error("Failed in assembler", e.getMessage());
+		 }
+		 return vo;
+	 }
+	 
+	  public CodespaceResourceExemptionVO dtoToVo(CodespaceResourceExemptionDto dto) {
+		 CodespaceResourceExemptionVO vo = new CodespaceResourceExemptionVO();
+		 if (dto != null) {
+			 vo.setProjectName(dto.getProjectName());
+			 vo.setProjectOwner(toUserInfoVO(dto.getProjectOwner()));
+			 vo.setWorkspaceCount(dto.getWorkspaceCount());
+			 vo.setExemptInt(Boolean.TRUE.equals(dto.getExemptInt()));
+			 vo.setExemptProd(Boolean.TRUE.equals(dto.getExemptProd()));
 		 }
 		 return vo;
 	 }

@@ -14,6 +14,7 @@ import com.daimler.data.db.entities.FabricWorkspaceNsql;
 import com.daimler.data.db.json.AuthoriserRoleDeatils;
 import com.daimler.data.db.json.Capacity;
 import com.daimler.data.db.json.CdcPublishedLakeHouseDetails;
+import com.daimler.data.db.json.CmkKeyDetails;
 import com.daimler.data.db.json.EntitlementDetails;
 import com.daimler.data.db.json.FabricWorkspace;
 import com.daimler.data.db.json.FabricWorkspaceStatus;
@@ -27,6 +28,7 @@ import com.daimler.data.dto.fabric.LakehouseDto;
 import com.daimler.data.dto.fabric.LakehouseS3ShortcutDto;
 import com.daimler.data.dto.fabricWorkspace.CapacityVO;
 import com.daimler.data.dto.fabricWorkspace.CdcPublishedLakeHouseDetailsVO;
+import com.daimler.data.dto.fabricWorkspace.CmkKeyDetailsVO;
 import com.daimler.data.dto.fabricWorkspace.CreatedByVO;
 import com.daimler.data.dto.fabricWorkspace.CustomGroupNameCollectionVO;
 import com.daimler.data.dto.fabricWorkspace.DnaRolesVO;
@@ -95,6 +97,13 @@ public class FabricWorkspaceAssembler implements GenericAssembler<FabricWorkspac
 					BeanUtils.copyProperties(capacity, capacityVO);
 				}
 				vo.setCapacity(capacityVO);
+
+				CmkKeyDetails cmkKeyDetails = data.getCmkDetails();
+				CmkKeyDetailsVO cmkKeyDetailsVO = new CmkKeyDetailsVO();
+				if(cmkKeyDetails != null) {
+					BeanUtils.copyProperties(cmkKeyDetails, cmkKeyDetailsVO);
+				}
+				vo.setCmkDetails(cmkKeyDetailsVO);
 				
 				UserDetails creator = data.getCreatedBy();
 				CreatedByVO createdByVO = new CreatedByVO();
@@ -237,6 +246,38 @@ public class FabricWorkspaceAssembler implements GenericAssembler<FabricWorkspac
 		}
 		return groupDetails;
 	}
+
+	public List<GroupDetails> toGroupDetails(List<GroupDetailsVO> groupDetailsVO) {
+		List<GroupDetails> groups = new ArrayList<>();
+		if(groupDetailsVO!=null && !groupDetailsVO.isEmpty()) {
+			groups = groupDetailsVO.stream().map(n -> fromGroupDetailsVO(n)).collect(Collectors.toList());
+		}
+		return groups;
+	}
+
+	public FabricWorkspaceStatus toWorkspaceStatus(FabricWorkspaceStatusVO workspaceStatusVO) {
+		FabricWorkspaceStatus workspaceStatus = new FabricWorkspaceStatus();
+		if(workspaceStatusVO!=null) {
+			workspaceStatus.setState(workspaceStatusVO.getState());
+			List<EntitlementDetailsVO> entitlementsVO = workspaceStatusVO.getEntitlements();
+			List<EntitlementDetails> entitlements = new ArrayList<>();
+			if(entitlementsVO!=null && !entitlementsVO.isEmpty()) {
+				entitlements = entitlementsVO.stream().map(n -> fromEntitlementDetailsVO(n)).collect(Collectors.toList());
+			}
+			workspaceStatus.setEntitlements(entitlements);
+
+			List<RoleDetails> roles = new ArrayList<>();
+			List<RoleDetailsVO> rolesVO = workspaceStatusVO.getRoles();
+			if(rolesVO!=null && !rolesVO.isEmpty()) {
+				roles = rolesVO.stream().map(n -> fromRoleDetailsVO(n)).collect(Collectors.toList());
+			}
+			workspaceStatus.setRoles(roles);
+			workspaceStatus.setMicrosoftGroups(toGroupDetails(workspaceStatusVO.getMicrosoftGroups()));
+		}else {
+			workspaceStatus.setState(null);
+		}
+		return workspaceStatus;
+	}
 	
 	private List<ProjectReferenceDetailsVO> toProjectDetailVOs(List<ProjectDetails> projectsDetails){
 		List<ProjectReferenceDetailsVO> relatedProjectVOs = new ArrayList<>();
@@ -277,6 +318,14 @@ public class FabricWorkspaceAssembler implements GenericAssembler<FabricWorkspac
 			lakehouse.setShortcuts(shortcuts);
 		}
 		return lakehouse;
+	}
+
+	public List<Lakehouse> toLakehouses(List<FabricLakehouseVO> lakehouseVOs) {
+		List<Lakehouse> lakehouses = new ArrayList<>();
+		if(lakehouseVOs!=null && !lakehouseVOs.isEmpty()) {
+			lakehouses = lakehouseVOs.stream().map(n -> toLakehouse(n)).collect(Collectors.toList());
+		}
+		return lakehouses;
 	}
 	
 	private Shortcut toShortcut(ShortcutVO vo) {
@@ -335,6 +384,15 @@ public class FabricWorkspaceAssembler implements GenericAssembler<FabricWorkspac
 			if(createdByVO!=null) {
 				BeanUtils.copyProperties(createdByVO, createdBy);
 			}
+			CmkKeyDetailsVO cmkKeyDetailsVO = vo.getCmkDetails();
+			CmkKeyDetails cmkKeyDetails = new CmkKeyDetails();
+			if(cmkKeyDetailsVO!=null) {
+				// BeanUtils.copyProperties(cmkKeyDetailsVO, cmkKeyDetails);
+				cmkKeyDetails.setCmkKey(cmkKeyDetailsVO.getCmkKey());
+				cmkKeyDetails.setCmkKeyCreated(cmkKeyDetailsVO.isCmkKeyCreated());
+				cmkKeyDetails.setCmkKeyAssign(cmkKeyDetailsVO.isCmkKeyAssign());
+			}
+			data.setCmkDetails(cmkKeyDetails);
 			data.setCreatedBy(createdBy);
 			data.setHasPii(vo.isHasPii());
 
@@ -344,35 +402,8 @@ public class FabricWorkspaceAssembler implements GenericAssembler<FabricWorkspac
 			List<ProjectDetails> relatedSolutions = toProjectDetails(vo.getRelatedSolutions());
 			data.setRelatedSolutions(relatedSolutions);
 			
-			FabricWorkspaceStatus workspaceStatus = new FabricWorkspaceStatus();
 			FabricWorkspaceStatusVO workspaceStatusVO = vo.getStatus(); 
-			if(workspaceStatusVO!=null) {
-				workspaceStatus.setState(workspaceStatusVO.getState());
-				List<EntitlementDetailsVO> entitlementsVO = workspaceStatusVO.getEntitlements();
-				List<EntitlementDetails> entitlements = new ArrayList<>();
-				if(entitlementsVO!=null && !entitlementsVO.isEmpty()) {
-					entitlements = entitlementsVO.stream().map(n -> fromEntitlementDetailsVO(n)).collect(Collectors.toList());
-				}
-				workspaceStatus.setEntitlements(entitlements);
-				
-				List<RoleDetails> roles = new ArrayList<>();
-				List<RoleDetailsVO> rolesVO = workspaceStatusVO.getRoles();
-				if(rolesVO!=null && !rolesVO.isEmpty()) {
-					roles = rolesVO.stream().map(n -> fromRoleDetailsVO(n)).collect(Collectors.toList());
-				}
-				workspaceStatus.setRoles(roles);
-				
-				List<GroupDetails> groups = new ArrayList<>();
-				List<GroupDetailsVO> groupDetailsVO = workspaceStatusVO.getMicrosoftGroups();
-				if(groupDetailsVO!=null && !groupDetailsVO.isEmpty()) {
-					groups = groupDetailsVO.stream().map(n -> fromGroupDetailsVO(n)).collect(Collectors.toList());
-				}
-				workspaceStatus.setMicrosoftGroups(groups);
-				
-			}else {
-				workspaceStatus.setState(null);
-			}
-			data.setStatus(workspaceStatus);
+			data.setStatus(toWorkspaceStatus(workspaceStatusVO));
 
 			if(!CollectionUtils.isEmpty(vo.getCustomGroupNameCollection())){
 				data.setCustomGroupNameCollection(vo.getCustomGroupNameCollection().stream()
@@ -384,12 +415,7 @@ public class FabricWorkspaceAssembler implements GenericAssembler<FabricWorkspac
 				}).collect(Collectors.toList()));	 
 			}
 			
-			List<FabricLakehouseVO> lakehouseVOs = vo.getLakehouses();
-			List<Lakehouse> lakehouses = new ArrayList<>();
-			if(lakehouseVOs!=null && !lakehouseVOs.isEmpty()) {
-				lakehouses = lakehouseVOs.stream().map(n -> toLakehouse(n)).collect(Collectors.toList());
-			}
-			data.setLakehouses(lakehouses);
+			data.setLakehouses(toLakehouses(vo.getLakehouses()));
 			if (!ObjectUtils.isEmpty(vo.getLeanIXDetails())) {
 				LeanIXDetails leanIXDetails = new LeanIXDetails();
 				BeanUtils.copyProperties(vo.getLeanIXDetails(), leanIXDetails);

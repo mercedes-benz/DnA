@@ -21,5 +21,6 @@ public class CodeServerBuildDetails implements Serializable {
 	private String version;
 	private String gitjobRunID;
 	private String lastBuildType;
+	private String lastBuildFailureReason;   // e.g. "BUILD_TIMEOUT"; null for normal failures
 	
 }

@@ -58,6 +58,18 @@ public class Restconfig implements WebMvcConfigurer {
 	@Value("${proxy.port}")
 	private String proxyPort;
 	
+	@Value("${codeServer.git.collaborator.connectTimeoutMs:5000}")
+	private int connectTimeoutMs;
+	
+	@Value("${codeServer.git.collaborator.readTimeoutMs:10000}")
+	private int readTimeoutMs;
+
+	@Value("${codeServer.kong.connectTimeoutMs:5000}")
+	private int kongConnectTimeoutMs;
+
+	@Value("${codeServer.kong.readTimeoutMs:30000}")
+	private int kongReadTimeoutMs;
+	
 	@Bean
 	public RestTemplate restTemplate() throws KeyStoreException, NoSuchAlgorithmException, KeyManagementException {
 		TrustStrategy acceptingTrustStrategy = (X509Certificate[] chain, String authType) -> true;
@@ -95,6 +107,56 @@ public class Restconfig implements WebMvcConfigurer {
 		HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
 		requestFactory.setHttpClient(httpClient);
 		
+		RestTemplate restTemplate = new RestTemplate(requestFactory);
+		MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
+		converter.setObjectMapper(new ObjectMapper());
+		restTemplate.getMessageConverters().add(converter);
+		return restTemplate;
+	}
+
+	@Bean
+	public RestTemplate gitCollaboratorRestTemplate() throws KeyStoreException, NoSuchAlgorithmException, KeyManagementException {
+		TrustStrategy acceptingTrustStrategy = (X509Certificate[] chain, String authType) -> true;
+
+		SSLContext sslContext = org.apache.http.ssl.SSLContexts.custom().loadTrustMaterial(null, acceptingTrustStrategy)
+				.build();
+
+		SSLConnectionSocketFactory csf = new SSLConnectionSocketFactory(sslContext);
+
+		CloseableHttpClient httpClient = HttpClients.custom().setSSLSocketFactory(csf).build();
+
+		HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
+
+		requestFactory.setHttpClient(httpClient);
+		requestFactory.setConnectTimeout(connectTimeoutMs);
+		requestFactory.setConnectionRequestTimeout(connectTimeoutMs);
+		requestFactory.setReadTimeout(readTimeoutMs);
+
+		RestTemplate restTemplate = new RestTemplate(requestFactory);
+		MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
+		converter.setObjectMapper(new ObjectMapper());
+		restTemplate.getMessageConverters().add(converter);
+		return restTemplate;
+	}
+
+	@Bean
+	public RestTemplate kongRestTemplate() throws KeyStoreException, NoSuchAlgorithmException, KeyManagementException {
+		TrustStrategy acceptingTrustStrategy = (X509Certificate[] chain, String authType) -> true;
+
+		SSLContext sslContext = org.apache.http.ssl.SSLContexts.custom().loadTrustMaterial(null, acceptingTrustStrategy)
+				.build();
+
+		SSLConnectionSocketFactory csf = new SSLConnectionSocketFactory(sslContext);
+
+		CloseableHttpClient httpClient = HttpClients.custom().setSSLSocketFactory(csf).build();
+
+		HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
+
+		requestFactory.setHttpClient(httpClient);
+		requestFactory.setConnectTimeout(kongConnectTimeoutMs);
+		requestFactory.setConnectionRequestTimeout(kongConnectTimeoutMs);
+		requestFactory.setReadTimeout(kongReadTimeoutMs);
+
 		RestTemplate restTemplate = new RestTemplate(requestFactory);
 		MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
 		converter.setObjectMapper(new ObjectMapper());

@@ -32,8 +32,9 @@ const getCodeSpaceStatus = (id) => {
     });
 };
 
-const getWorkspaceById = (id) => { 
-    return server.get(`workspaces/${id}`, {
+const getWorkspaceById = (id, refreshTriggeredByUser) => { 
+    const query = refreshTriggeredByUser ? '?refreshTriggeredByUser=true' : '';
+    return server.get(`workspaces/${id}${query}`, {
         data: {},
     });
 };
@@ -343,6 +344,19 @@ const acceptSecurityConfigRequest = (id) => { //not used
     });
 };
 
+const getResourceCapExemptions = (offset, limit, projectName) => {
+    const query = `?offset=${offset}&limit=${limit}` + (projectName ? `&projectName=${encodeURIComponent(projectName)}` : '');
+    return server.get(`/workspaces/resourceexemptions${query}`, {
+        data: {},
+    });
+};
+
+const updateResourceCapExemption = (projectName, env, exempt) => {
+    return server.put(`/workspaces/${encodeURIComponent(projectName)}/resourceexemptions?env=${env}&exempt=${exempt}`, {
+        data: {},
+    });
+};
+
 const publishSecurityConfigRequest = (id) => { //not used
     return server.post(`/workspaces/${id}/config/publish`, {
         data: {},
@@ -392,6 +406,118 @@ const serverStatusFromHub = (env, userId, workspaceId, onMessageCB, onCloseCB) =
     };
 }
 
+const subscribeToDeploymentStatus = (projectName, environment, onStatusUpdate, onComplete, onError) => {
+    const url = `${baseURL}/workspace/deployment/stream/${projectName}/${environment}`;
+    
+    const sse = new EventSourcePolyfill(url, {
+        withCredentials: true,
+        headers: { 
+            Authorization: readJwt(),
+            Accept: 'text/event-stream'
+        },
+    });
+
+    sse.addEventListener('deployment-status', (event) => {
+        try {
+            const data = JSON.parse(event.data);
+            onStatusUpdate && onStatusUpdate(data);
+        } catch (error) {
+            console.error('Error parsing deployment-status event:', error);
+        }
+    });
+
+    sse.addEventListener('deployment-complete', (event) => {
+        try {
+            const data = JSON.parse(event.data);
+            onComplete && onComplete(data);
+            sse.close();
+        } catch (error) {
+            console.error('Error parsing deployment-complete event:', error);
+            sse.close();
+        }
+    });
+
+    sse.onerror = (error) => {
+        console.error('SSE connection error:', error);
+        onError && onError(error);
+        sse.close();
+    };
+
+    return sse;
+};
+
+const getSyncError = (projectName, environment) => {
+    return server.get(`workspace/deployment/syncerror/${projectName}/${environment}`, {
+        data: {},
+    });
+};
+
+const subscribeToPodLogs = (projectName, environment, onPodInfo, onPodLogs, onComplete, onError) => {
+    const url = `${baseURL}/workspace/deployment/podlogs/stream/${projectName}/${environment}`;
+
+    const sse = new EventSourcePolyfill(url, {
+        withCredentials: true,
+        headers: {
+            Authorization: readJwt(),
+            Accept: 'text/event-stream'
+        },
+    });
+
+    sse.addEventListener('pod-info', (event) => {
+        try {
+            const data = JSON.parse(event.data);
+            onPodInfo && onPodInfo(data);
+        } catch (error) {
+            console.error('Error parsing pod-info event:', error);
+        }
+    });
+
+    sse.addEventListener('pod-logs', (event) => {
+        try {
+            const data = JSON.parse(event.data);
+            onPodLogs && onPodLogs(data);
+        } catch (error) {
+            console.error('Error parsing pod-logs event:', error);
+        }
+    });
+
+    sse.addEventListener('pod-logs-complete', (event) => {
+        try {
+            const data = JSON.parse(event.data);
+            onComplete && onComplete(data);
+            sse.close();
+        } catch (error) {
+            console.error('Error parsing pod-logs-complete event:', error);
+            sse.close();
+        }
+    });
+
+    sse.addEventListener('pod-logs-error', (event) => {
+        try {
+            const data = JSON.parse(event.data);
+            onError && onError(data);
+            sse.close();
+        } catch (error) {
+            console.error('Error parsing pod-logs-error event:', error);
+            sse.close();
+        }
+    });
+
+    sse.onerror = (error) => {
+        console.error('Pod logs SSE connection error:', error);
+        onError && onError({ message: 'Connection lost' });
+        sse.close();
+    };
+
+    return sse;
+};
+
+const cancelDeployment = (projectName, environment) => {
+    return server.delete(`workspace/deployment/cancel/${projectName}/${environment}`, {
+        data: {},
+    });
+};
+
 const restartDeployments = (id, env) => {
     return server.post(`/workspaces/${id}/restart?env=${env}`, {data: {},});
 };
@@ -424,6 +550,10 @@ const deleteCodeSpaceGroup = (id) => {
     return server.delete(`/workspaces/group/delete/${id}`, {
         data: {},
     });
+};
+
+const addWebhook = (data) => {
+    return server.post(`workspaces/addWebhook`, data);
 };
 
 const getExistingRoles = (appId) => {
@@ -501,6 +631,10 @@ export const CodeSpaceApiClient = {
     startStopWorkSpace,
     workSpaceStatus,
     serverStatusFromHub,
+    subscribeToDeploymentStatus,
+    getSyncError,
+    subscribeToPodLogs,
+    cancelDeployment,
     restartDeployments,
     migrateWorkplace,
     getCodeSpaceGroups,
@@ -508,5 +642,8 @@ export const CodeSpaceApiClient = {
     createCodeSpaceGroup,
     editCodeSpaceGroup,
     deleteCodeSpaceGroup,
-    getExistingRoles
+    getExistingRoles,
+    getResourceCapExemptions,
+    updateResourceCapExemption,
+    addWebhook,
 };

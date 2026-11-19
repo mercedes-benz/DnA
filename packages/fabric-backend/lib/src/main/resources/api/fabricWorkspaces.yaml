@@ -113,6 +113,59 @@ paths:
           description: "Method not allowed"
         500:
           description: "Internal error"
+
+  /lov/fabric-workspaces/search:
+    get:
+      tags:
+        - "lovs"
+      summary: "Search workspaces by name"
+      description: "Search and filter workspaces by name or other criteria. This endpoint is specifically designed for searching workspace records."
+      operationId: "searchWorkspacesLov"
+      parameters:            
+        - name: searchText
+          in: query
+          description: Text to search workspaces by name
+          required: true
+          type: string
+        - name: offset
+          in: query
+          description: page number from which listing of workspaces should start. Offset. Example 2
+          required: false
+          type: integer
+        - name: limit
+          in: query
+          description: page size to limit the number of workspaces, Example 15
+          required: false
+          type: integer
+        - name: sortBy
+          in: query
+          description: Sort workspaces by a given variable like name, createdOn
+          required: false
+          type: string
+          enum: [name, createdOn]
+        - name: sortOrder
+          in: query
+          description: Sort solutions based on the given order, example asc,desc
+          required: false
+          type: string
+          enum: [asc,desc]
+      responses:
+        200:
+          description: "Returns search results"
+          schema:
+            $ref: "#/definitions/FabricWorkspaceLovCollectionVO"
+        204:
+          description: "Search complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
           
   /fabric-workspaces:
     get:
@@ -362,6 +415,25 @@ paths:
             description: "Request is not authorized."
           405:
             description: "Method not allowed"
+          500:
+            description: "Internal error"
+
+  /fabric-workspaces/createrole/eligibility:
+    get:
+        tags:
+          - "fabric-workspaces"
+        summary: "Check whether the current user can create Alice roles."
+        description: "Returns whether the current user is authorized to create Alice roles."
+        operationId: "getAliceRoleCreationEligibility"
+        responses:
+          200:
+            description: "Returns the Alice role creation eligibility."
+            schema:
+              $ref: "#/definitions/AliceRoleEligibilityVO"
+          401:
+            description: "Request does not have sufficient credentials."
+          403:
+            description: "Request is not authorized."
           500:
             description: "Internal error"
 
@@ -684,6 +756,43 @@ paths:
           schema:
             $ref: "#/definitions/KeyVaultCollectionVO"
 
+  /fabric-workspaces/keyVault/principals:
+    get:
+      tags:
+        - "fabric-workspaces"
+      summary: "Search Entra ID principals for Key Vault collaborators"
+      description: "Searches Entra ID (Microsoft Graph) for the requested principal type and returns users, service principal applications or managed identities matching the search term."
+      operationId: "searchKeyVaultPrincipals"
+      parameters:
+        - name: search
+          in: query
+          description: "Search term, at least three characters"
+          required: true
+          type: string
+        - name: type
+          in: query
+          description: "Principal type to search for. Defaults to USER."
+          required: false
+          type: string
+          enum:
+            - USER
+            - SPN
+            - MI
+            - GROUP
+      responses:
+        200:
+          description: "Matching Entra ID principals"
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/AzurePrincipalVO"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        500:
+          description: "Internal error"
+
   /fabric-workspaces/keyVault/{id}:
     put:
       tags:
@@ -722,6 +831,37 @@ paths:
           description: "Internal error"
           schema:
             $ref: "#/definitions/KeyVaultResponseVO"
+    delete:
+      tags:
+        - "fabric-workspaces"
+      summary: "Delete Azure Key Vault"
+      description: "Deletes the Azure Key Vault resource and records the deletion details. Only the creator of the Key Vault can delete it."
+      operationId: "deleteKeyVault"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "Key Vault ID to be deleted"
+          required: true
+          type: "string"
+      responses:
+        200:
+          description: "Returns the deleted Key Vault data with success or failure messages"
+          schema:
+            $ref: "#/definitions/KeyVaultResponseVO"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+          schema:
+            $ref: "#/definitions/KeyVaultResponseVO"
+        404:
+          description: "Key Vault not found."
+          schema:
+            $ref: "#/definitions/KeyVaultResponseVO"
+        500:
+          description: "Internal error"
+          schema:
+            $ref: "#/definitions/KeyVaultResponseVO"
 
 definitions:
   CapacityVO:
@@ -739,6 +879,18 @@ definitions:
         type: string
       state:
         type: string
+  CmkKeyDetailsVO:
+    type: object
+    properties:
+      cmkKey:
+        type: string
+        description: "Key Identifier for the CMK"
+      cmkKeyCreated:
+        type: boolean
+        description: "Indicates if the CMK is created"
+      cmkKeyAssign:
+        type: boolean
+        description: "Indicates if the CMK is assigned to the workspace"
   
   CapacityCollectionVO:
     type: object
@@ -806,6 +958,8 @@ definitions:
          $ref: "#/definitions/ProjectReferenceDetailsVO"
       capacity:
         $ref: "#/definitions/CapacityVO"
+      cmkDetails:
+        $ref: "#/definitions/CmkKeyDetailsVO"
       createdBy:
         $ref: "#/definitions/CreatedByVO"
       createdOn:
@@ -990,6 +1144,38 @@ definitions:
       subscription:
         enum: ["PowerBI", "Fabric"]
       
+  FabricWorkspaceLovVO:
+    description: "Slim workspace view for LOV search responses containing id, name, status (roles), createdBy and createdOn."
+    type: object
+    properties:
+      id:
+        type: string
+        description: "ID for the fabric workspace"
+      name:
+        type: string
+        description: "Name of the fabric workspace"
+        maxLength: 256
+      status:
+        $ref: "#/definitions/FabricWorkspaceStatusVO"
+      createdBy:
+        $ref: "#/definitions/CreatedByVO"
+      createdOn:
+        type: string
+        format: date-time
+        description: "Timestamp when the workspace was created"
+
+  FabricWorkspaceLovCollectionVO:
+    description: "Collection of slim fabric workspace records for LOV search."
+    type: object
+    properties:
+      totalCount:
+        type: integer
+        description: "Total Record Count"
+      records:
+        type: array
+        items:
+          $ref: "#/definitions/FabricWorkspaceLovVO"
+
   FabricWorkspacesCollectionVO:
     description: "Collection of fabric workspaces."
     type: object
@@ -1206,6 +1392,9 @@ definitions:
           isDynamic:
             type: boolean
             default: false
+          agreementAccepted:
+            type: boolean
+            default: false
 
   DnaRoleCollectionVO:
       type: object
@@ -1214,6 +1403,14 @@ definitions:
           type: array
           items:
             $ref: "#/definitions/DnaRolesVO" 
+
+  AliceRoleEligibilityVO:
+      type: object
+      properties:
+        canCreateRole:
+          type: boolean
+        agreementUrl:
+          type: string
   
   DnaRolesVO:
     type: object
@@ -1540,6 +1737,64 @@ definitions:
         type: string
         format: date
         description: "Creation timestamp"
+      updatedOn:
+        type: string
+        format: date
+        description: "Last update timestamp"
+      deletedOn:
+        type: string
+        format: date
+        description: "Deletion timestamp"
+      collaborators:
+        type: array
+        items:
+          $ref: "#/definitions/KeyVaultCollaboratorVO"
+
+  KeyVaultCollaboratorVO:
+    type: object
+    properties:
+      identifier:
+        type: string
+      objectId:
+        type: string
+      kind:
+        type: string
+      displayName:
+        type: string
+      accessLevel:
+        type: string
+        description: "Access level granted to the collaborator. Reading or Contributing."
+      roleAssignmentId:
+        type: string
+        description: "Assignment identifier kept for collaborators provisioned before access levels existed"
+      roleAssignmentIds:
+        type: array
+        description: "Identifiers of the Azure role assignments created for this collaborator"
+        items:
+          type: string
+
+
+  AzurePrincipalVO:
+    type: object
+    description: "Entra ID principal - user, service principal or managed identity"
+    properties:
+      id:
+        type: string
+      displayName:
+        type: string
+      mail:
+        type: string
+      appId:
+        type: string
+      servicePrincipalType:
+        type: string
+      principalType:
+        type: string
+      kind:
+        type: string
+        description: "USER, SPN or MI"
+      identifier:
+        type: string
 
   KeyVaultCollectionVO:
     description: "Collection of Azure Key Vaults with pagination info"

@@ -31,20 +31,25 @@ import java.util.List;
 
 import javax.validation.Valid;
 
+import org.springframework.http.ResponseEntity;
+
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.db.entities.CodeServerRecipeNsql;
 import com.daimler.data.db.entities.CodeServerWorkspaceNsql;
+import com.daimler.data.dto.GitWebHookDto;
 import com.daimler.data.dto.workspace.*;
 import com.daimler.data.dto.workspace.admin.CodespaceSecurityConfigDetailsVO;
 import com.daimler.data.dto.workspace.buildDeploy.*;
 import com.daimler.data.dto.workspace.WorkspacePluginStatusVO;
-
+import com.daimler.data.dto.workspace.admin.CodespaceResourceExemptionVO;
 
 public interface WorkspaceService {
 
 	GenericMessage deleteById(String userId,String id);
 
 	CodeServerWorkspaceVO getById(String userId, String id);
+
+	CodeServerWorkspaceVO getById(String userId, String id, boolean refreshTriggeredByUser);
 	
 	List<CodeServerWorkspaceVO> getAll(String userId,int offset,int limit);
 	
@@ -63,6 +68,10 @@ public interface WorkspaceService {
 	CodeServerWorkspaceVO getByProjectName(String userId, String projectName);
 
 	GenericMessage update(String userId, String name, String projectName, String existingStatus, String latestStatus, String targetEnv, String branch, String gitJobRunId,String version);
+
+	GenericMessage updateStatus(String userId, String wsId, String projectName, String existingStatus,
+			String latestStatus, String targetEnv, String branch, String gitJobRunId, String version,
+			BaseWorkspaceService.PendingDeployment pendingDeployment);
 
 	GenericMessage approveRequestWorkspace(String userId, String id, String environment, String branch, boolean isprivateRecipe, String version);
 
@@ -88,6 +97,8 @@ public interface WorkspaceService {
 
 	CodeServerWorkspaceValidateVO validateCodespace(String id, String userId);
 
+	boolean isProjectOwnerOrAdmin(String userId);
+
 	GenericMessage saveSecurityConfig(CodeServerWorkspaceVO vo, Boolean isPublished, String env);
 
 	GenericMessage makeAdmin(CodeServerWorkspaceVO vo);
@@ -95,6 +106,12 @@ public interface WorkspaceService {
 	GenericMessage makeApprover(CodeServerWorkspaceVO vo);
 
     List<CodespaceSecurityConfigDetailsVO> getAllSecurityConfigs(Integer offset, Integer limit, String projectName);
+
+	List<CodespaceResourceExemptionVO> getAllResourceCapExemptions(Integer offset, Integer limit, String projectName);
+
+	Integer getResourceCapExemptionsCount(String projectName);
+
+	GenericMessage updateResourceCapExemption(String projectName, String environment, boolean exempt);
 
 	//GenericMessage updateSecurityConfigStatus(String projectName, String Status, String user, CodeServerWorkspaceVO vo);
 
@@ -150,4 +167,16 @@ public interface WorkspaceService {
     GenericMessage cancelWorkspaceRun(String projectName);
 
 	GenericMessage createOpenTelemetryPlugin(String workspaceId, String environment, String serviceName);
+	
+	/**
+	 * Pre validate deployment request for given workspace and environment
+	 * Checks like if the workspace is in right state for deployment, if the branch exists in git repo, if the user has 
+	 * necessary permissions etc will be validated in this step
+	 * This is a pre step before actual deployment API and based on the response of this API the deployment will be triggered. 
+	 * This is to avoid unnecessary deployment API calls which will fail due to above mentioned reasons and to
+	 * @param deployRequestDto
+	 * @param id
+	 * @return ResponseEntity containing a GenericMessage with the validation results
+	 */
+	ResponseEntity<GenericMessage> preValidateDeployment(ManageDeployRequestDto dto, String id, String userId, boolean isTriggeredByAutoDeploy);
 }

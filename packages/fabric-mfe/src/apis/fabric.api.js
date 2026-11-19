@@ -42,11 +42,20 @@ const deleteFabricWorkspace = (id) => {
   });
 };
 
-const getFabricWorkspaceLov = () => {
-  return server.get(`/lov/fabric-workspaces?limit=0&offset=0`, {
-    data: {},
-  });
+// const getFabricWorkspaceLov = () => {
+//   return server.get(`/lov/fabric-workspaces?limit=0&offset=0`, {
+//     data: {},
+//   });
+// };
+
+const searchFabricWorkspaceLov = (offset, limit, searchText = '') => {
+  let url = `/lov/fabric-workspaces/search?limit=${limit}&offset=${offset}`;
+  if (searchText && searchText.trim() !== '') {
+    url += `&searchText=${encodeURIComponent(searchText.trim())}`;
+  }
+  return server.get(url, { data: {} });
 };
+
 
 const requestRoles = (id, data) => {
   return server.post(`/fabric-workspaces/${id}/rolerequest`, {
@@ -98,7 +107,7 @@ const deleteLakehouse = (workspaceId, lakehouseId) => {
 };
 
 const createShortcut = (workspaceId, lakehouseId, data) => {
-  return server.post(`/fabric-workspaces/${workspaceId}/lakehouses/${lakehouseId}/shortcuts/`, data);
+  return server.post(`/fabric-workspaces/${workspaceId}/lakehouses/${lakehouseId}/shortcuts`, data);
 };
 
 const deleteShortcut = (workspaceId, lakehouseId, shortcutId) => {
@@ -201,6 +210,22 @@ const getCapacityById = (capacityId) => {
   return server.get(`fabric-workspaces/admin/capacity/${capacityId}`, { data: {} });
 };
 
+const checkTableMismatch = (workspaceId, lakehouseId) => {
+  return server.get(`/fabric-workspaces/catalog/${workspaceId}/check-mismatch?lakehouseId=${lakehouseId}`, {
+    data: {},
+  });
+};
+
+const getCatalogMetadata = (workspaceId, serviceName) => {
+  return server.get(`/fabric-workspaces/catalog/${workspaceId}/${encodeURIComponent(serviceName)}`, {
+    data: {},
+  });
+};
+
+const saveLakehouseSnapshot = (workspaceId, lakehouseId, payload) => {
+  return server.post(`/fabric-workspaces/catalog/${workspaceId}/lakehouses/${lakehouseId}/snapshot`, payload);
+};
+
 export const fabricApi = {
   getFabricWorkspaces,
   getFabricWorkspacesForAdmin,
@@ -209,7 +234,7 @@ export const fabricApi = {
   createFabricWorkspace,
   updateFabricWorkspace,
   deleteFabricWorkspace,
-  getFabricWorkspaceLov,
+  searchFabricWorkspaceLov,
   createLakehouse,
   deleteLakehouse,
   createShortcut,
@@ -230,6 +255,9 @@ export const fabricApi = {
   takeOwnership,
   getLegalEntities,
   publishDdxDataProduct,
+  checkTableMismatch,
+  getCatalogMetadata,
+  saveLakehouseSnapshot,,
   getRegions,
   getCapacities,
   getCapacityById,

@@ -50,6 +50,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -75,6 +76,7 @@ import com.daimler.data.db.repo.workspace.WorkspaceCustomRecipeRepo;
 import com.daimler.data.db.repo.workspace.WorkspaceCustomRepository;
 import com.daimler.data.db.repo.workspace.WorkspaceRepository;
 import com.daimler.data.db.repo.workspace.WorkspaceUserGroupRepository;
+import com.daimler.data.dto.workspace.GitWebHookDto;
 import com.daimler.data.dto.workspace.CodeServerDeploymentDetailsVO;
 import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO;
 import com.daimler.data.dto.workspace.CodeServerUserGroupCollectionVO;
@@ -88,6 +90,7 @@ import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.RecipeIdEnum;
 import com.daimler.data.dto.workspace.CodeServerUserGroupByIdResponseVO;
 import com.daimler.data.dto.workspace.CodeServerUserGroupByIdVO;
 import com.daimler.data.dto.workspace.CodeServerUserGroupResponseVO;
+import com.daimler.data.dto.workspace.CodespaceProjectAdminEligibilityVO;
 import com.daimler.data.dto.workspace.CodeServerWorkspaceVO;
 import com.daimler.data.dto.workspace.CodeServerWorkspaceValidateVO;
 import com.daimler.data.dto.workspace.CodeSpaceReadmeVo;
@@ -119,7 +122,11 @@ import com.daimler.data.dto.workspace.WorkspaceCollectionVO;
 import com.daimler.data.dto.workspace.WorkspacePluginStatusVO;
 import com.daimler.data.dto.workspace.admin.CodespaceSecurityConfigCollectionVO;
 import com.daimler.data.dto.workspace.admin.CodespaceSecurityConfigDetailsVO;
+import com.daimler.data.service.GitWebHookService;
 import com.daimler.data.service.workspace.WorkspaceService;
+import com.daimler.data.dto.workspace.admin.CodespaceResourceExemptionCollectionVO;
+import com.daimler.data.dto.workspace.admin.CodespaceResourceExemptionVO;
+import com.daimler.data.service.ArgoCdService;
 import com.daimler.data.util.CommonUtils;
 import com.daimler.data.util.ConstantsUtility;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -171,6 +178,9 @@ import org.springframework.beans.factory.annotation.Value;
 	@Autowired
 	private VaultAuthorizationServiceClient vaultClient;
 
+	@Autowired
+	private GitWebHookService gitWebHookService;
+
 	@Value("${codeServer.workspace.apikey}")
 	private String apiKeyValue;
 
@@ -194,6 +204,9 @@ import org.springframework.beans.factory.annotation.Value;
    
 	@Autowired
 	 private WorkspaceUserGroupRepository userGroupRepository; 
+
+	@Autowired
+	 private ArgoCdService argoCdService; 
  
 	 @Override
 	 @ApiOperation(value = "remove collaborator from workspace project for a given Id.", nickname = "removeCollab", notes = "remove collaborator from workspace project for a given identifier.", response = CodeServerWorkspaceVO.class, tags = {
@@ -1092,237 +1105,10 @@ import org.springframework.beans.factory.annotation.Value;
 				@ApiParam(value = "Workspace ID for the project to be deployed", required = true) @PathVariable("id") String id,
 				@ApiParam(value = "Workspace ID for the project to be deployed", required = true) @Valid @RequestBody ManageDeployRequestDto deployRequestDto) {
 			try {
-				boolean isPrivateRecipe = false;
+
 				CreatedByVO currentUser = this.userStore.getVO();
 				String userId = currentUser != null ? currentUser.getId() : "";
-				CodeServerWorkspaceVO vo = service.getById(userId, id);
-				Boolean isOwner = false;
-				CodeServerWorkspaceVO ownerVo = null;
-				if (vo == null || vo.getWorkspaceId() == null) {
-					log.debug("No workspace found, returning empty");
-					GenericMessage emptyResponse = new GenericMessage();
-					List<MessageDescription> errors = new ArrayList<>();
-					MessageDescription msg = new MessageDescription();
-					msg.setMessage("No workspace found for given id and the user");
-					errors.add(msg);
-					emptyResponse.setErrors(errors);
-					return new ResponseEntity<>(emptyResponse, HttpStatus.NOT_FOUND);
-				}
-				if(!vo.getProjectDetails().getProjectOwner().getId().equals(vo.getWorkspaceOwner().getId())){
-				   ownerVo = service.getByProjectName(vo.getProjectDetails().getProjectOwner().getId(), vo.getProjectDetails().getProjectName());
-			   } else{
-				   ownerVo = vo;
-				   isOwner = true;
-			   }
-			   if(Objects.isNull(ownerVo.getProjectDetails().getIntDeploymentDetails().getDeploymentUrl()) && Objects.isNull(ownerVo.getProjectDetails().getProdDeploymentDetails().getDeploymentUrl())) {
-				   if((Objects.isNull(ownerVo.isIsWorkspaceMigrated()) || !ownerVo.isIsWorkspaceMigrated()) && ownerVo.getProjectDetails().getRecipeDetails().getCloudServiceProvider().toString().equals(ConstantsUtility.DHC_CAAS)) {
-					   GenericMessage emptyResponse = new GenericMessage();
-					   List<MessageDescription> errors = new ArrayList<>();
-					   MessageDescription msg = new MessageDescription();
-					   msg.setMessage("Kindly ask the owner of your workspace to migrate to AWS before you deploy.");
-					   errors.add(msg);
-					   emptyResponse.setErrors(errors);
-					   return new ResponseEntity<>(emptyResponse, HttpStatus.FORBIDDEN);
-				   }
-			   } 
-				List<String> authorizedUsers = new ArrayList<>();
-				if (vo.getProjectDetails() != null && vo.getProjectDetails().getProjectOwner() != null) {
-					String owner = vo.getProjectDetails().getProjectOwner().getId();
-					authorizedUsers.add(owner);
-				}
-				if (vo.getProjectDetails().getProjectCollaborators() != null
-						&& !vo.getProjectDetails().getProjectCollaborators().isEmpty()) {
-					List<String> collabUsers = vo.getProjectDetails().getProjectCollaborators().stream().map(n -> n.getId())
-							.collect(Collectors.toList());
-					authorizedUsers.addAll(collabUsers);
-				}
-				if (!authorizedUsers.contains(userId)) {
-					MessageDescription notAuthorizedMsg = new MessageDescription();
-					notAuthorizedMsg.setMessage(
-							"Not authorized to deploy project for workspace. User does not have privileges.");
-					GenericMessage errorMessage = new GenericMessage();
-					errorMessage.addErrors(notAuthorizedMsg);
-					log.info("User {} cannot deploy project for workspace {}, insufficient privileges.", userId,
-							vo.getWorkspaceId());
-					return new ResponseEntity<>(errorMessage, HttpStatus.FORBIDDEN);
-				}
-				if (vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().toLowerCase().startsWith("public") 
-						   || vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().equalsIgnoreCase("default")) {
-					MessageDescription invalidTypeMsg = new MessageDescription();
-					invalidTypeMsg.setMessage(
-							"Invalid type, cannot deploy this type of recipe");
-					GenericMessage errorMessage = new GenericMessage();
-					errorMessage.addErrors(invalidTypeMsg);
-					log.info("User {} cannot deploy project of recipe {} for workspace {}, invalid type.", userId,
-							vo.getProjectDetails().getRecipeDetails().getRecipeId().name(), vo.getWorkspaceId());
-					return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
-				}
-				if(vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().toLowerCase().startsWith("private")){
-				   isPrivateRecipe = true;
-				   deployRequestDto.setRepo(vo.getProjectDetails().getRecipeDetails().getRepodetails());
-				}
-				String environment = "int";
-				String branch = "main";
-				if (deployRequestDto != null && !"int".equalsIgnoreCase(deployRequestDto.getTargetEnvironment().name())) {
-					environment = "prod";
-				}
-				if (deployRequestDto != null && deployRequestDto.getBranch() != null) {
-					branch = deployRequestDto.getBranch();
-				}
-				String intDeployStatus = "";
-				String prodDeployStatus = "";
-				String intBuildStatus = "";
-				String prodBuildStatus = "";
-				String status = "";
-				intBuildStatus = vo.getProjectDetails().getIntBuildDetails().getLastBuildStatus();
-        		prodBuildStatus = vo.getProjectDetails().getProdBuildDetails().getLastBuildStatus();
-					intDeployStatus = vo.getProjectDetails().getIntDeploymentDetails().getLastDeploymentStatus();
-					prodDeployStatus = vo.getProjectDetails().getProdDeploymentDetails().getLastDeploymentStatus();
-					if(environment.equalsIgnoreCase("int")){
-						status = intDeployStatus;
-					}else{
-						status = prodDeployStatus;
-					}
-			
-				   if (intDeployStatus != null && (intDeployStatus.equalsIgnoreCase("DEPLOY_REQUESTED"))) {
-					   MessageDescription invalidTypeMsg = new MessageDescription();
-					   invalidTypeMsg.setMessage(
-							   "cannot deploy workspace since it is already in "+intDeployStatus+" state");
-					   GenericMessage errorMessage = new GenericMessage();
-					   errorMessage.addErrors(invalidTypeMsg);
-					   log.info("User {} cannot deploy project of recipe {} for workspace {}, since it is alredy in {} state.", userId,
-							   vo.getProjectDetails().getRecipeDetails().getRecipeId().name(), vo.getWorkspaceId(),intDeployStatus);
-					   return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
-				   }else if (intBuildStatus != null && intBuildStatus.equalsIgnoreCase("BUILD_REQUESTED")) {
-					MessageDescription invalidTypeMsg = new MessageDescription();
-					invalidTypeMsg.setMessage(
-							"cannot deploy workspace since it is already in BUILD_REQUESTED state");
-					GenericMessage errorMessage = new GenericMessage();
-					errorMessage.addErrors(invalidTypeMsg);
-					log.info("User {} cannot deploy project of recipe {} for workspace {}, since it is alredy in BUILD_REQUESTED state.", userId,
-							vo.getProjectDetails().getRecipeDetails().getRecipeId().name(), vo.getWorkspaceId());
-					return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
-				}
-				
-				   if (prodDeployStatus != null && (prodDeployStatus.equalsIgnoreCase("DEPLOY_REQUESTED") || (prodDeployStatus.equalsIgnoreCase("APPROVAL_PENDING") && environment.equalsIgnoreCase("int")) )) {
-					   MessageDescription invalidTypeMsg = new MessageDescription();
-					   invalidTypeMsg.setMessage(
-							   "cannot deploy workspace since it is already in "+prodDeployStatus+" state");
-					   GenericMessage errorMessage = new GenericMessage();
-					   errorMessage.addErrors(invalidTypeMsg);
-					   log.info("User {} cannot deploy project of recipe {} for workspace {}, since it is alredy in {} state.", userId,
-							   vo.getProjectDetails().getRecipeDetails().getRecipeId().name(), vo.getWorkspaceId(),prodDeployStatus);
-					   return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
-				   }else if (prodBuildStatus != null && prodBuildStatus.equalsIgnoreCase("BUILD_REQUESTED")) {
-					MessageDescription invalidTypeMsg = new MessageDescription();
-					invalidTypeMsg.setMessage(
-							"cannot deploy workspace since it is already in BUILD_REQUESTED state");
-					GenericMessage errorMessage = new GenericMessage();
-					errorMessage.addErrors(invalidTypeMsg);
-					log.info("User {} cannot deploy project of recipe {} for workspace {}, since it is alredy in BUILD_REQUESTED state.", userId,
-							vo.getProjectDetails().getRecipeDetails().getRecipeId().name(), vo.getWorkspaceId());
-					return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
-				}
-				
-			   //  if ((Objects.nonNull(deployRequestDto.isSecureWithIAMRequired())
-			   // 		 && deployRequestDto.isSecureWithIAMRequired())
-			   // 		 && (Objects.nonNull(deployRequestDto.getTechnicalUserDetailsForIAMLogin()))) {
-			   // 	 UserRequestVO userRequestVO = new UserRequestVO();
-			   // 	 com.daimler.data.auth.client.UserInfoVO userInfoVO = new com.daimler.data.auth.client.UserInfoVO();
-			   // 	 com.daimler.data.auth.client.UserInfoVO userInfoVOResponse = new com.daimler.data.auth.client.UserInfoVO();
-			   // 	 userInfoVO.setId(deployRequestDto.getTechnicalUserDetailsForIAMLogin());
-			   // 	 userRequestVO.setData(userInfoVO);
-			   // 	 userInfoVOResponse = dnaAuthClient.onboardTechnicalUser(userRequestVO);
-			   // 	 if (Objects.nonNull(userInfoVOResponse) && Objects.isNull(userInfoVOResponse.getId())) {
-			   // 		 log.info(
-			   // 				 "Failed to onboard/fetch technical user {}, returning from controller without triggering deploy action",
-			   // 				 deployRequestDto.getTechnicalUserDetailsForIAMLogin());
-			   // 		 MessageDescription exceptionMsg = new MessageDescription(
-			   // 				 "Failed to onboard/fetch technical user, Please try again.");
-			   // 		 GenericMessage errorMessage = new GenericMessage();
-			   // 		 errorMessage.addErrors(exceptionMsg);
-			   // 		 return new ResponseEntity<>(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);
-			   // 	 }
-			   //  }
-			   //  if(deployRequestDto.isValutInjectorEnable()!=null)
-			   //  {
-			   // 	deployRequestDto.setValutInjectorEnable(deployRequestDto.isValutInjectorEnable());             
-			   //  }
-			   //  else
-			   //  {
-			   // 	deployRequestDto.setValutInjectorEnable(false);
-			   //  }
-			   //if approval enabled workspace and and deployment tp prod then go to service.approveWorkspace
-			   GenericMessage responseMsg;
-			   Boolean isApprover =false;
-
-			   List<UserInfoVO>collabList =vo.getProjectDetails().getProjectCollaborators();
-			   if(collabList!=null){
-				   for(UserInfoVO user : collabList){
-					   if(userId.equalsIgnoreCase(user.getId())){
-						   if(user.isIsApprover()){
-							   isApprover = true;
-						   }
-					   }
-				   }
-			   }
-			   Boolean deploymentApprovalEnabled = false;
-			   Boolean keepImage = deployRequestDto.isKeepBuildImage();
-			   deploymentApprovalEnabled = Boolean.TRUE
-					   .equals(vo.getProjectDetails().getDataGovernance().isEnableDeployApproval());
-			   if (environment.equalsIgnoreCase("prod") && deploymentApprovalEnabled
-					   && !"APPROVAL_PENDING".equalsIgnoreCase(status) && !isApprover && !isOwner) {
-				   responseMsg = service.approveRequestWorkspace(userId, id, environment, branch,
-						   isPrivateRecipe,deployRequestDto.getVersion());
-				   log.info("User {} deployed workspace {} project {}", userId, vo.getWorkspaceId(),
-						   vo.getProjectDetails().getRecipeDetails().getRecipeId().name());
-				   log.info("workspace deployment requires approval");
-			   } else {
-
-				if(environment.equalsIgnoreCase("prod") && deploymentApprovalEnabled
-                && "APPROVAL_PENDING".equalsIgnoreCase(status) && !isApprover && !isOwner) {
-                    MessageDescription invalidTypeMsg = new MessageDescription();
-                    invalidTypeMsg.setMessage(
-                            "cannot deploy workspace since it is already in APPROVAL_PENDING state");
-                    GenericMessage errorMessage = new GenericMessage();
-                    errorMessage.addErrors(invalidTypeMsg);
-                    log.info("User {} cannot deploy project of recipe {} for workspace {}, since it is alredy in APPROVAL_PENDING state.", userId,
-                            vo.getProjectDetails().getRecipeDetails().getRecipeId().name(), vo.getWorkspaceId());
-                    return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
-                }
-                else {
-				   responseMsg = service.deployWorkspace(userId, id, environment, branch,
-							 isPrivateRecipe,deployRequestDto.getVersion(),"deploy",keepImage);
-
-					// Create OpenTelemetry plugin once deployment is triggered (route exists at this point)
-                    try {
-                        String serviceName = vo.getProjectDetails().getProjectName() + "-" + environment;
-                        service.createOpenTelemetryPlugin(id, environment, serviceName);
-                        log.info("OpenTelemetry plugin created for workspace {} in {} environment",
-                            vo.getWorkspaceId(), environment);
-                    } catch (Exception e) {
-                        log.warn("Failed to create OpenTelemetry plugin for workspace {} in {} environment: {}",
-                            vo.getWorkspaceId(), environment, e.getMessage());
-                        // Don't fail the deployment if plugin creation fails
-                    }
-
-					if ("FAILED".equalsIgnoreCase(responseMsg.getSuccess())) {
-						return new ResponseEntity<>(responseMsg, HttpStatus.BAD_REQUEST);
-					}
-				   log.info("User {} deployed workspace {} project {}", userId, vo.getWorkspaceId(),
-						   vo.getProjectDetails().getRecipeDetails().getRecipeId().name());
-			   }
-			   }
-   //			 if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")) {
-   //				 log.info("User {} deployed workspace {} project {}", userId, vo.getWorkspaceId(),
-   //						 vo.getProjectDetails().getRecipeDetails().getRecipeId().name());
-   //			 }
-			   if("FAILED".equalsIgnoreCase(responseMsg.getSuccess())){
-				   return new ResponseEntity<>(responseMsg, HttpStatus.INTERNAL_SERVER_ERROR);
-			   }
-			   log.info("User {} deployed workspace {} project {}", userId, vo.getWorkspaceId(),
-						   vo.getProjectDetails().getRecipeDetails().getRecipeId().name());
-				return new ResponseEntity<>(responseMsg, HttpStatus.OK);
+				return service.preValidateDeployment(deployRequestDto, id, userId, false);
 			} catch (EntityNotFoundException e) {
 				log.error(e.getLocalizedMessage());
 				MessageDescription invalidMsg = new MessageDescription("No Workspace with the given id");
@@ -1791,11 +1577,15 @@ import org.springframework.beans.factory.annotation.Value;
 	 @RequestMapping(value = "/workspaces/{id}", produces = { "application/json" }, consumes = {
 			 "application/json" }, method = RequestMethod.GET)
 	 public ResponseEntity<CodeServerWorkspaceVO> getById(
-			 @ApiParam(value = "Workspace ID to be fetched", required = true) @PathVariable("id") String id) {
- 
+			 @ApiParam(value = "Workspace ID to be fetched", required = true) @PathVariable("id") String id,
+			 @ApiParam(value = "Set to true when user manually triggers refresh. Auto-poll should pass false or omit.", defaultValue = "false")
+			 @Valid @RequestParam(value = "refreshTriggeredByUser", required = false, defaultValue = "false") Boolean refreshTriggeredByUser) {
+
 		 CreatedByVO currentUser = this.userStore.getVO();
 		 String userId = currentUser != null ? currentUser.getId() : "";
-		 CodeServerWorkspaceVO vo = service.getById(userId, id);
+		 boolean refresh = Boolean.TRUE.equals(refreshTriggeredByUser);
+		 log.info("getById - workspaceId={}, userId={}, refreshTriggeredByUser={}", id, userId, refresh);
+		 CodeServerWorkspaceVO vo = service.getById(userId, id, refresh);
 		 if (vo != null && vo.getWorkspaceId() != null) {
 			 if (!(vo.getWorkspaceOwner() != null && vo.getWorkspaceOwner().getId().equalsIgnoreCase(userId))) {
 				 MessageDescription notAuthorizedMsg = new MessageDescription();
@@ -1815,6 +1605,9 @@ import org.springframework.beans.factory.annotation.Value;
 					vo.getProjectDetails().getRecipeDetails().setIsDeployEnabled(true);
 				}
 			 }
+			 // Status reconciliation with ArgoCD is handled by DeploymentStatusMonitorJob (every 20s).
+			 // Removed inline reconcileDeploymentStatusWithArgoCD(vo) to avoid slow synchronous
+			 // HTTP calls to ArgoCD on every card refresh and spurious 403 logs for undeployed envs.
 			 return new ResponseEntity<>(vo, HttpStatus.OK);
 		 } else {
 			 log.debug("No workspace found, returning empty");
@@ -1917,6 +1710,30 @@ import org.springframework.beans.factory.annotation.Value;
 			 @ApiParam(value = "User ID to be validated", required = true) @PathVariable("userid") String userid) {
 		 CodeServerWorkspaceValidateVO validateVO = service.validateCodespace(id, userid);
 		 return new ResponseEntity<>(validateVO, HttpStatus.OK);
+	 }
+
+	 @ApiOperation(value = "Check whether the current user owns or administers a Codespaces project.",
+			 nickname = "getCodespaceProjectAdminEligibility",
+			 response = CodespaceProjectAdminEligibilityVO.class, tags = { "code-server", })
+	 @ApiResponses(value = {
+			 @ApiResponse(code = 200, message = "Returns Codespaces project owner or admin eligibility",
+					 response = CodespaceProjectAdminEligibilityVO.class),
+			 @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			 @ApiResponse(code = 403, message = "Request is not authorized."),
+			 @ApiResponse(code = 500, message = "Internal error") })
+	 @RequestMapping(value = "/workspaces/projectadmin/eligibility", produces = { "application/json" },
+			 method = RequestMethod.GET)
+	 @Override
+	 public ResponseEntity<CodespaceProjectAdminEligibilityVO> getCodespaceProjectAdminEligibility() {
+		 CreatedByVO currentUser = userStore.getUserInfo() == null ? null : userStore.getVO();
+		 String userId = currentUser != null ? currentUser.getId() : null;
+		 if (userId == null || userId.isBlank()) {
+			 return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
+		 }
+
+		 CodespaceProjectAdminEligibilityVO eligibility = new CodespaceProjectAdminEligibilityVO();
+		 eligibility.setIsProjectOwnerOrAdmin(service.isProjectOwnerOrAdmin(userId));
+		 return new ResponseEntity<>(eligibility, HttpStatus.OK);
 	 }
  
 	//  @Override
@@ -2240,6 +2057,90 @@ import org.springframework.beans.factory.annotation.Value;
 	// 	 return new ResponseEntity<>(responseMessage, HttpStatus.FORBIDDEN);
  
 	//  }
+
+	@Override
+	@ApiOperation(value = "Get all codespace projects with their resource cap exemption state.", nickname = "getResourceCapExemptions", notes = "Get all codespace projects along with the environment specific resource cap exemption flags. Restricted to codespace admins.", response = CodespaceResourceExemptionCollectionVO.class, tags = {
+			"code-server-admin", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 200, message = "Returns the projects with their exemption state", response = CodespaceResourceExemptionCollectionVO.class),
+			@ApiResponse(code = 204, message = "Fetch complete, no content found."),
+			@ApiResponse(code = 400, message = "Bad request."),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 405, message = "Method not allowed"),
+			@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/workspaces/resourceexemptions", produces = {
+			"application/json" }, method = RequestMethod.GET)
+	public ResponseEntity<CodespaceResourceExemptionCollectionVO> getResourceCapExemptions(
+			@ApiParam(value = "page number from which listing of projects should start. Offset. Example 2") @Valid @RequestParam(value = "offset", required = false) Integer offset,
+			@ApiParam(value = "page size to limit the number of projects, Example 15") @Valid @RequestParam(value = "limit", required = false) Integer limit,
+			@ApiParam(value = "project name to filter the listing.") @Valid @RequestParam(value = "projectName", required = false) String projectName) {
+		CodespaceResourceExemptionCollectionVO collectionVO = new CodespaceResourceExemptionCollectionVO();
+		if (!userStore.getUserInfo().hasCodespaceAdminAccess()) {
+			log.info("Not authorized to view the resource cap exemptions. User does not have privileges.");
+			return new ResponseEntity<>(collectionVO, HttpStatus.FORBIDDEN);
+		}
+		int defaultLimit = 15;
+		if (offset == null || offset < 0)
+			offset = 0;
+		if (limit == null || limit < 0)
+			limit = defaultLimit;
+		if (projectName == null || "".equalsIgnoreCase(projectName))
+			projectName = null;
+		List<CodespaceResourceExemptionVO> exemptions = service.getAllResourceCapExemptions(offset, limit, projectName);
+		if (exemptions == null || exemptions.isEmpty()) {
+			return new ResponseEntity<>(collectionVO, HttpStatus.NO_CONTENT);
+		}
+		collectionVO.setData(exemptions);
+		collectionVO.setTotalCount(service.getResourceCapExemptionsCount(projectName));
+		return new ResponseEntity<>(collectionVO, HttpStatus.OK);
+	}
+
+	@Override
+	@ApiOperation(value = "Update the resource cap exemption of a project for an environment.", nickname = "updateResourceCapExemption", notes = "Marks or unmarks a codespace project as exempt from the ArgoCD resource caps for the given environment. Applies to every workspace of the project. Restricted to codespace admins.", response = GenericMessage.class, tags = {
+			"code-server-admin", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 200, message = "Returns message of success or failure", response = GenericMessage.class),
+			@ApiResponse(code = 400, message = "Bad request."),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 404, message = "Project not found."),
+			@ApiResponse(code = 405, message = "Method not allowed"),
+			@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/workspaces/{projectName}/resourceexemptions", produces = {
+			"application/json" }, method = RequestMethod.PUT)
+	public ResponseEntity<GenericMessage> updateResourceCapExemption(
+			@ApiParam(value = "Name of the codespace project", required = true) @PathVariable("projectName") String projectName,
+			@ApiParam(value = "environment for which the exemption should be updated", required = true, allowableValues = "int, prod") @NotNull @Valid @RequestParam(value = "env", required = true) String env,
+			@ApiParam(value = "true to exempt the project from the resource caps, false to apply the caps again", required = true) @NotNull @Valid @RequestParam(value = "exempt", required = true) Boolean exempt) {
+		GenericMessage responseMessage = new GenericMessage();
+		if (!userStore.getUserInfo().hasCodespaceAdminAccess()) {
+			log.info("Not authorized to update the resource cap exemptions. User does not have privileges.");
+			responseMessage.setSuccess("FAILED");
+			responseMessage.addErrors(new MessageDescription("Not authorized to update resource cap exemptions."));
+			return new ResponseEntity<>(responseMessage, HttpStatus.FORBIDDEN);
+		}
+		if (projectName == null || projectName.trim().isEmpty() || env == null
+				|| !("int".equalsIgnoreCase(env) || "prod".equalsIgnoreCase(env)) || exempt == null) {
+			responseMessage.setSuccess("FAILED");
+			responseMessage.addErrors(new MessageDescription("Invalid project name or environment."));
+			return new ResponseEntity<>(responseMessage, HttpStatus.BAD_REQUEST);
+		}
+		try {
+			responseMessage = service.updateResourceCapExemption(projectName, env, exempt);
+		} catch (Exception e) {
+			log.error("Failed while updating the resource cap exemption of project {} for env {} with exception",
+					projectName, env, e);
+			responseMessage = new GenericMessage();
+			responseMessage.setSuccess("FAILED");
+			responseMessage.addErrors(new MessageDescription("Failed while updating the resource cap exemption."));
+			return new ResponseEntity<>(responseMessage, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+		if (responseMessage != null && "SUCCESS".equalsIgnoreCase(responseMessage.getSuccess())) {
+			return new ResponseEntity<>(responseMessage, HttpStatus.OK);
+		}
+		return new ResponseEntity<>(responseMessage, HttpStatus.INTERNAL_SERVER_ERROR);
+	}
 
 	 @Override
 	 @ApiOperation(value = "Marking status after Publishing the changes added in access management system", nickname = "publishSecurityConfig", notes = "Marking status after Publishing the changes added in access management system", response = GenericMessage.class, tags={ "code-server-admin", })
@@ -2832,25 +2733,52 @@ import org.springframework.beans.factory.annotation.Value;
 			}
 			if(isCollabIdPartOfProject){
 				if(isAdmin && vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private")){
-					List<String> repoDetails = CommonUtils.getRepoNameFromGitUrl(vo.getProjectDetails().getRecipeDetails().getRepodetails());
+					String repoUrl = vo.getProjectDetails().getRecipeDetails().getRepodetails();
+					List<String> repoDetails = CommonUtils.getRepoNameFromGitUrl(repoUrl);
 					String orgName = repoDetails.get(0);
 					String repoName = repoDetails.get(1);
-					String gitHubUrl = gitOrgUri + orgName;
-					Boolean isUserAdmin;
-					if(!vo.getProjectDetails().getRecipeDetails().getRepodetails().contains(gitHubUrl)){
-						isUserAdmin = gitClient.isUserAdmin(orgName, collabUserId, repoName, gheBaseUri, ghePat);
+					boolean isGheHostedRepo = !repoUrl.contains(gitOrgUri + orgName);
+					if (gitClient.isCodeServerOrg(orgName, isGheHostedRepo)) {
+						// In-organisation repos can be granted admin access; external repos are validate-only.
+						HttpStatus grantAdminStatus = gitClient.addAdminAccessToRepo(collabUserId, repoName, isGheHostedRepo);
+						if (!grantAdminStatus.is2xxSuccessful()) {
+							log.error("Failed while granting admin permission to user {} on repo {}/{}, status {}",
+									collabUserId, orgName, repoName, grantAdminStatus);
+							warnings.add(new MessageDescription("Failed while granting admin permission to " + collabUserId
+									+ " on repository " + orgName + "/" + repoName + ". Please grant it manually."));
+							responseMessage.setWarnings(warnings);
+						}
 					} else {
-						isUserAdmin = gitClient.isUserAdmin(orgName, collabUserId, repoName);
-					}
-					if(!isUserAdmin){
-						log.error("collab user is not an admin for the private repo, cannot make user as admin");
-						GenericMessage emptyResponse = new GenericMessage();
-						List<MessageDescription> errors = new ArrayList<>();
-						msg.setMessage("Invalid User, Please make sure that collab user should be an admin of the repo. Bad request");
-						errors.add(msg);
-						emptyResponse.setErrors(errors);
-						emptyResponse.setSuccess("FAILED");
-						return new ResponseEntity<>(emptyResponse, HttpStatus.BAD_REQUEST);
+						GitClient.RepoAdminCheckStatus adminCheckStatus = isGheHostedRepo
+								? gitClient.getUserRepoAdminStatus(orgName, collabUserId, repoName, gheBaseUri, ghePat)
+								: gitClient.getUserRepoAdminStatus(orgName, collabUserId, repoName);
+						// A failed permission check must not be treated as proof that the user is not an admin.
+						if (GitClient.RepoAdminCheckStatus.CHECK_FAILED == adminCheckStatus) {
+							log.error("Could not verify admin permission of user {} on external repo {}/{}",
+									collabUserId, orgName, repoName);
+							GenericMessage emptyResponse = new GenericMessage();
+							List<MessageDescription> errors = new ArrayList<>();
+							msg.setMessage("Unable to verify admin permission of " + collabUserId + " on repository "
+									+ orgName + "/" + repoName
+									+ " because the Git permission API call failed. Please try again later.");
+							errors.add(msg);
+							emptyResponse.setErrors(errors);
+							emptyResponse.setSuccess("FAILED");
+							return new ResponseEntity<>(emptyResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+						}
+						if (GitClient.RepoAdminCheckStatus.NOT_ADMIN == adminCheckStatus) {
+							log.error("collab user {} is not an admin of the external private repo {}/{}, cannot make user as admin",
+									collabUserId, orgName, repoName);
+							GenericMessage emptyResponse = new GenericMessage();
+							List<MessageDescription> errors = new ArrayList<>();
+							msg.setMessage("Invalid User, " + collabUserId + " must be an admin of the external repository "
+									+ orgName + "/" + repoName
+									+ ". DnA cannot grant access on repositories outside the codespace organisation. Bad request");
+							errors.add(msg);
+							emptyResponse.setErrors(errors);
+							emptyResponse.setSuccess("FAILED");
+							return new ResponseEntity<>(emptyResponse, HttpStatus.BAD_REQUEST);
+						}
 					}
 				}
 				if(isAdmin && !vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private")){
@@ -4010,4 +3938,120 @@ import org.springframework.beans.factory.annotation.Value;
 		return ResponseEntity.ok(responseVo);
 	}
 
+	private void reconcileDeploymentStatusWithArgoCD(CodeServerWorkspaceVO vo) {
+		try {
+			if (vo == null || vo.getProjectDetails() == null || vo.getProjectDetails().getProjectName() == null) {
+				return;
+			}
+			
+			String projectName = vo.getProjectDetails().getProjectName();
+			String argoToken = argoCdService.getArgoToken();
+			if (argoToken == null) {
+				log.debug("Unable to get ArgoCD token for status reconciliation");
+				return;
+			}
+			
+			CodeServerDeploymentDetailsVO intDeployment = vo.getProjectDetails().getIntDeploymentDetails();
+			if (intDeployment == null) {
+				intDeployment = checkAndCreateDeploymentFromArgoCD(argoToken, projectName, "int");
+				if (intDeployment != null) {
+					vo.getProjectDetails().setIntDeploymentDetails(intDeployment);
+				}
+			} else {
+				reconcileSingleDeployment(argoToken, projectName, "int", intDeployment);
+			}
+			
+			CodeServerDeploymentDetailsVO prodDeployment = vo.getProjectDetails().getProdDeploymentDetails();
+			if (prodDeployment == null) {
+				prodDeployment = checkAndCreateDeploymentFromArgoCD(argoToken, projectName, "prod");
+				if (prodDeployment != null) {
+					vo.getProjectDetails().setProdDeploymentDetails(prodDeployment);
+				}
+			} else {
+				reconcileSingleDeployment(argoToken, projectName, "prod", prodDeployment);
+			}
+		} catch (Exception e) {
+			log.debug("Error reconciling deployment status with ArgoCD: {}", e.getMessage());
+		}
+	}
+
+	private CodeServerDeploymentDetailsVO checkAndCreateDeploymentFromArgoCD(String argoToken, String projectName, String environment) {
+		try {
+			String appName = projectName.toLowerCase() + "-" + environment;
+			String argoStatus = argoCdService.checkArgoAppDeploymentStatus(argoToken, appName);
+			
+			if ("DEPLOYED".equals(argoStatus)) {
+				log.info("Found deployed ArgoCD app {} but DB has no deployment details - creating", appName);
+				CodeServerDeploymentDetailsVO deployment = new CodeServerDeploymentDetailsVO();
+				deployment.setLastDeploymentStatus("DEPLOYED");
+				deployment.setLastDeployedOn(new Date());
+				return deployment;
+			}
+		} catch (Exception e) {
+			log.debug("ArgoCD app check for {}-{} failed: {}", projectName, environment, e.getMessage());
+		}
+		return null;
+	}
+	
+	private void reconcileSingleDeployment(String argoToken, String projectName, String environment, 
+			CodeServerDeploymentDetailsVO deployment) {
+		try {
+			String appName = projectName.toLowerCase() + "-" + environment;
+			String currentDbStatus = deployment.getLastDeploymentStatus();
+			
+			if (currentDbStatus == null || 
+			"DEPLOY_REQUESTED".equalsIgnoreCase(currentDbStatus) || 
+			"DEPLOYMENT_FAILED".equalsIgnoreCase(currentDbStatus)) {
+				
+				String argoStatus = argoCdService.checkArgoAppDeploymentStatus(argoToken, appName);
+				
+				if ("DEPLOYED".equals(argoStatus) && !"DEPLOYED".equalsIgnoreCase(currentDbStatus)) {
+					log.info("Reconciling {} status from {} to {} (ArgoCD source of truth)", 
+						appName, currentDbStatus, argoStatus);
+					deployment.setLastDeploymentStatus(argoStatus);
+					if (deployment.getLastDeployedOn() == null) {
+						deployment.setLastDeployedOn(new Date());
+					}
+				}
+				else if ("DEPLOY_REQUESTED".equals(argoStatus) && "DEPLOYMENT_FAILED".equalsIgnoreCase(currentDbStatus)) {
+					log.info("Reconciling {} status from {} to {} (new deployment in progress)", 
+						appName, currentDbStatus, argoStatus);
+					deployment.setLastDeploymentStatus(argoStatus);
+				}
+			}
+		} catch (Exception e) {
+			log.debug("Could not reconcile ArgoCD status for {}-{}: {}", projectName, environment, e.getMessage());
+		}
+  }
+   
+	@ApiOperation(value = "add a webhook for given git repo", nickname = "addGitWebhook", notes = "Add a webhook for given git repo", response = GenericMessage.class, tags={ "code-server", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 200, message = "Returns message of success or failure", response = GenericMessage.class),
+        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+        @ApiResponse(code = 400, message = "Bad request."),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/workspaces/addWebhook",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.POST)
+    public ResponseEntity<GenericMessage> addGitWebhook(
+			@ApiParam(value = "git repo name in which webhook needs to be added", required=true) @Valid @RequestBody GitWebHookDto repoDetails) {
+        try {
+            log.info("Fetching branches for repo: {} - Determined isWorkspaceMigratedToGHE: {} (will use {} server)");
+            GenericMessage webHookId = gitWebHookService.addGitWebhook(repoDetails);
+            return new ResponseEntity<>(webHookId, HttpStatus.OK);
+        } catch (Exception e) {
+            log.warn("Failed to add webhook for repo: {}. Proceeding to add new webhook. Error: {}", repoDetails, e.getMessage());
+            GenericMessage errorMessage = new GenericMessage();
+            errorMessage.setSuccess("FAILED");
+            MessageDescription errorMsg = new MessageDescription("Failed to add webhook: " + e.getMessage());
+            List<MessageDescription> errors = new ArrayList<>();
+            errors.add(errorMsg);
+            errorMessage.setErrors(errors);
+            return new ResponseEntity<>(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+	  }
 }

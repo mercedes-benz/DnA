@@ -9,6 +9,10 @@ class Tabs {
   static defaultSetup(customTabs) {
     const tabs = customTabs || document.querySelectorAll('.tabs');
     makeArray(tabs).forEach((tabsElem) => {
+      if (!tabsElem) {
+        return;
+      }
+
       const tabItems = tabsElem.querySelectorAll('.tab');
 
       const activeIndicator = document.createElement('SPAN');
@@ -19,10 +23,11 @@ class Tabs {
 
         if (tabElem.classList.contains('active')) {
           moveActiveIndicator(tabsElem, tabElem, activeIndicator);
-          showActiveTabContent(tabElem, tabsElem.parentNode.parentNode.parentNode);
+          showActiveTabContent(tabElem, getTabPanel(tabsElem));
         }
 
-        setRippleAnimation(tabElem.firstChild, false, 'rgba(192, 200, 208, 1)');
+        const rippleTarget = tabElem.firstElementChild || tabElem.firstChild;
+        setRippleAnimation(rippleTarget, false, 'rgba(192, 200, 208, 1)');
       });
 
       if (tabsElem.scrollWidth > tabsElem.offsetWidth) {
@@ -58,6 +63,9 @@ class Tabs {
       evt.preventDefault();
       const tabElem = evt.currentTarget;
       const tabsElem = tabElem.parentNode;
+      if (!tabsElem) {
+        return;
+      }
       const curTabs = tabsElem.querySelectorAll('.tab');
       makeArray(curTabs).forEach((tab) => {
         tab.classList.remove('active');
@@ -67,7 +75,15 @@ class Tabs {
 
       tabElem.classList.add('active');
 
-      showActiveTabContent(tabElem, tabsElem.parentNode.parentNode.parentNode);
+      showActiveTabContent(tabElem, getTabPanel(tabsElem));
+    }
+
+    function getTabPanel(tabsElem) {
+      if (!tabsElem || !tabsElem.parentNode || !tabsElem.parentNode.parentNode) {
+        return null;
+      }
+
+      return tabsElem.parentNode.parentNode.parentNode || tabsElem.closest('.tabs-panel');
     }
 
     function scrollTabs(evt) {
@@ -139,13 +155,25 @@ class Tabs {
     }
 
     function showActiveTabContent(activeTab, tabPanel) {
+      if (!activeTab || !tabPanel) {
+        return;
+      }
+
       const tabContents = tabPanel.querySelectorAll('.tab-content');
       makeArray(tabContents).forEach((tabContent) => {
         tabContent.classList.remove('active');
       });
-      const tabId = activeTab.querySelector('a').getAttribute('href');
+      const tabLink = activeTab.querySelector('a');
+      if (!tabLink) {
+        return;
+      }
+
+      const tabId = tabLink.getAttribute('href');
       if (tabId) {
-        tabPanel.querySelector(tabId).classList.add('active');
+        const activePanel = tabPanel.querySelector(tabId);
+        if (activePanel) {
+          activePanel.classList.add('active');
+        }
       }
 
       InputFields.refresh();

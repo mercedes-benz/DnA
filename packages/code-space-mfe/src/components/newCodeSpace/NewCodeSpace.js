@@ -302,11 +302,12 @@ const NewCodeSpace = (props) => {
   // };
 
   const onUserDefinedGithubUrlOnChange = (evnt) => {
-    const githubUrlVal = evnt.currentTarget.value.trim();
+    const githubUrlVal = evnt.currentTarget.value;
     setUserDefinedGithubUrl(githubUrlVal);
+    const trimmedVal = githubUrlVal.trim();
     setUserDefinedGithubUrlError(
-      githubUrlVal.length
-        ? isValidGITRepoUrl(githubUrlVal, isPublicRecipeChoosen)
+      trimmedVal.length
+        ? isValidGITRepoUrl(trimmedVal, isPublicRecipeChoosen)
           ? ''
           : `Please provide valid ${isPublicRecipeChoosen ? 'https://github.com/' : Envs.CODE_SPACE_GIT_PAT_APP_URL} git repository clone url.`
         : requiredError,
@@ -484,6 +485,18 @@ const NewCodeSpace = (props) => {
     setCodeSpaceCollaborators([...codeSpaceCollaborators]);
   };
 
+  const refreshCollaborators = () => {
+    CodeSpaceApiClient.getWorkspaceById(props.onEditingCodeSpace.id)
+      .then((response) => {
+        const projectCollaborators = response.data?.projectDetails?.projectCollaborators || [];
+        if (props.onEditingCodeSpace.projectDetails) {
+          props.onEditingCodeSpace.projectDetails.projectCollaborators = projectCollaborators;
+        }
+        setCodeSpaceCollaborators(projectCollaborators);
+      })
+      .catch(() => {});
+  };
+
   const addNewCollaborator = () => {
     if (props.onEditingCodeSpace.projectDetails?.projectCollaborators === null) {
       props.onEditingCodeSpace.projectDetails.projectCollaborators = [];
@@ -500,12 +513,14 @@ const NewCodeSpace = (props) => {
           Notification.show(
             `Collaborator '${newCollaborator.firstName}' has been added successfully to the Code Space.`,
           );
+          refreshCollaborators();
         } else {
           setCodeSpaceCollaborators([...existingColloborators]);
           Notification.show(
             `Error adding collaborator '${newCollaborator.firstName}' to the Code Space. Please try again later.\n ${res.data.errors[0].message}`,
             'alert',
           );
+          refreshCollaborators();
         }
       })
       .catch((err) => {
@@ -519,6 +534,7 @@ const NewCodeSpace = (props) => {
           setCodeSpaceCollaborators([...existingColloborators]);
           Notification.show('Error in adding new colloborator code space. Please try again later.\n' + err.message, 'alert');
         }
+        refreshCollaborators();
       });
     }
   }
