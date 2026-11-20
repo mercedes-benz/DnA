@@ -172,41 +172,14 @@ const ContextMenu = (props) => {
   };
 
   const handleApplicationLogsClick = () => {
-    const projectName = projectDetails?.projectName;
-    const workspaceIds = [...new Set([codeSpace?.workspaceId, codeSpace?.id].filter(Boolean))];
-    const userEmails = [...new Set([
-      projectDetails?.projectOwner?.email,
-      ...(projectDetails?.projectCollaborators || []).map((collaborator) => collaborator?.email),
-      props?.userInfo?.email,
-    ].filter(Boolean))];
+    const dashboardUrl = projectDetails?.grafanaDashboardUrl;
+    console.log('dashboardUrl:', dashboardUrl);
+    if (dashboardUrl) {
+      window.open(dashboardUrl, '_blank', 'noopener,noreferrer');
+      return;
+    }
 
-    const payload = {
-      project_name: projectName,
-      user_emails: userEmails,
-      workspace_ids: workspaceIds,
-    };
-
-    console.log('Harbor dashboard API payload:', payload);
-
-    CodeSpaceApiClient.submitHarborDashboardRequest(payload)
-      .then((res) => {
-        const responseData = res?.data || {};
-        const dashboardUrl =
-          responseData?.url ||
-          responseData?.dashboard_url ||
-          responseData?.dashboardUrl ||
-          responseData?.data?.url ||
-          responseData?.data?.dashboard_url ||
-          responseData?.data?.dashboardUrl;
-
-        
-        console.log('Harbor dashboard URL:', dashboardUrl);
-        window.open(dashboardUrl, '_blank', 'noopener,noreferrer');
-      })
-      .catch((err) => {
-        console.error('Harbor dashboard API error:', err?.response || err);
-        Notification.show('Failed to fetch harbor dashboard data. Please try again later.', 'alert');
-      });
+    Notification.show('Application dashboard URL is not available for this project.', 'alert');
   };
 
   const securedWithIAMContent = (
