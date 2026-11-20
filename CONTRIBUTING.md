@@ -7,14 +7,10 @@ By contributing you will agree that your contribution will be put under the same
 
 ## Table of Contents
 
-- CLA
 - Communication
 - Contributions
+- Developer Certificate of Origin
 - Quality
-
-## CLA
-
-Before you can contribute, you will need to sign our cla [Contributor License Agreement](https://github.com/mercedes-benz/foss/blob/master/cla/2022-04-25_MB_FOSS_CLA_MBTI.pdf) and send the signed CLA to <mbti-foss@mercedes-benz.com>
 
 ## Communication
 
@@ -22,7 +18,7 @@ For communication please respect our [FOSS Code of Conduct](https://github.com/D
 
 The following communication channels exist for this project:
 
-- Github for reporting and claiming issues:
+- GitHub for reporting and claiming issues:
 
 Transparent and open communication is important to us.
 Thus, all project-related communication should happen only through these channels and in English.
@@ -30,11 +26,24 @@ Issue-related communication should happen within the concerned issue.
 
 ## Contributions
 
-If you would like to contribute code you can do so through GitHub. We are following [Git Strategy](docs/GitStrategy.md) to maintain the branching standards on Github. We are requested to follow the same.
+If you would like to contribute code you can do so through GitHub. We are following [Git Strategy](docs/GitStrategy.md) to maintain the branching standards on GitHub. We are requested to follow the same.
 
 When submitting code, please make every effort to follow existing conventions and style in order to keep the code as readable as possible.
 
-If you are new to contributing in Github, [First Contributions](https://github.com/firstcontributions/first-contributions) might be a good starting point.
+If you are new to contributing in GitHub, [First Contributions](https://github.com/firstcontributions/first-contributions) might be a good starting point.
+
+### Developer Certificate of Origin
+
+Contributors must agree to the [Developer Certificate of Origin Version 1.1 (DCO)](https://developercertificate.org/) and comply with the sign-off procedure for contributing to this project.
+
+All contributions submitted to this repository have to carry a signed-off-by statement in the commit message using the following format:
+
+```text
+Signed-off-by: Firstname Lastname <email.address>
+```
+
+where the specified email address must be associated with your [GitHub account](https://docs.github.com/en/account-and-profile/concepts/email-addresses).
+If a commit does not carry such a signed-off-by statement, the pull request cannot be merged because by adding signed-off-by statements to the commit messages, you convey that you have the necessary rights to contribute the respective changes.
 
 ## Quality
 
