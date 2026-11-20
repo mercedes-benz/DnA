@@ -1975,6 +1975,9 @@ definitions:
         $ref: "#/definitions/CodespaceSecurityConfigVO"
       dataGovernance:
          $ref: "#/definitions/CodeServerGovernanceVO"
+      grafanaDashboardUrl:
+        type: string
+        description: "Grafana dashboard URL for the project"
       required:
         -projectName
         -recipeDetails
@@ -2521,6 +2524,9 @@ definitions:
       procedureID:
         type: string
         description: "producerId for the codespace"
+      leanIX:
+        type: string
+        description: "LeanIX identifier for the project; optional"
       tags:
         type: array
         items:
