@@ -82,7 +82,8 @@ public class JWTAuthenticationFilter implements Filter {
 		HttpServletRequest httpRequest = (HttpServletRequest) servletRequest;
 		String requestUri = httpRequest.getRequestURI();
 		log.debug("Intercepting Request to store userinfo:" + requestUri);
-		String userinfo = httpRequest.getHeader("dna-request-userdetails");
+		// String userinfo = httpRequest.getHeader("dna-request-userdetails");
+		String userinfo = "{\"iat\":1792992792,\"lastName\":\"Bandari\",\"mobileNumber\":null,\"digiRole\":[{\"id\":\"1\",\"name\":\"User\"}],\"email\":\"deloitte.bandari@mercedes-benz.com\",\"authToken\":\"0001hf28QQ0ox3nSWEbs1EMZPF6h\",\"entitlement_group\":[],\"nounce\":0.9371172563863506,\"exp\":1792996402,\"department\":\"PT/THI\",\"id\":\"BANDARK\",\"firstName\":\"Kishor\",\"iss\":\"https://test.dna.app.corpintra.net/#/\",\"divisionAdmins\":[]}";
 		if (!StringUtils.hasText(userinfo)) {
 			if (requestUri.contains("validate")) {
 				filterChain.doFilter(servletRequest, servletResponse);

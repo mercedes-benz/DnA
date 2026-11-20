@@ -53,7 +53,12 @@ public class GrafanaDashboardService {
 
             HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
 
-            log.info("Calling Grafana dashboard API: {} with payload {}", apiUrl, requestBody);
+            log.info("Calling Grafana dashboard API for project={}; endpoint={}; userEmails={}; workspaceIds={}; requestPayload={}",
+                    projectName,
+                    apiUrl,
+                    userEmails != null ? userEmails.size() : 0,
+                    workspaceIds != null ? workspaceIds.size() : 0,
+                    requestBody);
             ResponseEntity<String> response = restTemplate.exchange(
                     apiUrl,
                     HttpMethod.POST,
@@ -63,15 +68,33 @@ public class GrafanaDashboardService {
 
             if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
                 ObjectMapper objectMapper = new ObjectMapper();
-                return objectMapper.readValue(response.getBody(), GrafanaDashboardResponse.class);
+                GrafanaDashboardResponse dashboardResponse =
+                        objectMapper.readValue(response.getBody(), GrafanaDashboardResponse.class);
+
+                log.info("Grafana dashboard API response: project={}; status={}; dashboardId={}; dashboardUid={}; dashboardUrl={}; dashboardCreated={}; permissionsUpdatedFor={}; notOnboardedUsers={}",
+                        projectName,
+                        response.getStatusCodeValue(),
+                        dashboardResponse.getDashboardId(),
+                        dashboardResponse.getDashboardUid(),
+                        dashboardResponse.getDashboardUrl(),
+                        dashboardResponse.getDashboardCreated(),
+                        dashboardResponse.getPermissionsUpdatedFor(),
+                        dashboardResponse.getNotOnboardedUsers());
+                return dashboardResponse;
             }
 
-            log.warn("Grafana dashboard API call failed with status: {} and body: {}",
-                    response.getStatusCode(), response.getBody());
+            log.warn("Grafana dashboard API call failed: project={}; status={}; responseBody={}",
+                    projectName,
+                    response.getStatusCodeValue(),
+                    response.getBody());
             return null;
 
         } catch (Exception e) {
-            log.error("Exception while calling Grafana dashboard API: {}", e.getMessage(), e);
+            log.error("Exception while calling Grafana dashboard API: project={}; endpoint={}; exception={}",
+                    projectName,
+                    apiUrl,
+                    e.getMessage(),
+                    e);
             return null;
         }
     }

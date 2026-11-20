@@ -899,6 +899,11 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 			String workspaceUrl = this.getWorkspaceUrl(recipeId,ownerwsid,workspaceOwner.getId(),vo.getProjectDetails().getRecipeDetails().getCloudServiceProvider().toString());
 			entity.getData().setWorkspaceUrl(workspaceUrl);
 			jpaRepo.save(entity);
+			String dashboardUrl = onboardProjectDashboard(projectName);
+			if (dashboardUrl != null && entity.getData() != null
+					&& entity.getData().getProjectDetails() != null) {
+				entity.getData().getProjectDetails().setGrafanaDashboardUrl(dashboardUrl);
+			}
 			responseVO.setData(workspaceAssembler.toVo(entity));
 			responseVO.setErrors(new ArrayList<>());
 			responseVO.setWarnings(new ArrayList<>());
@@ -1115,6 +1120,11 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 			 String workspaceUrl = this.getWorkspaceUrl(recipeId,ownerwsid,workspaceOwner.getId(),ConstantsUtility.DHC_CAAS_AWS);
 			 entity.getData().setWorkspaceUrl(workspaceUrl);
 			 jpaRepo.save(entity);
+			 String dashboardUrl = onboardProjectDashboard(projectName);
+			 if (dashboardUrl != null && entity.getData() != null
+					 && entity.getData().getProjectDetails() != null) {
+				 entity.getData().getProjectDetails().setGrafanaDashboardUrl(dashboardUrl);
+			 }
 			 responseVO.setData(workspaceAssembler.toVo(entity));
 			 responseVO.setErrors(new ArrayList<>());
 			 responseVO.setWarnings(new ArrayList<>());
@@ -5300,6 +5310,107 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 			return  null;
 		}
 	}
+
+	 private String onboardProjectDashboard(String projectName) {
+		 try {
+			 List<CodeServerWorkspaceNsql> projectEntities = new ArrayList<>();
+			 Set<String> userEmails = new HashSet<>();
+			 Set<String> workspaceIds = new HashSet<>();
+
+			 List<CodeServerWorkspaceNsql> allEntities = workspaceCustomRepository.findAll();
+			 if (allEntities != null) {
+				 for (CodeServerWorkspaceNsql workspaceEntity : allEntities) {
+					 if (workspaceEntity == null || workspaceEntity.getData() == null
+							 || workspaceEntity.getData().getProjectDetails() == null) {
+						 continue;
+					 }
+					 String entityProjectName = workspaceEntity.getData().getProjectDetails().getProjectName();
+					 if (entityProjectName == null || !entityProjectName.equalsIgnoreCase(projectName)) {
+						 continue;
+					 }
+					 if ("DELETED".equalsIgnoreCase(workspaceEntity.getData().getStatus())) {
+						 continue;
+					 }
+
+					 projectEntities.add(workspaceEntity);
+					 if (workspaceEntity.getData().getWorkspaceId() != null
+							 && !workspaceEntity.getData().getWorkspaceId().trim().isEmpty()) {
+						 workspaceIds.add(workspaceEntity.getData().getWorkspaceId());
+					 }
+					 if (workspaceEntity.getData().getWorkspaceOwner() != null
+							 && workspaceEntity.getData().getWorkspaceOwner().getEmail() != null
+							 && !workspaceEntity.getData().getWorkspaceOwner().getEmail().trim().isEmpty()) {
+						 userEmails.add(workspaceEntity.getData().getWorkspaceOwner().getEmail().trim());
+					 }
+
+					 CodeServerProjectDetails details = workspaceEntity.getData().getProjectDetails();
+					 if (details.getProjectOwner() != null && details.getProjectOwner().getEmail() != null
+							 && !details.getProjectOwner().getEmail().trim().isEmpty()) {
+						 userEmails.add(details.getProjectOwner().getEmail().trim());
+					 }
+					 if (details.getProjectCollaborators() != null) {
+						 for (UserInfo collaborator : details.getProjectCollaborators()) {
+							 if (collaborator != null && collaborator.getEmail() != null
+									 && !collaborator.getEmail().trim().isEmpty()) {
+								 userEmails.add(collaborator.getEmail().trim());
+							 }
+						 }
+					 }
+				 }
+			 }
+
+			 if (workspaceIds.isEmpty()) {
+				 List<String> ids = workspaceCustomRepository.getWorkspaceIdsByProjectName(projectName);
+				 if (ids != null) {
+					 workspaceIds.addAll(ids);
+				 }
+			 }
+
+			 log.info("Starting Grafana dashboard onboarding: project={}; activeWorkspaceCount={}; userEmailCount={}; workspaceIds={}",
+				 projectName,
+				 projectEntities.size(),
+				 userEmails.size(),
+				 new ArrayList<>(workspaceIds));
+
+			 GrafanaDashboardResponse dashboardResponse = grafanaDashboardService.fetchDashboardData(
+				 projectName,
+				 new ArrayList<>(userEmails),
+				 new ArrayList<>(workspaceIds)
+			 );
+			 if (dashboardResponse == null || dashboardResponse.getDashboardUrl() == null
+					 || dashboardResponse.getDashboardUrl().trim().isEmpty()) {
+				 log.warn("Grafana dashboard onboarding completed without a dashboard URL: project={}; dashboardCreated={}; dashboardId={}; dashboardUid={}; response={}",
+					 projectName,
+					 dashboardResponse != null ? dashboardResponse.getDashboardCreated() : null,
+					 dashboardResponse != null ? dashboardResponse.getDashboardId() : null,
+					 dashboardResponse != null ? dashboardResponse.getDashboardUid() : null,
+					 dashboardResponse);
+				 return null;
+			 }
+
+			 String dashboardUrl = dashboardResponse.getDashboardUrl().trim();
+			 for (CodeServerWorkspaceNsql workspaceEntity : projectEntities) {
+				 workspaceEntity.getData().getProjectDetails().setGrafanaDashboardUrl(dashboardUrl);
+			 }
+			 if (!projectEntities.isEmpty()) {
+				 jpaRepo.saveAllAndFlush(projectEntities);
+			 }
+			 log.info("Grafana dashboard onboarding saved: project={}; dashboardCreated={}; dashboardId={}; dashboardUid={}; dashboardUrl={}; permissionsUpdatedFor={}; notOnboardedUsers={}; savedWorkspaceCount={}; userEmailCount={}",
+				 projectName,
+				 dashboardResponse.getDashboardCreated(),
+				 dashboardResponse.getDashboardId(),
+				 dashboardResponse.getDashboardUid(),
+				 dashboardUrl,
+				 dashboardResponse.getPermissionsUpdatedFor(),
+				 dashboardResponse.getNotOnboardedUsers(),
+				 projectEntities.size(),
+				 userEmails.size());
+			 return dashboardUrl;
+		 } catch (Exception e) {
+			 log.warn("Grafana dashboard onboarding failed for project {}: {}", projectName, e.getMessage(), e);
+			 return null;
+		 }
+	 }
 
 	private String normalizeRepoForWorkflow(String repoUrl) {
 		if (repoUrl == null) {
