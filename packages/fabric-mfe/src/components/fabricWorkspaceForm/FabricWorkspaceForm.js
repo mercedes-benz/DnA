@@ -27,8 +27,12 @@ const toDateKey = (value) => {
   return isNaN(date.getTime()) ? null : toLocalDateKey(date);
 };
 
+// An inactiveDate before 2000-01-01 (UTC) is a placeholder, not a real inactivation date
+const PLACEHOLDER_INACTIVE_DATE_CUTOFF = Date.UTC(2000, 0, 1);
+const isPlaceholderInactiveDate = (value) => new Date(value).getTime() < PLACEHOLDER_INACTIVE_DATE_CUTOFF;
+
 const isActiveProject = (project) => {
-  if (!project?.inactiveDate) return true;
+  if (!project?.inactiveDate || isPlaceholderInactiveDate(project.inactiveDate)) return true;
   const inactiveDateKey = toDateKey(project.inactiveDate);
   return inactiveDateKey === null || inactiveDateKey > toLocalDateKey(new Date());
 };
