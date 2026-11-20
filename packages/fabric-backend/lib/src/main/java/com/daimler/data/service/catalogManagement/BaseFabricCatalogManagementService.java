@@ -295,6 +295,7 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
         }
 
         return response;
+        }
     private void rollbackDatabaseService(String serviceName) {
         try {
             openMetadataClient.deleteDatabaseService(serviceName);

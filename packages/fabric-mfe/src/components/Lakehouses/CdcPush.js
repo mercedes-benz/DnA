@@ -105,6 +105,11 @@ export const buildCdcPayload = ({
   };
 };
 
+const isLakehouseAlreadyPublished = (cdcPublishedLakeHouseDetails, lakehouseId, lakehouseName) => {
+  const publishedLakeHouseNames = cdcPublishedLakeHouseDetails?.publishedLakeHouseNames || [];
+  return publishedLakeHouseNames.includes(lakehouseId)
+    || (!!lakehouseName && publishedLakeHouseNames.includes(lakehouseName));
+};
 const MISMATCH_TYPE_CONFIG = {
   NEW_TABLE: { label: 'New Table', colorClass: 'badgeNew' },
   DELETED_TABLE: { label: 'Deleted Table', colorClass: 'badgeDeleted' },
@@ -127,6 +132,8 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, catal
   const [description, setDescription] = useState(null);
   const [showCdcLogin, setShowCdcLogin] = useState(false);
   const [hasPushedOnce, setHasPushedOnce] = useState(false);
+  const [schemaEnabled, setSchemaEnabled] = useState(true);
+  const [schemaCheckLoading, setSchemaCheckLoading] = useState(true);
   const [localMismatches, setLocalMismatches] = useState(mismatchesProp);
   const [previouslyPublishedTables, setPreviouslyPublishedTables] = useState([]);
   const [catalogSuffix, setCatalogSuffix] = useState('');
@@ -196,10 +203,28 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, catal
     ProgressIndicator.show();
     fabricApi.getLakehouseTables(workspaceId, lakehouseId)
       .then(res => {
-        setTables(res?.data?.data?.tables || []);
+        const fetchedTables = res?.data?.data?.tables || [];
+        // Component state and payloads use tableName keys, while upstream may return schema variants.
+        const tablesByName = new Map();
+        fetchedTables.forEach(table => {
+          const existingTable = tablesByName.get(table.tableName);
+          const hasSchemaName = table.schemaName && table.schemaName.trim() !== '';
+          const existingHasSchemaName = existingTable?.schemaName && existingTable.schemaName.trim() !== '';
+          if (!existingTable || (!existingHasSchemaName && hasSchemaName)) {
+            tablesByName.set(table.tableName, table);
+          }
+        });
+        const uniqueTables = Array.from(tablesByName.values());
+        setTables(uniqueTables);
+        // Judge schema support from raw rows because schema-less lakehouses also expose a dbo SQL-endpoint copy.
+        const hasSchemaName = fetchedTables.length > 0
+          && fetchedTables.every(t => t.schemaName && t.schemaName.trim() !== '');
+        setSchemaEnabled(hasSchemaName);
+        setSchemaCheckLoading(false);
         ProgressIndicator.hide();
       })
       .catch((e) => {
+        setSchemaCheckLoading(false);
         ProgressIndicator.hide();
         if (e?.response?.status === 403) {
           Notification.show('Unauthorized to view this page or not found', 'alert');
@@ -220,8 +245,12 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, catal
         setWorkspaceMetadata(data);
         setWorkspaceCreator(data?.createdBy);
 
-        const isPublished = data?.cdcPublishedLakeHouseDetails?.publishedLakeHouseNames?.includes(lakehouseId);
-        console.log('[CdcPush] isPublished:', isPublished, 'lakehouseId:', lakehouseId, 'publishedNames:', data?.cdcPublishedLakeHouseDetails?.publishedLakeHouseNames);
+        const isPublished = isLakehouseAlreadyPublished(
+          data?.cdcPublishedLakeHouseDetails,
+          lakehouseId,
+          lakehouseName
+        );
+        console.log('[CdcPush] isPublished:', isPublished, 'lakehouseId:', lakehouseId, 'lakehouseName:', lakehouseName, 'publishedNames:', data?.cdcPublishedLakeHouseDetails?.publishedLakeHouseNames);
 
         if (isPublished && data?.name) {
           console.log('[CdcPush] Fetching catalog metadata for serviceName:', data.name);
@@ -562,9 +591,8 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, catal
 
         ProgressIndicator.hide();
         Notification.show("Push to CDC successful!", "success");
-
         setHasPushedOnce(true);
-
+        
         if (onRefreshWorkspace) {
           onRefreshWorkspace();
         }
@@ -586,8 +614,6 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, catal
         Notification.show(backendMessage, 'alert');
       });
 
-    // console.log("CDC Payload to be sent:");
-    // console.log(JSON.stringify(payload, null, 2));
 
   }, [
     workspaceId,
@@ -613,6 +639,8 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, catal
   const onPush = handleSubmit(handlePush);
   const isPushDisabled =
   !workspaceMetadata || 
+  !schemaEnabled ||
+  schemaCheckLoading ||
   Object.keys(selectedTables).length === 0 ||
   Object.keys(selectedColumns).length === 0 ||
   hasPushedOnce;
@@ -859,9 +887,9 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, catal
                           const cols = res.data.data.columns || [];
                           setColumnsByTable(prev => ({ ...prev, [tableName]: cols }));
                           if (selectedTables[tableName]) {
-                            const storedCols = previouslyEnabledColumnsRef.current[tableName] || [];
+                            const storedCols = previouslyEnabledColumnsRef.current[tableName];
                             const colSelections = cols.reduce((acc, col) => {
-                              acc[col.columnName] = storedCols.length > 0
+                              acc[col.columnName] = storedCols !== undefined
                                 ? storedCols.includes(col.columnName)
                                 : true;
                               return acc;
@@ -934,7 +962,7 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, catal
       </div>
 
       <div className={Styles.pushButtonContainer}>
-        <button className={isPushDisabled ? classNames("btn btn-tertiary") : classNames("btn btn-primary")} type="button" disabled={isPushDisabled} onClick={onPush}>
+        <button className={isPushDisabled ? classNames("btn btn-primary") : classNames("btn btn-tertiary")} type="button" disabled={isPushDisabled} onClick={onPush}>
           Push
         </button>
       </div>
