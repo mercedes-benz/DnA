@@ -1182,7 +1182,7 @@ public class FabricWorkspaceClient {
 		try {
 
 			String token = this.userStore.getUserInfo().getAuthToken();
-			log.info("Token fetched successfully for DDX onboarding, invoking API with token: {}", token);
+			log.debug("Token fetched successfully for DDX onboarding, invoking API with token: {}", token);
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.set("Authorization", "Bearer "+token);
@@ -1239,7 +1239,7 @@ public class FabricWorkspaceClient {
 		try {
 
 			String token = this.userStore.getUserInfo().getAuthToken();
-			log.info("Token fetched successfully for DDX onboarding, invoking API with token: {}", token);
+			log.debug("Token fetched successfully for DDX onboarding, invoking API with token: {}", token);
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.set("Authorization", "Bearer "+token);
