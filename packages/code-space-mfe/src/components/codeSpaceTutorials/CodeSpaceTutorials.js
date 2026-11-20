@@ -39,6 +39,12 @@ const CodeSpaceTutorials = ({id}) => {
       description: "Security configuration in codespaces using IAM authentication and Alice authorization"
     },
     {
+      id: 'aliceIntegration',
+      title: "How to secure deployed applications using ALICE integration",
+      url: "code-space-tutorials/How to secure deployed applications using ALICE integration.mp4",
+      description: "Steps to secure deployed applications using ALICE integration"
+    },
+    {
       id: 'pythonfastApi',
       title: "E.g. Codespace that uses python fastAPI",
       url: "code-space-tutorials/exampleCodespace-Python.mp4",
@@ -73,6 +79,12 @@ const CodeSpaceTutorials = ({id}) => {
       title: "How to generate GIT PAT token",
       url: "code-space-tutorials/How to generate GIT PAT token.mp4",
       description: "Steps to generate GIT PAT token"
+    },
+    {
+      id: 'authorizePAT',
+      title: "How to authorize a GIT PAT",
+      url: "code-space-tutorials/How to authorize a GIT PAT.mp4",
+      description: "Steps to authorize a GIT PAT token"
     },
     {
       id: "awsMigration",
