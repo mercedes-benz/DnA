@@ -4,6 +4,7 @@ import { useHistory } from 'react-router-dom';
 
 import Caption from 'dna-container/Caption';
 import Modal from 'dna-container/Modal';
+import Tags from 'dna-container/Tags';
 import { Notification, ProgressIndicator } from '../../common/modules/uilab/bundle/js/uilab.bundle';
 import { CodeSpaceApiClient } from '../../apis/codespace.api';
 import { regionalDateAndTimeConversionSolution } from '../../Utility/utils';
@@ -27,6 +28,9 @@ const DeveloperOptions = () => {
   const [permissions, setPermissions] = useState([]);
   const [comment, setComment] = useState('');
   const [validationError, setValidationError] = useState('');
+  const [codeSpaceNameOptions, setCodeSpaceNameOptions] = useState([]);
+  const [selectedCodeSpaceNames, setSelectedCodeSpaceNames] = useState([]);
+  const [isCodeSpaceMissing, setIsCodeSpaceMissing] = useState(false);
   const [pending, setPending] = useState(false);
   const [revokeVersion, setRevokeVersion] = useState(null);
   const [deleteVersion, setDeleteVersion] = useState(null);
@@ -51,8 +55,23 @@ const DeveloperOptions = () => {
       });
   };
 
+  const loadCodeSpaceOptions = () => {
+    CodeSpaceApiClient.getCodeSpacesList()
+      .then((response) => {
+        const list = Array.isArray(response?.data) ? response.data : (response?.data?.records || []);
+        const names = list
+          .map((codeSpace) => codeSpace?.projectDetails?.projectName)
+          .filter(Boolean);
+        setCodeSpaceNameOptions(names);
+      })
+      .catch(() => {
+        setCodeSpaceNameOptions([]);
+      });
+  };
+
   useEffect(() => {
     loadTokens();
+    loadCodeSpaceOptions();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -71,6 +90,8 @@ const DeveloperOptions = () => {
     setPermissions([]);
     setComment('');
     setValidationError('');
+    setSelectedCodeSpaceNames([]);
+    setIsCodeSpaceMissing(false);
   };
 
   const createToken = () => {
@@ -78,9 +99,13 @@ const DeveloperOptions = () => {
       setValidationError('Select at least one permission.');
       return;
     }
+    if (selectedCodeSpaceNames.length === 0) {
+      setIsCodeSpaceMissing(true);
+      return;
+    }
     setPending(true);
     ProgressIndicator.show();
-    CodeSpaceApiClient.createPersonalAccessToken({ permissions, comment })
+    CodeSpaceApiClient.createPersonalAccessToken({ permissions, comment, codeSpaces: selectedCodeSpaceNames })
       .then((response) => {
         const createdToken = response?.data?.token;
         if (!createdToken) {
@@ -92,6 +117,8 @@ const DeveloperOptions = () => {
         setPermissions([]);
         setComment('');
         setValidationError('');
+        setSelectedCodeSpaceNames([]);
+        setIsCodeSpaceMissing(false);
         setTokens((currentTokens) => [{
           version: response.data.version,
           displaySuffix: response.data.displaySuffix,
@@ -100,6 +127,7 @@ const DeveloperOptions = () => {
           comment: response.data.comment,
           createdAt: response.data.createdAt,
           codeSpaceProjectCount: response.data.codeSpaceProjectCount,
+          codeSpaces: response.data.codeSpaces || selectedCodeSpaceNames,
         }, ...currentTokens]);
       })
       .catch((error) => {
@@ -174,7 +202,21 @@ const DeveloperOptions = () => {
       </header>
       <p><strong>Never expires.</strong> This token remains active until you revoke it.</p>
       <p>Keep this token secret. It will be shown only once.</p>
-      <p>Scope: <strong>All codespaces I have access to</strong></p>
+      <p>Select the codespaces this token can access.</p>
+      <div className={Styles.codeSpaceSelector}>
+        <Tags
+          title={'Codespaces'}
+          chips={selectedCodeSpaceNames}
+          placeholder={'Type to search codespaces...'}
+          tags={codeSpaceNameOptions}
+          setTags={(val) => { setSelectedCodeSpaceNames(val); setIsCodeSpaceMissing(false); }}
+          isMandatory={true}
+          showMissingEntryError={isCodeSpaceMissing}
+          showAllTagsOnFocus={true}
+          disableSelfTagAdd={true}
+          suggestionPopupHeight={150}
+        />
+      </div>
       <fieldset className={Styles.permissions}>
         <legend>Permissions</legend>
         {PAT_PERMISSIONS.map((permission) => (
@@ -262,7 +304,15 @@ const DeveloperOptions = () => {
                       <tr>
                         <td>{index + 1}</td>
                         <td><code>cs_pat_…****{token.displaySuffix}</code><small className={Styles.version}>v{token.version}</small></td>
-                        <td>All accessible codespaces</td>
+                        <td>
+                          <div className={Styles.permissionChips}>
+                            {(token.codeSpaces || []).map((codeSpaceName) => (
+                              <span className={Styles.permissionChip} key={codeSpaceName}>
+                                {codeSpaceName}
+                              </span>
+                            ))}
+                          </div>
+                        </td>
                         <td>
                           <div className={Styles.permissionChips}>
                             {(token.permissions || []).map((permission) => (
