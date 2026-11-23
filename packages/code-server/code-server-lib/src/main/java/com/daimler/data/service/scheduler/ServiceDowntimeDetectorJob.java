@@ -9,7 +9,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
@@ -26,8 +26,6 @@ import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 @Slf4j
 public class ServiceDowntimeDetectorJob {
 
-    private static final int CONNECT_TIMEOUT_MS = 5000;
-    private static final int READ_TIMEOUT_MS = 10000;
     private static final String ARGOCD_DOWN_MESSAGE =
             "ArgoCD is unavailable. Deployment operations may be affected.";
 
@@ -60,14 +58,9 @@ public class ServiceDowntimeDetectorJob {
     @Value("${downtime.check.harbor.url:}")
     private String harborUrl;
 
-    private final RestTemplate restTemplate;
-
-    public ServiceDowntimeDetectorJob() {
-        SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
-        requestFactory.setConnectTimeout(CONNECT_TIMEOUT_MS);
-        requestFactory.setReadTimeout(READ_TIMEOUT_MS);
-        this.restTemplate = new RestTemplate(requestFactory);
-    }
+    @Autowired
+    @Qualifier("gitCollaboratorRestTemplate")
+    private RestTemplate restTemplate;
 
     @Scheduled(fixedDelayString = "#{${downtime.check.intervalSeconds:60} * 1000}", initialDelay = 15000)
     @SchedulerLock(name = "serviceDowntimeDetectorJob", lockAtMostFor = "2m", lockAtLeastFor = "30s")
