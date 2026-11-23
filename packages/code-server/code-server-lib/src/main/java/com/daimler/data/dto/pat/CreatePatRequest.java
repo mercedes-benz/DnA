@@ -13,4 +13,5 @@ import lombok.NoArgsConstructor;
 public class CreatePatRequest {
 	private List<String> permissions;
 	private String comment;
+	private List<String> codeSpaces;
 }
