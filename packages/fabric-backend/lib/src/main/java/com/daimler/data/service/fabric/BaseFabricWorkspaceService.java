@@ -1922,7 +1922,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 			throw new IllegalArgumentException("User is trying to migrate the workspace " + existingFabricWorkspace.getId() + " from region " + currentWorkspaceRegion + " to region " + newWorkspaceRegion + ", which is not allowed. Reverting the projectId to the previous value.");
 		}
 
-		updateFabricWorkspaceCapacity(existingFabricWorkspace);
+		updateFabricWorkspaceCapacity(existingFabricWorkspace, existingFabricWorkspace.getCapacity());
 		ErrorResponseDto assignCapacityResponse = fabricWorkspaceClient.assignCapacity(existingFabricWorkspace.getId(), existingFabricWorkspace.getCapacity().getId());
 		if(assignCapacityResponse!=null && assignCapacityResponse.getErrorCode()!=null && 
 		("500".equalsIgnoreCase(assignCapacityResponse.getErrorCode()) || "Failed".equalsIgnoreCase(assignCapacityResponse.getErrorCode()))) {
@@ -2890,9 +2890,11 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		return collectionVO;
 	}
 
-	private void updateFabricWorkspaceCapacity(FabricWorkspaceVO workspaceVO){
+	private void updateFabricWorkspaceCapacity(FabricWorkspaceVO workspaceVO, CapacityVO capacityVO){
+		if(capacityVO == null){
+			capacityVO = new CapacityVO();
+		}
 		String projectId = workspaceVO.getProjectId();
-		CapacityVO capacityVO = new CapacityVO();
 		capacityVO.setId(fabricCapacityId);
 		capacityVO.setName(fabricCapacityName);
 		capacityVO.setRegion(capacityRegion);
