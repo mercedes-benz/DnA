@@ -244,7 +244,7 @@ const DeveloperOptions = () => {
           value={comment}
           maxLength={200}
           onChange={(event) => setComment(event.target.value)}
-          rows="3"
+          rows="2"
         />
       </div>
       <div className={Styles.modalActions}>
@@ -307,7 +307,7 @@ const DeveloperOptions = () => {
                         <td>{index + 1}</td>
                         <td><code>cs_pat_…****{token.displaySuffix}</code><small className={Styles.version}>v{token.version}</small></td>
                         <td>
-                          <div className={Styles.permissionChips}>
+                          <div className={Styles.codeSpaceChipsBox}>
                             {(token.codeSpaces || []).map((codeSpaceName) => (
                               <span className={Styles.permissionChip} key={codeSpaceName}>
                                 {codeSpaceName}

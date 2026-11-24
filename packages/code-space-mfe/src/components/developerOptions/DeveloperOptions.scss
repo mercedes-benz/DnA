@@ -36,12 +36,68 @@
   overflow-x: auto;
   background-color: #252a33;
   padding: 15px;
+
+  .ul-table {
+    table-layout: fixed;
+    width: 100%;
+
+    th,
+    td {
+      vertical-align: top;
+      word-wrap: break-word;
+    }
+
+    th:nth-child(1),
+    td:nth-child(1) {
+      width: 60px;
+    }
+
+    th:nth-child(2),
+    td:nth-child(2) {
+      width: 160px;
+    }
+
+    th:nth-child(3),
+    td:nth-child(3) {
+      width: 340px;
+    }
+
+    th:nth-child(4),
+    td:nth-child(4) {
+      width: 220px;
+    }
+
+    th:nth-child(5),
+    td:nth-child(5) {
+      width: 90px;
+    }
+
+    th:nth-child(6),
+    td:nth-child(6) {
+      width: 150px;
+    }
+
+    th:nth-child(7),
+    td:nth-child(7) {
+      width: 120px;
+    }
+  }
 }
 
 .permissionChips {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
+}
+
+.codeSpaceChipsBox {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  max-width: 320px;
+  max-height: 72px;
+  overflow-y: auto;
+  padding-right: 4px;
 }
 
 .actionBtn {
@@ -93,14 +149,37 @@
 .permissions {
   border: 0;
   display: flex;
-  flex-direction: column;
-  gap: 10px;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 10px 24px;
   margin: 18px 0;
   padding: 0;
 }
 
 .codeSpaceSelector {
   margin: 18px 0;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+
+  * {
+    box-sizing: border-box;
+    max-width: 100%;
+  }
+
+  :global(div[class*="tag" i]),
+  :global(div[class*="chip" i]),
+  :global(ul[class*="tag" i]) {
+    flex-wrap: wrap !important;
+    width: 100% !important;
+  }
+
+  :global(input) {
+    min-width: 80px;
+    width: auto !important;
+    flex: 1 1 auto;
+  }
 }
 
 .modalContent .input-field-group {

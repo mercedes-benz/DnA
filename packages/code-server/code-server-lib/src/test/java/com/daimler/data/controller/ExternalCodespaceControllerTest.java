@@ -17,11 +17,17 @@ import org.springframework.http.ResponseEntity;
 import com.daimler.data.application.auth.PatPermissions;
 import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.controller.exceptions.GenericMessage;
+import com.daimler.data.dto.workspace.CodeServerWorkspaceVO;
+import com.daimler.data.dto.workspace.CodeServerProjectDetailsVO;
 import com.daimler.data.dto.workspace.ManageDeployRequestDto;
+import com.daimler.data.service.pat.ExternalCodespaceService;
+import com.daimler.data.service.pat.ExternalCodespaceServiceImpl;
+import com.daimler.data.service.workspace.WorkspaceService;
 
 class ExternalCodespaceControllerTest {
 	private UserStore userStore;
 	private WorkspaceController workspaceController;
+	private WorkspaceService workspaceService;
 	private ExternalCodespaceController controller;
 
 	@BeforeEach
@@ -29,7 +35,20 @@ class ExternalCodespaceControllerTest {
 		userStore = new UserStore();
 		userStore.setUserInfo(UserStore.UserInfo.builder().id("creator").build());
 		workspaceController = mock(WorkspaceController.class);
-		controller = new ExternalCodespaceController(null, workspaceController, userStore);
+		workspaceService = mock(WorkspaceService.class);
+
+		CodeServerWorkspaceVO workspace = new CodeServerWorkspaceVO();
+		workspace.setWorkspaceId("workspace-1");
+		CodeServerProjectDetailsVO projectDetails = new CodeServerProjectDetailsVO();
+		projectDetails.setProjectName("project-1");
+		workspace.setProjectDetails(projectDetails);
+		doReturn(workspace).when(workspaceService).findByWorkspaceId("workspace-1");
+		doReturn(workspace).when(workspaceService).getById("creator", "workspace-1");
+		userStore.setPatCodeSpaceProjectNames(List.of("project-1"));
+
+		ExternalCodespaceService externalCodespaceService = new ExternalCodespaceServiceImpl(workspaceService,
+				workspaceController);
+		controller = new ExternalCodespaceController(externalCodespaceService, userStore);
 	}
 
 	@Test

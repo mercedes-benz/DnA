@@ -135,6 +135,8 @@ public class PatAuthorizationInterceptor implements HandlerInterceptor {
 			userStore.setAuthType("PAT");
 			userStore.setPatTokenVersion(tokenVersion);
 			userStore.setPatPermissions(permissions);
+			userStore.setPatCodeSpaceProjectNames(payload.getCodeSpaceProjectNames() == null
+					? Collections.emptyList() : payload.getCodeSpaceProjectNames());
 			request.setAttribute(PAT_CONTEXT, payload);
 			logOutcome(request, userId, tokenVersion, "ALLOWED");
 			authorized = true;
