@@ -15,7 +15,9 @@ import FabricWorkspaceCard from '../../components/fabricWorkspaceCard/FabricWork
 import FabricWorkspaceRow from '../../components/fabricWorkspaceRow/FabricWorkspaceRow';
 import FabricWorkspaceForm from '../../components/fabricWorkspaceForm/FabricWorkspaceForm';
 import RoleCreationModal from '../../components/roleCreationModal/RoleCreationModal';
+import { IconGear } from 'dna-container/IconGear';
 import { debounce } from 'lodash';
+import ManageCapacity from '../../components/manageCapacity/ManageCapacity';
 
 const FabricWorkspacesAdministration = ({ user }) => {
   const dispatch = useDispatch();
@@ -35,6 +37,7 @@ const FabricWorkspacesAdministration = ({ user }) => {
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const searchInputRef = React.useRef(null);
+  const [showManageCapacityModal, setShowManageCapacityModal] = useState(false);
 
   const [totalNumberOfPages, setTotalNumberOfPages] = useState(1);
   const [currentPageNumber, setCurrentPageNumber] = useState(1);
@@ -166,6 +169,14 @@ const getWorkspaces = (query = '') => {
         <Caption title="Fabric Workspaces Administration">
           <div className={classNames(Styles.listHeader)}>
             <span className={Styles.dividerLine}> &nbsp; </span>
+            <div className={Styles.actionBtns}>
+              <button className={classNames('btn btn-primary', Styles.btnOutline)} type="button"
+                onClick={() => setShowManageCapacityModal(true)}
+                >
+                <IconGear size={'14'} />
+                <span>Manage Region Capacity</span>
+              </button>
+            </div>
             <div>
               <button className={classNames('btn btn-primary', Styles.refreshBtn)} tooltip-data="Refresh" onClick={() => { setSearchTerm(''); if (searchInputRef.current) searchInputRef.current.value = ''; getWorkspaces(''); }}>
                 <i className="icon mbc-icon refresh"></i>
@@ -321,6 +332,27 @@ const getWorkspaces = (query = '') => {
           content={<RoleCreationModal workspace={selectedWorkspace} onClose={() => setShowStatusModal(false)} />}
           scrollableContent
           onCancel={() => setShowStatusModal(false)}
+        />
+      }
+
+      {showManageCapacityModal &&
+        <Modal
+          title="Manage Region Capacity"
+          hiddenTitle
+          showAcceptButton={false}
+          showCancelButton={false}
+          modalWidth="80%"
+          modalLength="90%"
+          buttonAlignment="right"
+          show={showManageCapacityModal}
+          content={
+            <ManageCapacity 
+              workspace={selectedWorkspace}
+              onClose={() => setShowManageCapacityModal(false)}
+            />
+          }
+          scrollableContent
+          onCancel={() => setShowManageCapacityModal(false)}
         />
       }
     </>

@@ -24,6 +24,7 @@ import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.db.json.ADAProjectDetails;
 import com.daimler.data.dto.adaProjects.ADAProjectDetailsVO;
+import com.daimler.data.dto.adaProjects.ADAProjectDetailsVOServices;
 import com.daimler.data.dto.adaProjects.ADAProjectDetailsCollectionVO;
 import com.daimler.data.dto.adaProjects.CreateADAProjectResponseVO;
 import com.daimler.data.dto.adaProjects.WorkspaceProjectAssociationVO;
@@ -39,6 +40,7 @@ import io.swagger.annotations.ApiResponses;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 @Slf4j
@@ -71,6 +73,7 @@ public class ADAProjectsController implements AdaProjectsApi{
         GenericMessage responseMessage = new GenericMessage();
         List<MessageDescription> warnings = new ArrayList<>();
         List<MessageDescription> errors = new ArrayList<>();
+        responseMessage.setErrors(errors);
 
         
         String createdBy = getCreatedByFromRequest();
@@ -92,7 +95,7 @@ public class ADAProjectsController implements AdaProjectsApi{
                 return new ResponseEntity<>(response, HttpStatus.CREATED);
             } else {
                 errors.add(new MessageDescription("Failed to create project"));
-                responseMessage.setErrors(errors);
+                responseMessage.getErrors().addAll(createMessage.getErrors());
                 responseMessage.setSuccess("ERROR");
                 response.setResponses(responseMessage);
                 return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -251,9 +254,29 @@ public class ADAProjectsController implements AdaProjectsApi{
 
         ADAProjectDetailsVO existingADAProject = service.getByUniqueliteral("projectID",projectId);
         if (existingADAProject != null) {
-            if(body.getCreatedBy() == null || body.getCreatedBy().isBlank()) {
-                body.setCreatedBy(existingADAProject.getCreatedBy());
+
+            log.info("validating the capacity and services from existing data");
+            
+            // Validate capacity and services modification restriction
+            boolean capacityChanged = body.getCapacity() != null && !body.getCapacity().equals(existingADAProject.getCapacity());
+            List<ADAProjectDetailsVOServices> bodyServices = body.getServices() != null ? body.getServices() : List.of();
+            List<ADAProjectDetailsVOServices> existingServices = existingADAProject.getServices() != null ? existingADAProject.getServices() : List.of();
+            boolean servicesChanged = !new HashSet<>(bodyServices).equals(new HashSet<>(existingServices));
+
+            if ((capacityChanged || servicesChanged) && !DEFAULT_CREATOR.equals(createdBy)) {
+                errors.add(new MessageDescription(
+                    "Capacity & Services modification is not allowed. Only ADA team can modify the project capacity and services. " +
+                    "Please contact ADA team for modification of these fields."));
+                responseMessage.setErrors(errors);
+                responseMessage.setSuccess("FORBIDDEN");
+                response.setResponses(responseMessage);
+                return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
             }
+
+            log.info("capacity and services validation successfull!");
+            // to preserve the created by in case of project capacity & service modification by ADA team 
+            body.setCreatedBy(existingADAProject.getCreatedBy());
+
             GenericMessage createMessage  = service.updateProject(existingADAProject.getId(),body);
 
             if(createMessage.getSuccess().equals("UPDATED")) {
@@ -263,6 +286,7 @@ public class ADAProjectsController implements AdaProjectsApi{
                 return new ResponseEntity<>(response, HttpStatus.OK);
             } else {
                 errors.add(new MessageDescription("Failed to update project"));
+                errors.addAll(createMessage.getErrors());
                 responseMessage.setErrors(errors);
                 responseMessage.setSuccess("ERROR");
                 response.setResponses(responseMessage);

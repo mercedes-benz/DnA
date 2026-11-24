@@ -41,4 +41,12 @@ public interface ADAProjectsCustomRepository extends CommonDataRepository<ADAPro
 	
     List<ADAProjectsNsql> searchProjectsByName(String projectName);
 
+	/**
+	 * Finds the project by projectId
+	 * 
+	 * @param projectId
+	 * @return ADAProjectsNsql object if found, otherwise null
+	 */
+	ADAProjectsNsql findByProjectId(String projectId);
+
 }

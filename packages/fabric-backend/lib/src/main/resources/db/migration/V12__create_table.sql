@@ -1,0 +1,4 @@
+CREATE TABLE IF NOT EXISTS capacity_nsql (
+    id TEXT NOT NULL PRIMARY KEY,
+    data JSONB NOT NULL
+);

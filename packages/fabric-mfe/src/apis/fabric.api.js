@@ -186,6 +186,30 @@ const publishDdxDataProduct = (workspaceId, lakehouseId, payload) => {
   return server.post(`fabric-workspaces/catalog/ddx/${workspaceId}/${lakehouseId}/publish`, payload);
 };
 
+const getRegions = () => {
+  return server.get(`/fabric-workspaces/admin/regions`, { data: {} });
+};
+
+const getCapacities = () => {
+  return server.get(`fabric-workspaces/admin/capacity`, { data: {} });
+};
+
+const updateCapacity = (id, data) => {
+  return server.post(`fabric-workspaces/admin/capacity`, data);
+};
+
+const addCapacity = (data) => {
+  return server.post(`fabric-workspaces/admin/capacity`, data);
+};
+
+const deleteCapacity = (id) => {
+  return server.delete(`fabric-workspaces/admin/capacity/${id}`, { data: {} });
+};
+
+const getCapacityById = (capacityId) => {
+  return server.get(`fabric-workspaces/admin/capacity/${capacityId}`, { data: {} });
+};
+
 const checkTableMismatch = (workspaceId, lakehouseId) => {
   return server.get(`/fabric-workspaces/catalog/${workspaceId}/check-mismatch?lakehouseId=${lakehouseId}`, {
     data: {},
@@ -233,5 +257,11 @@ export const fabricApi = {
   publishDdxDataProduct,
   checkTableMismatch,
   getCatalogMetadata,
-  saveLakehouseSnapshot,
+  saveLakehouseSnapshot,,
+  getRegions,
+  getCapacities,
+  getCapacityById,
+  updateCapacity,
+  addCapacity,
+  deleteCapacity
 };

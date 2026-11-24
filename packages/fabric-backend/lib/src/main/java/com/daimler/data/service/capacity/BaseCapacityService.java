@@ -1,0 +1,134 @@
+package com.daimler.data.service.capacity;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.daimler.data.application.client.FabricWorkspaceClient;
+import com.daimler.data.assembler.CapacityAssembler;
+import com.daimler.data.db.entities.CapacityNsql;
+import com.daimler.data.db.repo.capacity.CapacityRepository;
+import com.daimler.data.dto.adaProjects.CapacityVO;
+import com.daimler.data.service.common.BaseCommonService;
+
+import lombok.extern.slf4j.Slf4j;
+
+@Service
+@Slf4j
+@Transactional
+public class BaseCapacityService extends BaseCommonService<CapacityVO, CapacityNsql, String> implements CapacityService {
+
+    @Autowired
+    private CapacityRepository capacityRepository;
+
+    @Autowired 
+    private CapacityAssembler capacityAssembler;
+
+    @Autowired
+    private FabricWorkspaceClient fabricWorkspaceClient;
+    
+	@Value("${fabricWorkspaces.administration.regionList}")
+	private String regionListString;
+
+    @Override
+    public CapacityVO getCapacityById(String capacityId) {
+        if(capacityId == null || capacityId.isEmpty()) {
+            throw new IllegalArgumentException("Capacity ID must not be null or empty");
+        }
+        CapacityVO capacityVO = fabricWorkspaceClient.getCapacityDetails(capacityId.trim().toLowerCase());
+        if (capacityVO == null) {
+            return null;
+        }
+        return capacityVO;
+    }
+
+    @Override
+    public CapacityVO createOrUpdateCapacity(CapacityVO capacityVO, String region) {
+        if (capacityVO == null) {
+            throw new IllegalArgumentException("CapacityVO must not be null");
+        }
+        if (region == null || region.trim().isEmpty()) {
+            throw new IllegalArgumentException("Region must not be null or empty");
+        }
+        log.info("Creating or updating capacity for region: {}", region);
+        CapacityNsql existing = capacityRepository.findById(region.trim().toLowerCase()).orElse(null);
+        if (existing != null) {
+            log.info("Existing capacity found for region: {}, updating it", region);
+            existing.getData().setId(capacityVO.getId());
+            existing.getData().setRegion(capacityVO.getRegion());
+            existing.getData().setName(capacityVO.getName());
+            existing.getData().setState(capacityVO.getState());
+            existing.getData().setSku(capacityVO.getSku());
+            existing.getData().setModifiedOn(new Date());
+            CapacityNsql updated = capacityRepository.save(existing);
+            log.info("Successfully updated capacity for region: {}", region);
+            return capacityAssembler.toVo(updated);
+        }
+        CapacityNsql entity = capacityAssembler.toEntity(capacityVO);
+        entity.getData().setModifiedOn(new Date());
+        entity.getData().setCreatedOn(new Date());
+        entity.setId(region.toLowerCase());
+        CapacityNsql saved = capacityRepository.save(entity);
+        log.info("Successfully saved capacity for region: {}", region);
+        return capacityAssembler.toVo(saved);
+    }
+
+    @Override
+    public CapacityVO deleteCapacityByRegion(String region) {
+        if (region == null || region.trim().isEmpty()) {
+            throw new IllegalArgumentException("Region must not be null or empty");
+        }
+        log.info("Deleting capacity for region: {}", region);
+        CapacityNsql existing = capacityRepository.findById(region.trim().toLowerCase()).orElse(null);
+        if (existing == null) {
+            log.warn("Capacity not found for region: {}", region);
+            return null;
+        }
+        try {
+            capacityRepository.delete(existing);
+            log.info("Successfully deleted capacity for region: {}", region);
+            return capacityAssembler.toVo(existing);
+        } catch (Exception e) {
+            log.error("Error deleting capacity for region: {}", region, e);
+            return null;
+        }
+    }
+
+    @Override
+    public List<CapacityVO> getAllCapacity() {
+        log.info("Fetching all capacity records");
+        try {
+            List<CapacityNsql> capacityList = capacityRepository.findAll();
+            if (capacityList == null || capacityList.isEmpty()) {
+                log.info("No capacity details found");
+                return Collections.emptyList();
+            }
+            log.info("Successfully fetched {} capacity record(s)", capacityList.size());
+            return capacityList.stream()
+                    .map(capacityAssembler::toVo)
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            log.error("Exception occurred while fetching all capacity records: {}", e.getMessage(), e);
+            throw e;
+        }
+    }
+
+    @Override
+    public List<String> getAllRegions() {
+        log.info("Fetching all regions for which capacity details can be configured");
+        if (regionListString == null || regionListString.trim().isEmpty()) {
+            log.warn("Region list string is null or empty");
+            return Collections.emptyList();
+        }
+        return Arrays.stream(regionListString.split(","))
+	            .map(String::trim)
+	            .collect(Collectors.toList());
+    }
+}
