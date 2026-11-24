@@ -257,11 +257,11 @@ export const fabricApi = {
   publishDdxDataProduct,
   checkTableMismatch,
   getCatalogMetadata,
-  saveLakehouseSnapshot,,
+  saveLakehouseSnapshot,
   getRegions,
   getCapacities,
   getCapacityById,
   updateCapacity,
   addCapacity,
-  deleteCapacity
+  deleteCapacity,
 };
