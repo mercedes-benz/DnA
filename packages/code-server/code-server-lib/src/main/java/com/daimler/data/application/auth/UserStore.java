@@ -56,6 +56,7 @@ public class UserStore {
 	private String authType;
 	private int patTokenVersion;
 	private List<String> patPermissions = new ArrayList<>();
+	private List<String> patCodeSpaceProjectNames = new ArrayList<>();
 
 	private static Logger LOGGER = LoggerFactory.getLogger(UserStore.class);
 
@@ -64,6 +65,7 @@ public class UserStore {
 		this.authType = null;
 		this.patTokenVersion = 0;
 		this.patPermissions = new ArrayList<>();
+		this.patCodeSpaceProjectNames = new ArrayList<>();
 		LOGGER.debug("In UserStore.clear , clearing user");
 	}
 
