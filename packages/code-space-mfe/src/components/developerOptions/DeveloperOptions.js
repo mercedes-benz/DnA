@@ -244,7 +244,7 @@ const DeveloperOptions = () => {
           value={comment}
           maxLength={200}
           onChange={(event) => setComment(event.target.value)}
-          rows="3"
+          rows="2"
         />
       </div>
       <div className={Styles.modalActions}>

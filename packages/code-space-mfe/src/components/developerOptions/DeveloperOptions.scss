@@ -93,14 +93,37 @@
 .permissions {
   border: 0;
   display: flex;
-  flex-direction: column;
-  gap: 10px;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 10px 24px;
   margin: 18px 0;
   padding: 0;
 }
 
 .codeSpaceSelector {
   margin: 18px 0;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+
+  * {
+    box-sizing: border-box;
+    max-width: 100%;
+  }
+
+  :global(div[class*="tag" i]),
+  :global(div[class*="chip" i]),
+  :global(ul[class*="tag" i]) {
+    flex-wrap: wrap !important;
+    width: 100% !important;
+  }
+
+  :global(input) {
+    min-width: 80px;
+    width: auto !important;
+    flex: 1 1 auto;
+  }
 }
 
 .modalContent .input-field-group {
