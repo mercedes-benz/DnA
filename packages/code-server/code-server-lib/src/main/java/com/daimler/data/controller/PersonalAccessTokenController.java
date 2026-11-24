@@ -1,12 +1,13 @@
 package com.daimler.data.controller;
 
+import java.util.List;
 import java.time.Instant;
+import java.util.stream.Collectors;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -64,7 +65,7 @@ public class PersonalAccessTokenController {
 		}
 		List<String> codeSpaceProjectNames;
 		try {
-			codeSpaceProjectNames = accessibleProjectNames(userId);
+			codeSpaceProjectNames = accessibleProjectNames(userId, request.getCodeSpaces());
 		} catch (Exception e) {
 			log.error("Failed to resolve accessible codespaces for userId={}", userId, e);
 			return error(HttpStatus.INTERNAL_SERVER_ERROR, "Unable to create PAT");
@@ -199,7 +200,7 @@ public class PersonalAccessTokenController {
 						&& PatPermissions.ALL.contains(permission));
 	}
 
-	private List<String> accessibleProjectNames(String userId) {
+	private List<String> accessibleProjectNames(String userId, List<String> requestedProjectNames) {
 		Set<String> projectNames = new LinkedHashSet<>();
 		List<CodeServerWorkspaceVO> workspaces = workspaceService.getAll(userId, 0, 0);
 		if (workspaces == null) {
@@ -219,7 +220,8 @@ public class PersonalAccessTokenController {
 				projectNames.add(workspace.getProjectDetails().getProjectName());
 			}
 		}
-		return new ArrayList<>(projectNames);
+		return requestedProjectNames == null ? new ArrayList<>(projectNames)
+				: requestedProjectNames.stream().filter(projectNames::contains).collect(Collectors.toList());
 	}
 
 	private ResponseEntity<GenericMessage> error(HttpStatus status, String message) {
