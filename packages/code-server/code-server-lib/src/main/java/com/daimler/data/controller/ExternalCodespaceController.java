@@ -18,23 +18,19 @@ import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.dto.pat.ExternalCodespaceInfoVO;
-import com.daimler.data.dto.pat.ExternalDeploymentInfo;
-import com.daimler.data.dto.workspace.CodeServerWorkspaceVO;
 import com.daimler.data.dto.workspace.ManageDeployRequestDto;
-import com.daimler.data.service.workspace.WorkspaceService;
+import com.daimler.data.service.pat.ExternalCodespaceResult;
+import com.daimler.data.service.pat.ExternalCodespaceService;
 
 @RestController
 @RequestMapping("/external/v1")
 @Slf4j
 public class ExternalCodespaceController {
-	private final WorkspaceService workspaceService;
-	private final WorkspaceController workspaceController;
+	private final ExternalCodespaceService externalCodespaceService;
 	private final UserStore userStore;
 
-	public ExternalCodespaceController(WorkspaceService workspaceService, WorkspaceController workspaceController,
-			UserStore userStore) {
-		this.workspaceService = workspaceService;
-		this.workspaceController = workspaceController;
+	public ExternalCodespaceController(ExternalCodespaceService externalCodespaceService, UserStore userStore) {
+		this.externalCodespaceService = externalCodespaceService;
 		this.userStore = userStore;
 	}
 
@@ -43,32 +39,38 @@ public class ExternalCodespaceController {
 	public ResponseEntity<?> getCodespace(@PathVariable("id") String id) {
 		String userId = userStore.getUserInfo().getId();
 		try {
-			CodeServerWorkspaceVO workspace = workspaceService.getById(userId, id);
-			if (workspace == null || workspace.getProjectDetails() == null) {
-				log.warn("External PAT getCodespace denied, userId={} workspaceId={} reason=not_found_or_forbidden",
-						userId, id);
-				return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorMessage("Forbidden"));
+			ExternalCodespaceResult result = externalCodespaceService.getCodespace(userId,
+					userStore.getPatCodeSpaceProjectNames(), id);
+			switch (result.getStatus()) {
+			case NOT_FOUND:
+				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorMessage("Codespace not found"));
+			case FORBIDDEN:
+				return ResponseEntity.status(HttpStatus.FORBIDDEN)
+						.body(errorMessage("Forbidden: PAT does not have access to this codespace"));
+			default:
+				log.info("External PAT getCodespace succeeded, userId={} workspaceId={}", userId, id);
+				return ResponseEntity.ok(result.getData());
 			}
-			ExternalCodespaceInfoVO info = new ExternalCodespaceInfoVO();
-			info.setWorkspaceId(workspace.getWorkspaceId());
-			info.setProjectName(workspace.getProjectDetails().getProjectName());
-			info.setServerStatus(workspace.getServerStatus());
-			if (workspace.getProjectDetails().getRecipeDetails() != null) {
-				if (workspace.getProjectDetails().getRecipeDetails().getRecipeId() != null) {
-					info.setRecipeId(workspace.getProjectDetails().getRecipeDetails().getRecipeId().toString());
-				}
-				if (workspace.getProjectDetails().getRecipeDetails().getCloudServiceProvider() != null) {
-					info.setCloudServiceProvider(
-							workspace.getProjectDetails().getRecipeDetails().getCloudServiceProvider().toString());
-				}
-			}
-			info.setIntDeployment(deploymentInfo(workspace.getProjectDetails().getIntDeploymentDetails()));
-			info.setProdDeployment(deploymentInfo(workspace.getProjectDetails().getProdDeploymentDetails()));
-			log.info("External PAT getCodespace succeeded, userId={} workspaceId={}", userId, id);
-			return ResponseEntity.ok(info);
 		} catch (Exception e) {
 			log.error("External PAT getCodespace failed, userId={} workspaceId={}", userId, id, e);
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorMessage("Unable to retrieve codespace"));
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body(errorMessage("Unable to retrieve codespace"));
+		}
+	}
+
+	@GetMapping("/codespaces")
+	@RequiresPatAuthorization(anyOf = PatPermissions.READ)
+	public ResponseEntity<?> getAllCodespaces() {
+		String userId = userStore.getUserInfo().getId();
+		try {
+			List<ExternalCodespaceInfoVO> codespaces = externalCodespaceService.getAllCodespaces(userId,
+					userStore.getPatCodeSpaceProjectNames());
+			log.info("External PAT getAllCodespaces succeeded, userId={} count={}", userId, codespaces.size());
+			return ResponseEntity.ok(codespaces);
+		} catch (Exception e) {
+			log.error("External PAT getAllCodespaces failed, userId={}", userId, e);
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body(errorMessage("Unable to retrieve codespaces"));
 		}
 	}
 
@@ -77,43 +79,8 @@ public class ExternalCodespaceController {
 	public ResponseEntity<?> deployCodespace(@PathVariable("id") String id,
 			@RequestBody ManageDeployRequestDto deployRequestDto) {
 		String userId = userStore.getUserInfo() == null ? null : userStore.getUserInfo().getId();
-		if (deployRequestDto == null || deployRequestDto.getTargetEnvironment() == null) {
-			log.warn("External PAT deployCodespace rejected, userId={} workspaceId={} reason=invalid_request",
-					userId, id);
-			return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorMessage("Forbidden"));
-		}
-		String targetEnvironment = deployRequestDto.getTargetEnvironment().name();
-		String requiredPermission;
-		if ("int".equalsIgnoreCase(targetEnvironment)) {
-			requiredPermission = PatPermissions.DEPLOY_STAGING;
-		} else if ("prod".equalsIgnoreCase(targetEnvironment)) {
-			requiredPermission = PatPermissions.DEPLOY_PRODUCTION;
-		} else {
-			log.warn("External PAT deployCodespace rejected, userId={} workspaceId={} reason=unknown_target_environment",
-					userId, id);
-			return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorMessage("Forbidden"));
-		}
-		List<String> permissions = userStore.getPatPermissions();
-		if (permissions == null || !permissions.contains(requiredPermission)) {
-			log.warn("External PAT deployCodespace denied, userId={} workspaceId={} targetEnvironment={} reason=insufficient_permission",
-					userId, id, targetEnvironment);
-			return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorMessage("Forbidden"));
-		}
-		log.info("External PAT deployCodespace triggered, userId={} workspaceId={} targetEnvironment={}", userId,
-				id, targetEnvironment);
-		return workspaceController.deployWorkspaceProject(id, deployRequestDto);
-	}
-
-	private ExternalDeploymentInfo deploymentInfo(
-			com.daimler.data.dto.workspace.CodeServerDeploymentDetailsVO deployment) {
-		if (deployment == null) {
-			return null;
-		}
-		ExternalDeploymentInfo info = new ExternalDeploymentInfo();
-		info.setLastDeploymentStatus(deployment.getLastDeploymentStatus());
-		info.setDeploymentUrl(deployment.getDeploymentUrl());
-		info.setLastDeployedBranch(deployment.getLastDeployedBranch());
-		return info;
+		return externalCodespaceService.deployCodespace(userId, userStore.getPatPermissions(),
+				userStore.getPatCodeSpaceProjectNames(), id, deployRequestDto);
 	}
 
 	private GenericMessage errorMessage(String message) {
