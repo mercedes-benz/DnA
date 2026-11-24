@@ -11,11 +11,8 @@ import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indica
 import { CodeSpaceApiClient } from '../../apis/codespace.api';
 import Notification from '../../common/modules/uilab/js/src/notification';
 import {
-  // buildLogViewURL,
-  // buildGitJobLogViewURL,
-  buildLogViewAWSURL,
-  buildGitJobLogViewAWSURL,
   buildGitUrl,
+  buildGitJobLogViewAWSURL,
 } from '../../Utility/utils';
 import DeployedAppConfigModal from '../deployedAppConfigModal/DeployedAppConfigModal';
 import { needsIntMigration } from '../intMigrationModal/IntMigrationModal';
@@ -172,14 +169,27 @@ const ContextMenu = (props) => {
   };
 
   const handleApplicationLogsClick = () => {
-    const dashboardUrl = projectDetails?.grafanaDashboardUrl;
-    console.log('dashboardUrl:', dashboardUrl);
-    if (dashboardUrl) {
-      window.open(dashboardUrl, '_blank', 'noopener,noreferrer');
-      return;
+    
+    const projectName = projectDetails?.projectName?.toLowerCase();
+    const dashboardUid = projectDetails?.grafanaDashboardUid;
+    const dashboardHost = Envs.GRAFANA_DASHBOARD_BASE_URL?.replace(/\/$/, '');
+    const dashboardOrgId = Envs.GRAFANA_ORG_ID;
+
+    const buildDashboardUrl = (uid) => {
+      if (!dashboardHost || !uid || !projectName || !dashboardOrgId) {
+        return null;
+      }
+
+      return `${dashboardHost}/d/${encodeURIComponent(uid)}/${encodeURIComponent(projectName)}?orgId=${encodeURIComponent(dashboardOrgId)}`;
+    };
+
+    const projectDashboardUrl = buildDashboardUrl(dashboardUid);
+
+    if (projectDashboardUrl) {
+      window.open(projectDashboardUrl, '_blank', 'noopener,noreferrer');
     }
 
-    Notification.show('Application dashboard URL is not available for this project.', 'alert');
+    
   };
 
   const securedWithIAMContent = (
@@ -548,9 +558,7 @@ const ContextMenu = (props) => {
                 <li>
                   <span
                     onClick={() =>
-                      handleApplicationLogsClick(
-                        buildLogViewAWSURL(prodDeployedUrl || projectDetails?.projectName.toLowerCase()),
-                      )
+                      handleApplicationLogsClick()
                     }
                   >
                     Application Logs <i className="icon mbc-icon new-tab" />
