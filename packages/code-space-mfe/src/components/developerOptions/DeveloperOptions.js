@@ -61,7 +61,8 @@ const DeveloperOptions = () => {
         const list = Array.isArray(response?.data) ? response.data : (response?.data?.records || []);
         const names = list
           .map((codeSpace) => codeSpace?.projectDetails?.projectName)
-          .filter(Boolean);
+          .filter(Boolean)
+          .map((name) => ({ id: name, name }));
         setCodeSpaceNameOptions(names);
       })
       .catch(() => {
@@ -206,6 +207,7 @@ const DeveloperOptions = () => {
       <div className={Styles.codeSpaceSelector}>
         <Tags
           title={'Codespaces'}
+          max={100}
           chips={selectedCodeSpaceNames}
           placeholder={'Type to search codespaces...'}
           tags={codeSpaceNameOptions}
@@ -242,7 +244,7 @@ const DeveloperOptions = () => {
           value={comment}
           maxLength={200}
           onChange={(event) => setComment(event.target.value)}
-          rows="3"
+          rows="2"
         />
       </div>
       <div className={Styles.modalActions}>
@@ -305,7 +307,7 @@ const DeveloperOptions = () => {
                         <td>{index + 1}</td>
                         <td><code>cs_pat_…****{token.displaySuffix}</code><small className={Styles.version}>v{token.version}</small></td>
                         <td>
-                          <div className={Styles.permissionChips}>
+                          <div className={Styles.codeSpaceChipsBox}>
                             {(token.codeSpaces || []).map((codeSpaceName) => (
                               <span className={Styles.permissionChip} key={codeSpaceName}>
                                 {codeSpaceName}
