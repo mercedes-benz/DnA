@@ -1975,9 +1975,9 @@ definitions:
         $ref: "#/definitions/CodespaceSecurityConfigVO"
       dataGovernance:
          $ref: "#/definitions/CodeServerGovernanceVO"
-      grafanaDashboardUrl:
+      grafanaDashboardUid:
         type: string
-        description: "Grafana dashboard URL for the project"
+        description: "Grafana dashboard UID for the project"
       required:
         -projectName
         -recipeDetails

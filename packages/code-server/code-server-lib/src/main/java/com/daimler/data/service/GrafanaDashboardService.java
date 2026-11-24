@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import com.daimler.data.dto.GrafanaDashboardResponse;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.extern.slf4j.Slf4j;
@@ -68,8 +69,23 @@ public class GrafanaDashboardService {
 
             if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
                 ObjectMapper objectMapper = new ObjectMapper();
+                JsonNode root = objectMapper.readTree(response.getBody());
+
+                JsonNode responseNode = root;
+                if (root.has("data")) {
+                    responseNode = root.get("data");
+                } else if (root.has("result")) {
+                    responseNode = root.get("result");
+                }
+
                 GrafanaDashboardResponse dashboardResponse =
-                        objectMapper.readValue(response.getBody(), GrafanaDashboardResponse.class);
+                        objectMapper.treeToValue(responseNode, GrafanaDashboardResponse.class);
+
+                if (!isUsableDashboardResponse(dashboardResponse)) {
+                    log.warn("Grafana dashboard API returned an unusable response: project={}; status={}; responseBody={}",
+                            projectName, response.getStatusCodeValue(), response.getBody());
+                    return null;
+                }
 
                 log.info("Grafana dashboard API response: project={}; status={}; dashboardId={}; dashboardUid={}; dashboardUrl={}; dashboardCreated={}; permissionsUpdatedFor={}; notOnboardedUsers={}",
                         projectName,
@@ -97,5 +113,16 @@ public class GrafanaDashboardService {
                     e);
             return null;
         }
+    }
+
+    private boolean isUsableDashboardResponse(GrafanaDashboardResponse response) {
+        if (response == null) {
+            return false;
+        }
+        return response.getDashboardId() != null
+                || (response.getDashboardUid() != null && !response.getDashboardUid().trim().isEmpty())
+                || response.getDashboardCreated() != null
+                || (response.getPermissionsUpdatedFor() != null && !response.getPermissionsUpdatedFor().isEmpty())
+                || (response.getNotOnboardedUsers() != null && !response.getNotOnboardedUsers().isEmpty());
     }
 }
