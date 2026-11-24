@@ -61,7 +61,8 @@ const DeveloperOptions = () => {
         const list = Array.isArray(response?.data) ? response.data : (response?.data?.records || []);
         const names = list
           .map((codeSpace) => codeSpace?.projectDetails?.projectName)
-          .filter(Boolean);
+          .filter(Boolean)
+          .map((name) => ({ id: name, name }));
         setCodeSpaceNameOptions(names);
       })
       .catch(() => {
@@ -206,6 +207,7 @@ const DeveloperOptions = () => {
       <div className={Styles.codeSpaceSelector}>
         <Tags
           title={'Codespaces'}
+          max={100}
           chips={selectedCodeSpaceNames}
           placeholder={'Type to search codespaces...'}
           tags={codeSpaceNameOptions}
