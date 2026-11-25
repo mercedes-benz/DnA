@@ -201,6 +201,7 @@ public class CodeServerVaultConfig {
 			item.setCodeSpaceProjectCount(asStringList(data.get("codeSpaceProjectNames")).size());
 			item.setPermissions(asStringList(data.get("permissions")));
 			item.setStatus("ACTIVE");
+			item.setCodeSpaceProjectNames(asStringList(data.get("codeSpaceProjectNames")));
 			return item;
 		} catch (Exception e) {
 			log.warn("Unable to read PAT metadata for user {} version={}", userId, version, e);
