@@ -77,7 +77,7 @@ public class ExternalCodespaceServiceImpl implements ExternalCodespaceService {
 		if (deployRequestDto == null || deployRequestDto.getTargetEnvironment() == null) {
 			log.warn("External PAT deployCodespace rejected, userId={} workspaceId={} reason=invalid_request",
 					userId, workspaceId);
-			return forbidden("Forbidden");
+			return forbidden("Bad request: a valid targetEnvironment must be provided to deploy this codespace");
 		}
 		String targetEnvironment = deployRequestDto.getTargetEnvironment().name();
 		String requiredPermission;
@@ -89,22 +89,25 @@ public class ExternalCodespaceServiceImpl implements ExternalCodespaceService {
 			log.warn(
 					"External PAT deployCodespace rejected, userId={} workspaceId={} reason=unknown_target_environment",
 					userId, workspaceId);
-			return forbidden("Forbidden");
+			return forbidden("Bad request: unknown target environment '" + targetEnvironment + "'");
 		}
 		if (patPermissions == null || !patPermissions.contains(requiredPermission)) {
 			log.warn(
 					"External PAT deployCodespace denied, userId={} workspaceId={} targetEnvironment={} reason=insufficient_permission",
 					userId, workspaceId, targetEnvironment);
-			return forbidden("Forbidden");
+			return forbidden("Forbidden: this token does not have the '" + requiredPermission
+					+ "' authority required to deploy to the '" + targetEnvironment + "' environment");
 		}
 
 		ExternalCodespaceResult accessResult = getCodespace(userId, patCodeSpaceProjectNames, workspaceId);
 		if (accessResult.getStatus() == ExternalCodespaceResult.Status.NOT_FOUND) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorMessage("Codespace not found"));
+			return ResponseEntity.status(HttpStatus.NOT_FOUND)
+					.body(errorMessage("Codespace not found: no codespace exists with id '" + workspaceId + "'"));
 		}
 		if (accessResult.getStatus() == ExternalCodespaceResult.Status.FORBIDDEN) {
 			return ResponseEntity.status(HttpStatus.FORBIDDEN)
-					.body(errorMessage("Forbidden: PAT does not have access to this codespace"));
+					.body(errorMessage("Forbidden: this token is not authorized to access codespace '" + workspaceId
+							+ "'. The token is scoped to specific projects and does not cover this codespace"));
 		}
 
 		log.info("External PAT deployCodespace triggered, userId={} workspaceId={} targetEnvironment={}", userId,

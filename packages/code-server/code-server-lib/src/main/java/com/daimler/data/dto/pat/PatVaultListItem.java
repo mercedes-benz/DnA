@@ -15,4 +15,5 @@ public class PatVaultListItem {
 	private String createdAt;
 	private int codeSpaceProjectCount;
 	private List<String> permissions;
+	private List<String> codeSpaceProjectNames;
 }
