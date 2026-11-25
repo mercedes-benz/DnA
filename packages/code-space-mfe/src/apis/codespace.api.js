@@ -1,4 +1,3 @@
-import axios from 'axios';
 import { server, hostServer, reportsServer, storageServer, fabricServer, baseURL, readJwt} from '../server/api';
 import { EventSourcePolyfill } from 'event-source-polyfill';
 import { Envs } from '../Utility/envs';
@@ -565,17 +564,15 @@ const getExistingRoles = (appId) => {
     });
 };
 
-const submitHarborDashboardRequest = (payload) => {
-    return axios.post(
-        Envs.HARBOR_DASHBOARD_API_URL,
-        payload,
-        {
-            headers: {
-                'Content-Type': 'application/json',
-                'api-key': Envs.HARBOR_DASHBOARD_API_KEY,
-            },
+const submitGrafanaDashboardRequest = (payload) => {
+    return server.get('grafana-dashboard', {
+        params: payload,
+        headers: {
+            Authorization: readJwt(),
+            Accept: '*/*',
+            'Content-Type': 'application/json',
         },
-    );
+    });
 };
 
 export const CodeSpaceApiClient = {
@@ -655,5 +652,5 @@ export const CodeSpaceApiClient = {
     getExistingRoles,
     getResourceCapExemptions,
     updateResourceCapExemption,
-    submitHarborDashboardRequest,
+    submitGrafanaDashboardRequest,
 };

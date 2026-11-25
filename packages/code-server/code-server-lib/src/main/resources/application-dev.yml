@@ -173,3 +173,8 @@ workspace:
   git-job:
     stale-threshold-minutes: ${GIT_JOB_STALE_THRESHOLD_MINUTES:XXXX}
 
+grafana:
+  dashboard:
+    api:
+      url: ${GRAFANA_DASHBOARD_API_URL:XXXX}
+      key: ${GRAFANA_DASHBOARD_API_KEY:XXXX}

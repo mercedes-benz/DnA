@@ -25,6 +25,7 @@ public class CodeServerLeanGovernanceFeilds implements Serializable {
 	private String department;
 	private String archerId;
 	private String procedureID;
+	private String leanIX;
 	private List<String> tags;
 	private String typeOfProject;
 	private Boolean piiData;

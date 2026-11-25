@@ -1273,6 +1273,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 				+ " \"division\": " + addQuotes(newGovFeilds.getDivision()) + ","
 				+ " \"description\": " + addQuotes(newGovFeilds.getDescription()) + ","
 				+ " \"procedureID\": " + addQuotes(newGovFeilds.getProcedureID()) + ","
+				+ " \"leanIX\": " + addQuotes(newGovFeilds.getLeanIX()) + ","
 				+ " \"subDivisionId\": " + addQuotes(newGovFeilds.getSubDivisionId()) + ","
 				+ " \"subDivision\": " + addQuotes(newGovFeilds.getSubDivision()) + ","
 				+ " \"typeOfProject\": " + addQuotes(newGovFeilds.getTypeOfProject()) + ","

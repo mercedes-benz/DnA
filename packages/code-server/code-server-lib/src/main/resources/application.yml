@@ -295,3 +295,8 @@ deployment:
   onDemandRefreshCooldownSeconds: ${DEPLOYMENT_ON_DEMAND_REFRESH_COOLDOWN_SECONDS:5}
   statusMonitorSeconds: ${DEPLOYMENT_STATUS_MONITOR_SECONDS:20}
   hardRefreshEnabled: ${DEPLOYMENT_HARD_REFRESH_ENABLED:false}
+grafana:
+  dashboard:
+    api:
+      url: ${GRAFANA_DASHBOARD_API_URL:XXXX}
+      key: ${GRAFANA_DASHBOARD_API_KEY:XXXX}
