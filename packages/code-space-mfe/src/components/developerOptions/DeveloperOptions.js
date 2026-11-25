@@ -378,7 +378,7 @@ const DeveloperOptions = () => {
           showAcceptButton={false}
           showCancelButton={false}
           hideCloseButton
-          modalWidth="45%"
+          modalWidth="65%"
           content={createModalContent}
         />
       )}
