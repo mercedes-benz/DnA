@@ -11,11 +11,8 @@ import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indica
 import { CodeSpaceApiClient } from '../../apis/codespace.api';
 import Notification from '../../common/modules/uilab/js/src/notification';
 import {
-  // buildLogViewURL,
-  // buildGitJobLogViewURL,
-  buildLogViewAWSURL,
-  buildGitJobLogViewAWSURL,
   buildGitUrl,
+  buildGitJobLogViewAWSURL,
 } from '../../Utility/utils';
 import DeployedAppConfigModal from '../deployedAppConfigModal/DeployedAppConfigModal';
 import { needsIntMigration } from '../intMigrationModal/IntMigrationModal';
@@ -172,41 +169,27 @@ const ContextMenu = (props) => {
   };
 
   const handleApplicationLogsClick = () => {
-    const projectName = projectDetails?.projectName;
-    const workspaceIds = [...new Set([codeSpace?.workspaceId, codeSpace?.id].filter(Boolean))];
-    const userEmails = [...new Set([
-      projectDetails?.projectOwner?.email,
-      ...(projectDetails?.projectCollaborators || []).map((collaborator) => collaborator?.email),
-      props?.userInfo?.email,
-    ].filter(Boolean))];
+    
+    const projectName = projectDetails?.projectName?.toLowerCase();
+    const dashboardUid = projectDetails?.grafanaDashboardUid;
+    const dashboardHost = Envs.GRAFANA_DASHBOARD_BASE_URL?.replace(/\/$/, '');
+    const dashboardOrgId = Envs.GRAFANA_ORG_ID;
 
-    const payload = {
-      project_name: projectName,
-      user_emails: userEmails,
-      workspace_ids: workspaceIds,
+    const buildDashboardUrl = (uid) => {
+      if (!dashboardHost || !uid || !projectName || !dashboardOrgId) {
+        return null;
+      }
+
+      return `${dashboardHost}/d/${encodeURIComponent(uid)}/${encodeURIComponent(projectName)}?orgId=${encodeURIComponent(dashboardOrgId)}`;
     };
 
-    console.log('Harbor dashboard API payload:', payload);
+    const projectDashboardUrl = buildDashboardUrl(dashboardUid);
 
-    CodeSpaceApiClient.submitHarborDashboardRequest(payload)
-      .then((res) => {
-        const responseData = res?.data || {};
-        const dashboardUrl =
-          responseData?.url ||
-          responseData?.dashboard_url ||
-          responseData?.dashboardUrl ||
-          responseData?.data?.url ||
-          responseData?.data?.dashboard_url ||
-          responseData?.data?.dashboardUrl;
+    if (projectDashboardUrl) {
+      window.open(projectDashboardUrl, '_blank', 'noopener,noreferrer');
+    }
 
-        
-        console.log('Harbor dashboard URL:', dashboardUrl);
-        window.open(dashboardUrl, '_blank', 'noopener,noreferrer');
-      })
-      .catch((err) => {
-        console.error('Harbor dashboard API error:', err?.response || err);
-        Notification.show('Failed to fetch harbor dashboard data. Please try again later.', 'alert');
-      });
+    
   };
 
   const securedWithIAMContent = (
@@ -575,9 +558,7 @@ const ContextMenu = (props) => {
                 <li>
                   <span
                     onClick={() =>
-                      handleApplicationLogsClick(
-                        buildLogViewAWSURL(prodDeployedUrl || projectDetails?.projectName.toLowerCase()),
-                      )
+                      handleApplicationLogsClick()
                     }
                   >
                     Application Logs <i className="icon mbc-icon new-tab" />
