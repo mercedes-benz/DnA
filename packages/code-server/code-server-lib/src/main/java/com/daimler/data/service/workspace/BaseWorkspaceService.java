@@ -70,7 +70,8 @@ import org.json.JSONObject;
  import com.daimler.data.assembler.WorkspaceAssembler;
  import com.daimler.data.auth.client.AuthenticatorClient;
  import com.daimler.data.auth.client.DnaAuthClient;
- import com.daimler.data.service.ArgoCdService;
+import com.daimler.data.service.ArgoCdService;
+import com.daimler.data.service.GrafanaDashboardService;
 import com.daimler.data.service.scheduler.DeploymentStatusMonitorJob;
  import com.daimler.data.controller.exceptions.GenericMessage;
  import com.daimler.data.controller.exceptions.MessageDescription;
@@ -105,6 +106,7 @@ import com.daimler.data.dto.GitHubWorkflowJobsResponseDto;
 import com.daimler.data.dto.GitHubWorkflowRunDto;
 import com.daimler.data.dto.GitLatestCommitIdDto;
 import com.daimler.data.dto.GitRunIdDetailsDto;
+import com.daimler.data.dto.GrafanaDashboardResponse;
 import com.daimler.data.dto.WorkbenchManageDto;
  import com.daimler.data.dto.WorkbenchManageInputDto;
  import com.daimler.data.dto.solution.ChangeLogVO;
@@ -287,6 +289,9 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 
 	 @Autowired
 	 private ArgoCdService argoCdService;
+
+	 @Autowired
+	 private GrafanaDashboardService grafanaDashboardService;
 
 	 @Autowired
 	 private DeploymentStatusMonitorJob deploymentStatusMonitorJob;
@@ -894,6 +899,11 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 			String workspaceUrl = this.getWorkspaceUrl(recipeId,ownerwsid,workspaceOwner.getId(),vo.getProjectDetails().getRecipeDetails().getCloudServiceProvider().toString());
 			entity.getData().setWorkspaceUrl(workspaceUrl);
 			jpaRepo.save(entity);
+			String dashboardUid = onboardProjectDashboard(projectName);
+			if (dashboardUid != null && entity.getData() != null
+					&& entity.getData().getProjectDetails() != null) {
+				entity.getData().getProjectDetails().setGrafanaDashboardUid(dashboardUid);
+			}
 			responseVO.setData(workspaceAssembler.toVo(entity));
 			responseVO.setErrors(new ArrayList<>());
 			responseVO.setWarnings(new ArrayList<>());
@@ -1110,6 +1120,11 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 			 String workspaceUrl = this.getWorkspaceUrl(recipeId,ownerwsid,workspaceOwner.getId(),ConstantsUtility.DHC_CAAS_AWS);
 			 entity.getData().setWorkspaceUrl(workspaceUrl);
 			 jpaRepo.save(entity);
+			 String dashboardUid = onboardProjectDashboard(projectName);
+			 if (dashboardUid != null && entity.getData() != null
+					 && entity.getData().getProjectDetails() != null) {
+				 entity.getData().getProjectDetails().setGrafanaDashboardUid(dashboardUid);
+			 }
 			 responseVO.setData(workspaceAssembler.toVo(entity));
 			 responseVO.setErrors(new ArrayList<>());
 			 responseVO.setWarnings(new ArrayList<>());
@@ -1549,6 +1564,47 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 			 responseVO.setWarnings(errors);
 			 responseVO.setSuccess("SUCCESS");
 			 responseVO.setData(savedOwnerVO);
+			 
+			 // onboard grafana dashboard for the project
+			 try {
+				 List<String> onboardUserEmails = new ArrayList<>();
+				 if (owner != null && owner.getEmail() != null && !owner.getEmail().trim().isEmpty()) {
+					 onboardUserEmails.add(owner.getEmail());
+				 }
+				 if (collabs != null) {
+					 for (UserInfoVO collaborator : collabs) {
+						 if (collaborator != null && collaborator.getEmail() != null
+								 && !collaborator.getEmail().trim().isEmpty()) {
+							 onboardUserEmails.add(collaborator.getEmail());
+						 }
+					 }
+				 }
+				 List<String> onboardWorkspaceIds = new ArrayList<>();
+				 onboardWorkspaceIds.add(ownerwsid);
+				 GrafanaDashboardResponse dashboardResponse = grafanaDashboardService.fetchDashboardData(
+						 projectName,
+						 onboardUserEmails,
+						 onboardWorkspaceIds
+				 );
+				 if (dashboardResponse != null) {
+					 log.info("Grafana dashboard onboarding completed for project {} workspace {}: dashboardCreated={}, dashboardUid={}",
+							 projectName, ownerwsid, dashboardResponse.getDashboardCreated(), dashboardResponse.getDashboardUid());
+					 if (savedOwnerEntity != null && savedOwnerEntity.getData() != null
+							 && savedOwnerEntity.getData().getProjectDetails() != null
+							 && dashboardResponse.getDashboardUid() != null
+							 && !dashboardResponse.getDashboardUid().trim().isEmpty()) {
+						 savedOwnerEntity.getData().getProjectDetails()
+								 .setGrafanaDashboardUid(dashboardResponse.getDashboardUid().trim());
+						 jpaRepo.saveAndFlush(savedOwnerEntity);
+					 }
+				 } else {
+					 log.info("Grafana dashboard onboarding returned no response for project {} workspace {}", projectName, ownerwsid);
+				 }
+			 } catch (Exception e) {
+				 log.warn("Grafana dashboard onboarding failed after successful workspace creation for project {} workspace {}: {}",
+						 projectName, ownerwsid, e.getMessage(), e);
+			 }
+
 			 return responseVO;
 		 } catch (Exception e) {
 			 MessageDescription errMsg = new MessageDescription(
@@ -5257,6 +5313,106 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 			return  null;
 		}
 	}
+
+	 private String onboardProjectDashboard(String projectName) {
+		 try {
+			 List<CodeServerWorkspaceNsql> projectEntities = new ArrayList<>();
+			 Set<String> userEmails = new HashSet<>();
+			 Set<String> workspaceIds = new HashSet<>();
+
+			 List<CodeServerWorkspaceNsql> allEntities = workspaceCustomRepository.findAll();
+			 if (allEntities != null) {
+				 for (CodeServerWorkspaceNsql workspaceEntity : allEntities) {
+					 if (workspaceEntity == null || workspaceEntity.getData() == null
+							 || workspaceEntity.getData().getProjectDetails() == null) {
+						 continue;
+					 }
+					 String entityProjectName = workspaceEntity.getData().getProjectDetails().getProjectName();
+					 if (entityProjectName == null || !entityProjectName.equalsIgnoreCase(projectName)) {
+						 continue;
+					 }
+					 if ("DELETED".equalsIgnoreCase(workspaceEntity.getData().getStatus())) {
+						 continue;
+					 }
+
+					 projectEntities.add(workspaceEntity);
+					 if (workspaceEntity.getData().getWorkspaceId() != null
+							 && !workspaceEntity.getData().getWorkspaceId().trim().isEmpty()) {
+						 workspaceIds.add(workspaceEntity.getData().getWorkspaceId());
+					 }
+					 if (workspaceEntity.getData().getWorkspaceOwner() != null
+							 && workspaceEntity.getData().getWorkspaceOwner().getEmail() != null
+							 && !workspaceEntity.getData().getWorkspaceOwner().getEmail().trim().isEmpty()) {
+						 userEmails.add(workspaceEntity.getData().getWorkspaceOwner().getEmail().trim());
+					 }
+
+					 CodeServerProjectDetails details = workspaceEntity.getData().getProjectDetails();
+					 if (details.getProjectOwner() != null && details.getProjectOwner().getEmail() != null
+							 && !details.getProjectOwner().getEmail().trim().isEmpty()) {
+						 userEmails.add(details.getProjectOwner().getEmail().trim());
+					 }
+					 if (details.getProjectCollaborators() != null) {
+						 for (UserInfo collaborator : details.getProjectCollaborators()) {
+							 if (collaborator != null && collaborator.getEmail() != null
+									 && !collaborator.getEmail().trim().isEmpty()) {
+								 userEmails.add(collaborator.getEmail().trim());
+							 }
+						 }
+					 }
+				 }
+			 }
+
+			 if (workspaceIds.isEmpty()) {
+				 List<String> ids = workspaceCustomRepository.getWorkspaceIdsByProjectName(projectName);
+				 if (ids != null) {
+					 workspaceIds.addAll(ids);
+				 }
+			 }
+
+			 log.info("Starting Grafana dashboard onboarding: project={}; activeWorkspaceCount={}; userEmailCount={}; workspaceIds={}",
+				 projectName,
+				 projectEntities.size(),
+				 userEmails.size(),
+				 new ArrayList<>(workspaceIds));
+
+			 GrafanaDashboardResponse dashboardResponse = grafanaDashboardService.fetchDashboardData(
+				 projectName,
+				 new ArrayList<>(userEmails),
+				 new ArrayList<>(workspaceIds)
+			 );
+			 if (dashboardResponse == null || dashboardResponse.getDashboardUid() == null
+					 || dashboardResponse.getDashboardUid().trim().isEmpty()) {
+				 log.warn("Grafana dashboard onboarding completed without a dashboard UID: project={}; dashboardCreated={}; dashboardId={}; dashboardUid={}; response={}",
+					 projectName,
+					 dashboardResponse != null ? dashboardResponse.getDashboardCreated() : null,
+					 dashboardResponse != null ? dashboardResponse.getDashboardId() : null,
+					 dashboardResponse != null ? dashboardResponse.getDashboardUid() : null,
+					 dashboardResponse);
+				 return null;
+			 }
+
+			 String dashboardUid = dashboardResponse.getDashboardUid().trim();
+			 for (CodeServerWorkspaceNsql workspaceEntity : projectEntities) {
+				 workspaceEntity.getData().getProjectDetails().setGrafanaDashboardUid(dashboardUid);
+			 }
+			 if (!projectEntities.isEmpty()) {
+				 jpaRepo.saveAllAndFlush(projectEntities);
+			 }
+			 log.info("Grafana dashboard onboarding saved: project={}; dashboardCreated={}; dashboardId={}; dashboardUid={}; permissionsUpdatedFor={}; notOnboardedUsers={}; savedWorkspaceCount={}; userEmailCount={}",
+				 projectName,
+				 dashboardResponse.getDashboardCreated(),
+				 dashboardResponse.getDashboardId(),
+				 dashboardUid,
+				 dashboardResponse.getPermissionsUpdatedFor(),
+				 dashboardResponse.getNotOnboardedUsers(),
+				 projectEntities.size(),
+				 userEmails.size());
+			 return dashboardUid;
+		 } catch (Exception e) {
+			 log.warn("Grafana dashboard onboarding failed for project {}: {}", projectName, e.getMessage(), e);
+			 return null;
+		 }
+	 }
 
 	private String normalizeRepoForWorkflow(String repoUrl) {
 		if (repoUrl == null) {
