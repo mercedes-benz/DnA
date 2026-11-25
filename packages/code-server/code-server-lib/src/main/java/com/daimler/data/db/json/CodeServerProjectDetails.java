@@ -29,6 +29,7 @@ public class CodeServerProjectDetails implements Serializable {
 	private String gitRepoName;
 	private CodespaceSecurityConfig securityConfig;	
 	private CodeServerLeanGovernanceFeilds dataGovernance;
+	private String grafanaDashboardUid;
 	private Date lastBuildOrDeployedOn;
 	private String lastBuildOrDeployedStatus;
 	private String lastBuildOrDeployedEnv;

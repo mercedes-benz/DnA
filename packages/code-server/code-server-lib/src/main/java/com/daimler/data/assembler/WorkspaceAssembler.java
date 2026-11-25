@@ -831,6 +831,7 @@ import com.daimler.data.dto.workspace.DeploymentAuditVO;
 						 projectDetailsVO.setRecipeDetails(recipeVO);
 						 projectDetailsVO.setProjectName(projectDetails.getProjectName());
 						 projectDetailsVO.setGitRepoName(projectDetails.getGitRepoName());
+						 projectDetailsVO.setGrafanaDashboardUid(projectDetails.getGrafanaDashboardUid());
 						 if(projectDetails.getProjectCreatedOn()!=null)
 							 projectDetailsVO.setProjectCreatedOn(isoFormat.parse(isoFormat.format(projectDetails.getProjectCreatedOn())));
 						 if (projectDetails.getSecurityConfig() != null) {
@@ -967,6 +968,7 @@ import com.daimler.data.dto.workspace.DeploymentAuditVO;
 				// 	 projectDetails.setPublishedSecurityConfig(this.toSecurityConfig(codespacePublishSecurityConfigVo));
 				//  }
 				projectDetails.setRecipeName(projectDetailsVO.getRecipeName());
+				projectDetails.setGrafanaDashboardUid(projectDetailsVO.getGrafanaDashboardUid());
 				 data.setProjectDetails(projectDetails);
 				 entity.setData(data);
 			 }
@@ -1196,4 +1198,3 @@ import com.daimler.data.dto.workspace.DeploymentAuditVO;
 		 return vo;
 	 }
  }
- 
