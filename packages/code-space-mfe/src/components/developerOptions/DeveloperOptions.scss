@@ -40,11 +40,25 @@
   .ul-table {
     table-layout: fixed;
     width: 100%;
+    border-collapse: collapse;
 
     th,
     td {
       vertical-align: top;
       word-wrap: break-word;
+      padding: 10px 12px;
+    }
+
+    thead tr {
+      border-bottom: 1px solid #3a4150;
+    }
+
+    tbody tr {
+      border-bottom: 1px solid #3a4150;
+
+      &:last-child {
+        border-bottom: 0;
+      }
     }
 
     th:nth-child(1),
@@ -136,6 +150,7 @@
 .commentRow td {
   padding-top: 0;
   opacity: 0.8;
+  border-right: 0;
 }
 
 .modalContent {
