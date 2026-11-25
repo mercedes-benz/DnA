@@ -42,7 +42,12 @@ const DeveloperOptions = () => {
     ProgressIndicator.show();
     CodeSpaceApiClient.getPersonalAccessTokens()
       .then((response) => {
-        setTokens(Array.isArray(response?.data?.data) ? response.data.data : []);
+        const list = Array.isArray(response?.data?.data) ? response.data.data : [];
+        const normalizedTokens = list.map((token) => ({
+          ...token,
+          codeSpaces: token.codeSpaceProjectNames || [],
+        }));
+        setTokens(normalizedTokens);
       })
       .catch((error) => {
         setTokens([]);
@@ -128,7 +133,7 @@ const DeveloperOptions = () => {
           comment: response.data.comment,
           createdAt: response.data.createdAt,
           codeSpaceProjectCount: response.data.codeSpaceProjectCount,
-          codeSpaces: response.data.codeSpaces || selectedCodeSpaceNames,
+          codeSpaces: response.data.codeSpaceProjectNames || selectedCodeSpaceNames,
         }, ...currentTokens]);
       })
       .catch((error) => {
@@ -374,6 +379,7 @@ const DeveloperOptions = () => {
           showAcceptButton={false}
           showCancelButton={false}
           hideCloseButton
+          modalWidth="45%"
           content={createModalContent}
         />
       )}
