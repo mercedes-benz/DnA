@@ -43,10 +43,12 @@ public class ExternalCodespaceController {
 					userStore.getPatCodeSpaceProjectNames(), id);
 			switch (result.getStatus()) {
 			case NOT_FOUND:
-				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorMessage("Codespace not found"));
+				return ResponseEntity.status(HttpStatus.NOT_FOUND)
+						.body(errorMessage("Codespace not found: no codespace exists with id '" + id + "'"));
 			case FORBIDDEN:
 				return ResponseEntity.status(HttpStatus.FORBIDDEN)
-						.body(errorMessage("Forbidden: PAT does not have access to this codespace"));
+						.body(errorMessage("Forbidden: this token is not authorized to access codespace '" + id
+								+ "'. The token is scoped to specific projects and does not cover this codespace"));
 			default:
 				log.info("External PAT getCodespace succeeded, userId={} workspaceId={}", userId, id);
 				return ResponseEntity.ok(result.getData());

@@ -211,8 +211,8 @@ const DeveloperOptions = () => {
       <p>Select the codespaces this token can access.</p>
       <div className={Styles.codeSpaceSelector}>
         <Tags
-          title={'Codespaces'}
-          max={100}
+          title={'Codespaces (max 25)'}
+          max={25}
           chips={selectedCodeSpaceNames}
           placeholder={'Type to search codespaces...'}
           tags={codeSpaceNameOptions}
@@ -221,7 +221,6 @@ const DeveloperOptions = () => {
           showMissingEntryError={isCodeSpaceMissing}
           showAllTagsOnFocus={true}
           disableSelfTagAdd={true}
-          suggestionPopupHeight={150}
         />
       </div>
       <fieldset className={Styles.permissions}>
@@ -249,7 +248,7 @@ const DeveloperOptions = () => {
           value={comment}
           maxLength={200}
           onChange={(event) => setComment(event.target.value)}
-          rows="2"
+          rows="1"
         />
       </div>
       <div className={Styles.modalActions}>

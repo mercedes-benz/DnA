@@ -82,14 +82,16 @@ public class PatAuthorizationInterceptor implements HandlerInterceptor {
 			if (authorizationHeader == null || !authorizationHeader.startsWith(BEARER_PREFIX)
 					|| authorizationHeader.substring(BEARER_PREFIX.length()).isBlank()) {
 				return deny(request, response, userId, tokenVersion, "401_INVALID_AUTHORIZATION",
-						HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
+						HttpServletResponse.SC_UNAUTHORIZED,
+						"Unauthorized: a valid personal access token must be supplied in the Authorization header as 'Bearer <token>'");
 			}
 
 			Optional<PatPayload> decrypted = patCryptoService
 					.decrypt(authorizationHeader.substring(BEARER_PREFIX.length()).trim());
 			if (decrypted.isEmpty()) {
 				return deny(request, response, userId, tokenVersion, "401_INVALID_TOKEN",
-						HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
+						HttpServletResponse.SC_UNAUTHORIZED,
+						"Unauthorized: the personal access token is malformed or could not be verified");
 			}
 			PatPayload payload = decrypted.get();
 			userId = payload.getUserId();
@@ -104,11 +106,13 @@ public class PatAuthorizationInterceptor implements HandlerInterceptor {
 						userId, tokenVersion, request.getMethod(), request.getRequestURI(),
 						decision.getRetryAfterSeconds());
 				return deny(request, response, userId, tokenVersion, "429_RATE_LIMITED",
-						429, "Too many requests");
+						429, "Too many requests: rate limit exceeded for this token, please retry after "
+								+ decision.getRetryAfterSeconds() + " seconds");
 			}
 			if (!secretValidator.validate(userId, tokenVersion, payload.getSecret())) {
 				return deny(request, response, userId, tokenVersion, "401_REVOKED_OR_INVALID_TOKEN",
-						HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
+						HttpServletResponse.SC_UNAUTHORIZED,
+						"Unauthorized: the personal access token has been revoked or is no longer valid");
 			}
 
 			List<String> permissions = payload.getPermissions() == null
@@ -122,12 +126,15 @@ public class PatAuthorizationInterceptor implements HandlerInterceptor {
 			}
 			if (!hasRequiredPermission) {
 				return deny(request, response, userId, tokenVersion, "403_INSUFFICIENT_PERMISSION",
-						HttpServletResponse.SC_FORBIDDEN, "Forbidden");
+						HttpServletResponse.SC_FORBIDDEN,
+						"Forbidden: this token does not have the required authority ("
+								+ String.join(", ", authorization.anyOf()) + ") to perform this action");
 			}
 
 			if (!hasWorkspaceAccess(request, payload)) {
 				return deny(request, response, userId, tokenVersion, "403_WORKSPACE_ACCESS_DENIED",
-						HttpServletResponse.SC_FORBIDDEN, "Forbidden");
+						HttpServletResponse.SC_FORBIDDEN,
+						"Forbidden: this token is not authorized to access the requested codespace/workspace");
 			}
 
 			UserInfo userInfo = UserInfo.builder().id(userId).userRole(Collections.emptyList()).build();
