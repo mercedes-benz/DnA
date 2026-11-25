@@ -42,7 +42,12 @@ const DeveloperOptions = () => {
     ProgressIndicator.show();
     CodeSpaceApiClient.getPersonalAccessTokens()
       .then((response) => {
-        setTokens(Array.isArray(response?.data?.data) ? response.data.data : []);
+        const list = Array.isArray(response?.data?.data) ? response.data.data : [];
+        const normalizedTokens = list.map((token) => ({
+          ...token,
+          codeSpaces: token.codeSpaceProjectNames || [],
+        }));
+        setTokens(normalizedTokens);
       })
       .catch((error) => {
         setTokens([]);
@@ -128,7 +133,7 @@ const DeveloperOptions = () => {
           comment: response.data.comment,
           createdAt: response.data.createdAt,
           codeSpaceProjectCount: response.data.codeSpaceProjectCount,
-          codeSpaces: response.data.codeSpaces || selectedCodeSpaceNames,
+          codeSpaces: response.data.codeSpaceProjectNames || selectedCodeSpaceNames,
         }, ...currentTokens]);
       })
       .catch((error) => {
@@ -206,8 +211,8 @@ const DeveloperOptions = () => {
       <p>Select the codespaces this token can access.</p>
       <div className={Styles.codeSpaceSelector}>
         <Tags
-          title={'Codespaces'}
-          max={100}
+          title={'Codespaces (max 25)'}
+          max={25}
           chips={selectedCodeSpaceNames}
           placeholder={'Type to search codespaces...'}
           tags={codeSpaceNameOptions}
@@ -216,7 +221,6 @@ const DeveloperOptions = () => {
           showMissingEntryError={isCodeSpaceMissing}
           showAllTagsOnFocus={true}
           disableSelfTagAdd={true}
-          suggestionPopupHeight={150}
         />
       </div>
       <fieldset className={Styles.permissions}>
@@ -244,7 +248,7 @@ const DeveloperOptions = () => {
           value={comment}
           maxLength={200}
           onChange={(event) => setComment(event.target.value)}
-          rows="2"
+          rows="1"
         />
       </div>
       <div className={Styles.modalActions}>
@@ -374,6 +378,7 @@ const DeveloperOptions = () => {
           showAcceptButton={false}
           showCancelButton={false}
           hideCloseButton
+          modalWidth="45%"
           content={createModalContent}
         />
       )}
