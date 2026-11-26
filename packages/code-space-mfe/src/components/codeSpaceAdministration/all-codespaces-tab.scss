@@ -1,0 +1,54 @@
+.headerRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-top: -35px;
+}
+
+.info {
+  color: #acb8c4;
+  font-size: var(--font-size-small);
+  max-width: 60%;
+  margin: 0;
+}
+
+.searchForm {
+  display: flex;
+  align-items: center;
+}
+
+.searchField {
+  margin: 0 10px 0 0;
+  min-width: 220px;
+}
+
+.content {
+  background-color: #252a33;
+  padding: 25px 0;
+}
+
+.countColumn,
+.actionColumn {
+  text-align: center !important;
+}
+
+.csempty {
+  min-height: 300px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.transferModalContent {
+  padding: 10px;
+}
+
+.userPicker {
+  margin: 20px 0;
+}
+
+.selectedUser {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
