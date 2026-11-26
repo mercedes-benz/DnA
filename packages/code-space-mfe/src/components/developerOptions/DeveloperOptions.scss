@@ -83,7 +83,7 @@
 
   .card {
     background-color: #252a33;
-    border: 1px #00adef;
+    border: 1px solid #00adef;
     border-radius: 0;
     padding: 10px 0;
     width: 100%;
@@ -139,7 +139,7 @@
   height: auto;
   margin: 0 auto;
 
-  i {
+  i:not(.deleteIcon) {
     font-size: var(--font-size-icon-small);
   }
 
@@ -153,7 +153,7 @@
 }
 
 .deleteIcon.deleteIcon {
-  font-size: calc(var(--font-size-icon-small) + 24px);
+  font-size: calc(var(--font-size-icon-small) + 24px) !important;
 }
 
 .permissionChip {
