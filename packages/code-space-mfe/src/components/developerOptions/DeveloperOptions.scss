@@ -49,16 +49,16 @@
       padding: 10px 12px;
     }
 
-    thead tr {
-      border-bottom: 1px solid #3a4150;
+    thead tr th {
+      border-bottom: 1px solid #5a6579;
     }
 
-    tbody tr.rowDivider {
-      border-bottom: 1px solid #3a4150;
+    tbody tr.rowDivider td {
+      border-bottom: 1px solid #5a6579;
+    }
 
-      &:last-child {
-        border-bottom: 0;
-      }
+    tbody tr.rowDivider:last-child td {
+      border-bottom: 0;
     }
 
     th:nth-child(1),
@@ -94,6 +94,7 @@
     th:nth-child(7),
     td:nth-child(7) {
       width: 120px;
+      text-align: center;
     }
   }
 }
@@ -118,8 +119,13 @@
   background-color: transparent;
   border: 0;
   padding: 0;
-  margin-left: 10px;
   font-size: var(--font-size-smallest);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 38px;
+  min-height: 38px;
+  margin: 0 auto;
 
   i {
     font-size: var(--font-size-icon-small);
