@@ -37,73 +37,48 @@
   background-color: #252a33;
   padding: 15px;
 
-  .ul-table {
-    table-layout: fixed;
-    width: 100%;
-    border-collapse: collapse;
+  $grid-columns: 60px 160px minmax(220px, 340px) 220px 90px 150px 120px;
 
-    th,
-    td {
+  .gridHeader {
+    display: grid;
+    grid-template-columns: $grid-columns;
+    gap: 12px;
+    padding: 10px 12px;
+    font-weight: bold;
+  }
+
+  .cardList {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .card {
+    background-color: #252a33;
+    border: 1px solid #00adef;
+    border-radius: 6px;
+    padding: 10px 0;
+  }
+
+  .cardRow {
+    display: grid;
+    grid-template-columns: $grid-columns;
+    gap: 12px;
+    padding: 0 12px;
+
+    > div {
       vertical-align: top;
       word-wrap: break-word;
-      padding: 10px 12px;
-    }
-
-    thead tr.header-row th {
-      border-bottom: 4px solid #5a6579;
-    }
-
-    tbody tr.rowDivider td {
-      border-bottom: 2px solid #5a6579;
-      padding-bottom: 14px;
-    }
-
-    tbody tr.rowDivider:last-child td {
-      border-bottom: 0;
-      padding-bottom: 10px;
-    }
-
-    tbody tr.rowDivider + tr td {
-      padding-top: 14px;
-    }
-
-    th:nth-child(1),
-    td:nth-child(1) {
-      width: 60px;
-    }
-
-    th:nth-child(2),
-    td:nth-child(2) {
-      width: 160px;
-    }
-
-    th:nth-child(3),
-    td:nth-child(3) {
-      width: 340px;
-    }
-
-    th:nth-child(4),
-    td:nth-child(4) {
-      width: 220px;
-    }
-
-    th:nth-child(5),
-    td:nth-child(5) {
-      width: 90px;
-    }
-
-    th:nth-child(6),
-    td:nth-child(6) {
-      width: 150px;
-    }
-
-    th:nth-child(7),
-    td:nth-child(7) {
-      width: 120px;
-      text-align: center;
     }
   }
+
+  .actionCell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
 }
+
 
 .permissionChips {
   display: flex;
@@ -164,9 +139,10 @@
   margin-top: 4px;
 }
 
-.commentRow td {
-  padding-top: 0 !important;
+.commentRow {
   color: #e6c84a;
+  min-height: 18px;
+  padding: 8px 12px 0;
 }
 
 .modalContent {
