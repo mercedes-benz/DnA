@@ -50,11 +50,11 @@
     }
 
     thead tr th {
-      border-bottom: 1px solid #3a4150;
+      border-bottom: 1px solid #5a6579;
     }
 
     tbody tr.rowDivider td {
-      border-bottom: 1px solid #3a4150;
+      border-bottom: 1px solid #5a6579;
     }
 
     tbody tr.rowDivider:last-child td {
@@ -94,6 +94,7 @@
     th:nth-child(7),
     td:nth-child(7) {
       width: 120px;
+      text-align: center;
     }
   }
 }
@@ -124,6 +125,7 @@
   justify-content: center;
   min-width: 38px;
   min-height: 38px;
+  margin: 0 auto;
 
   i {
     font-size: var(--font-size-icon-small);
