@@ -2763,15 +2763,21 @@ import com.daimler.data.dto.workspace.ResourceVO;
 	 @Transactional
 	public GenericMessage reassignOwner(CreatedByVO currentUser, CodeServerWorkspaceVO vo,
 			UserInfoVO newOwnerDeatils) {
+		return reassignOwner(currentUser, currentUser.getId(), vo, newOwnerDeatils);
+	}
+
+	@Override
+	@Transactional
+	public GenericMessage reassignOwner(CreatedByVO currentUser, String projectOwnerId, CodeServerWorkspaceVO vo,
+			UserInfoVO newOwnerDeatils) {
 		GenericMessage responseVO = new GenericMessage();
 		List<MessageDescription> errors = new ArrayList<>();
 		List<MessageDescription> warnings = new ArrayList<>();
 		GenericMessage responseMessage = new GenericMessage();
-		CodeServerWorkspaceNsql entity = workspaceCustomRepository.findById(currentUser.getId(), vo.getId());
+		CodeServerWorkspaceNsql entity = workspaceCustomRepository.findById(projectOwnerId, vo.getId());
 		boolean isProjectOwner = false;
 		String projectName = entity.getData().getProjectDetails().getProjectName();
  
-		String projectOwnerId = entity.getData().getProjectDetails().getProjectOwner().getId();
 		if (projectOwnerId.equalsIgnoreCase(currentUser.getId())) {
 			isProjectOwner = true;
 		}
@@ -2789,8 +2795,7 @@ import com.daimler.data.dto.workspace.ResourceVO;
 				newOwner.setIsApprover(false);
 			}
 
-			log.info("Transferring ownership - Current: {}, New: {}, Project: {}", projectOwnerId, newOwner.getId(),
-					projectName);
+			log.info("Transferring ownership from {} to {}", projectOwnerId, newOwner.getId());
  
 			// To update project owner.
 			GenericMessage updateProjectOwnerDetails = workspaceCustomRepository
@@ -2811,8 +2816,8 @@ import com.daimler.data.dto.workspace.ResourceVO;
 					MessageDescription warnMsg = new MessageDescription(
 							"Failed while adding " + newOwner.getGitUserName()
 									+ " as admin to repository");
-					log.info("Failed while adding {} as admin to repository. Please add manually",
-							newOwner.getGitUserName());
+					log.info("Failed while adding user {} as admin to repository. Please add manually",
+							newOwner.getId());
 					warnings.add(warnMsg);
 					responseVO.setWarnings(warnings);
 				}
@@ -2857,10 +2862,15 @@ import com.daimler.data.dto.workspace.ResourceVO;
 				List <String> transferedUserEmail = new ArrayList<>();
 				transferedUserId.add(newOwnerDeatils.getId());
 				transferedUserEmail.add(newOwnerDeatils.getEmail());
-				String message = "Ownership of the Codespace \"" + vo.getProjectDetails().getProjectName() + "\" has been transferred to you by user " + currentUser.getId() + ".";
+				String message = !projectOwnerId.equalsIgnoreCase(currentUser.getId())
+						? "Ownership of the Codespace \"" + vo.getProjectDetails().getProjectName()
+								+ "\" has been transferred to you by Codespace admin " + currentUser.getId() + "."
+						: "Ownership of the Codespace \"" + vo.getProjectDetails().getProjectName()
+								+ "\" has been transferred to you by user " + currentUser.getId() + ".";
 				kafkaProducer.send(eventType, resourceID, "", currentUser.getId(), message, true, transferedUserId, transferedUserEmail, null);
 			} catch (Exception e) {
-				log.warn("Failed to send Kafka notification for ownership transfer: {}", e.getMessage());
+				log.warn("Failed to send Kafka notification for ownership transfer from {} to {}", projectOwnerId,
+						newOwnerDeatils.getId());
 				MessageDescription warnMsg = new MessageDescription("Ownership transferred successfully, but notification failed to send.");
 				warnings.add(warnMsg);
 			}
@@ -2868,7 +2878,8 @@ import com.daimler.data.dto.workspace.ResourceVO;
 			responseMessage.setSuccess("SUCCESS");
 			responseMessage.setWarnings(warnings);
 		} catch (Exception e) {
-			log.error("Failed to add collaborator details as requested with Exception: {} ", e.getMessage());
+			log.error("Failed to transfer ownership for Codespace owner {} and new owner {}", projectOwnerId,
+					newOwnerDeatils.getId());
 			MessageDescription msg = new MessageDescription("Failed to add collaborator details");
 			errors.add(msg);
 			responseMessage.setSuccess("FAILED");

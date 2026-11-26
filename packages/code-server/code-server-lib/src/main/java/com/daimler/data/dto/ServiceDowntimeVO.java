@@ -9,4 +9,5 @@ public class ServiceDowntimeVO {
     private String serviceName;
     private String message;
     private String detectedAt;
+    private String lastChecked;
 }

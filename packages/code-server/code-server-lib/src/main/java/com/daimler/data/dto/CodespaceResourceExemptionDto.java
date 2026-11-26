@@ -17,6 +17,7 @@ public class CodespaceResourceExemptionDto implements Serializable {
 
     private String projectName;
     private UserInfo projectOwner;
+    private String ownerWorkspaceId;
     private Integer workspaceCount;
     private Boolean exemptInt;
     private Boolean exemptProd;

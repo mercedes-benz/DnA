@@ -1,11 +1,16 @@
 package com.daimler.data.service.scheduler;
 
 import java.util.Locale;
+import java.net.InetSocketAddress;
+import java.util.Arrays;
+import java.util.List;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
@@ -22,10 +27,13 @@ import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 @Slf4j
 public class ServiceDowntimeDetectorJob {
 
-    private static final int CONNECT_TIMEOUT_MS = 5000;
-    private static final int READ_TIMEOUT_MS = 10000;
     private static final String ARGOCD_DOWN_MESSAGE =
             "ArgoCD is unavailable. Deployment operations may be affected.";
+
+    private static final String HARBOR_DOWN_MESSAGE =
+            "Harbor registry is unavailable. Pushing and pulling container images may fail.";
+    private static final List<String> HARBOR_CRITICAL_COMPONENTS = Arrays.asList("core", "database", "redis", "registry");
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     @Autowired
     private ServiceDowntimeService serviceDowntimeService;
@@ -48,14 +56,18 @@ public class ServiceDowntimeDetectorJob {
     @Value("${downtime.check.sso.url:}")
     private String ssoUrl;
 
-    private final RestTemplate restTemplate;
+    @Value("${downtime.check.harbor.url:}")
+    private String harborUrl;
 
-    public ServiceDowntimeDetectorJob() {
-        SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
-        requestFactory.setConnectTimeout(CONNECT_TIMEOUT_MS);
-        requestFactory.setReadTimeout(READ_TIMEOUT_MS);
-        this.restTemplate = new RestTemplate(requestFactory);
-    }
+    @Value("${downtime.check.argocd.repoServerUrl:}")
+    private String argocdRepoServerUrl;
+
+    @Value("${downtime.check.argocd.controllerUrl:}")
+    private String argocdControllerUrl;
+
+    @Autowired
+    @Qualifier("gitCollaboratorRestTemplate")
+    private RestTemplate restTemplate;
 
     @Scheduled(fixedDelayString = "#{${downtime.check.intervalSeconds:60} * 1000}", initialDelay = 15000)
     @SchedulerLock(name = "serviceDowntimeDetectorJob", lockAtMostFor = "2m", lockAtLeastFor = "30s")
@@ -70,8 +82,8 @@ public class ServiceDowntimeDetectorJob {
                 "SSO service is unavailable. Login and authentication may be affected."));
         runCheck("Vault", () -> checkHttpService("Vault", vaultBaseUrl, "/healthz",
                 "Vault service is unavailable. Secret management operations may fail."));
-        runCheck("ArgoCD / Cluster", () -> checkHttpService("ArgoCD / Cluster", argoCdService.getArgocdBaseUrl(),
-                "/healthz?argocd-level=2", ARGOCD_DOWN_MESSAGE));
+        runCheck("ArgoCD / Cluster", this::checkArgoCd);
+        runCheck("Harbor Registry", this::checkHarbor);
     }
 
     private void checkHttpService(String name, String baseUrl, String path, String downMessage) {
@@ -98,6 +110,81 @@ public class ServiceDowntimeDetectorJob {
         } catch (Exception e) {
             log.warn("Health check failed for {}: {}", name, e.getMessage());
             serviceDowntimeService.markDown(name, downMessage);
+            return;
+        }
+
+        serviceDowntimeService.markUp(name);
+    }
+
+    private void checkArgoCd() {
+        String name = "ArgoCD / Cluster";
+                String[][] httpComponents = {
+                {"argocd-server", argoCdService.getArgocdBaseUrl(), "/healthz"},
+                {"argocd-repo-server", argocdRepoServerUrl, "/healthz?full=true"},
+                {"argocd-application-controller", argocdControllerUrl, "/healthz"}
+        };
+        boolean anyConfigured = false;
+        for (String[] component : httpComponents) {
+            String componentName = component[0];
+            if (isUnconfigured(component[1])) {
+                continue;
+            }
+            anyConfigured = true;
+            String url = component[1].replaceAll("/+$", "") + component[2];
+            try {
+                ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
+                if (response.getStatusCodeValue() >= 500) {
+                    serviceDowntimeService.markDown(name, ARGOCD_DOWN_MESSAGE
+                            + " (" + componentName + " HTTP " + response.getStatusCodeValue() + ")");
+                    return;
+                }
+            } catch (HttpClientErrorException e) {
+                // 4xx means the component answered, so treat it as up
+            } catch (HttpServerErrorException e) {
+                serviceDowntimeService.markDown(name, ARGOCD_DOWN_MESSAGE
+                        + " (" + componentName + " HTTP " + e.getStatusCode().value() + ")");
+                return;
+            } catch (Exception e) {
+                log.warn("Health check failed for {} ({}): {}", name, componentName, e.getMessage());
+                serviceDowntimeService.markDown(name, ARGOCD_DOWN_MESSAGE + " (" + componentName + " unreachable)");
+                return;
+            }
+        }
+        if (!anyConfigured) {
+            log.debug("Skipping health check for {} because no ArgoCD URL is configured", name);
+            return;
+        }
+        serviceDowntimeService.markUp(name);
+    }
+
+        private void checkHarbor() {
+        String name = "Harbor Registry";
+        if (isUnconfigured(harborUrl)) {
+            log.debug("Skipping health check for {} because its base URL is not configured", name);
+            return;
+        }
+
+        String url = harborUrl.replaceAll("/+$", "") + "/api/v2.0/health";
+        try {
+            ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
+            JsonNode components = OBJECT_MAPPER.readTree(response.getBody()).path("components");
+            for (JsonNode component : components) {
+                String componentName = component.path("name").asText();
+                if (HARBOR_CRITICAL_COMPONENTS.contains(componentName)
+                        && !"healthy".equalsIgnoreCase(component.path("status").asText())) {
+                    serviceDowntimeService.markDown(name, HARBOR_DOWN_MESSAGE + " (" + componentName + " unhealthy)");
+                    return;
+                }
+            }
+        } catch (HttpClientErrorException e) {
+            serviceDowntimeService.markUp(name);
+            return;
+        } catch (HttpServerErrorException e) {
+            serviceDowntimeService.markDown(name, HARBOR_DOWN_MESSAGE + " (HTTP " + e.getStatusCode().value() + ")");
+            return;
+        } catch (Exception e) {
+            log.warn("Health check failed for {}: {}", name, e.getMessage());
+            serviceDowntimeService.markDown(name, HARBOR_DOWN_MESSAGE);
             return;
         }
 
