@@ -49,16 +49,22 @@
       padding: 10px 12px;
     }
 
-    thead tr th {
-      border-bottom: 1px solid #5a6579;
+    thead tr.header-row th {
+      border-bottom: 4px solid #5a6579;
     }
 
     tbody tr.rowDivider td {
-      border-bottom: 1px solid #5a6579;
+      border-bottom: 2px solid #5a6579;
+      padding-bottom: 14px;
     }
 
     tbody tr.rowDivider:last-child td {
       border-bottom: 0;
+      padding-bottom: 10px;
+    }
+
+    tbody tr.rowDivider + tr td {
+      padding-top: 14px;
     }
 
     th:nth-child(1),
@@ -115,7 +121,7 @@
   padding-right: 4px;
 }
 
-.actionBtn {
+.actionBtn.actionBtn {
   background-color: transparent;
   border: 0;
   padding: 0;
@@ -125,6 +131,7 @@
   justify-content: center;
   min-width: 38px;
   min-height: 38px;
+  height: auto;
   margin: 0 auto;
 
   i {
@@ -141,7 +148,7 @@
 }
 
 .deleteIcon.deleteIcon {
-  font-size: calc(var(--font-size-icon-small) + 4px);
+  font-size: calc(var(--font-size-icon-small) + 8px);
 }
 
 .permissionChip {
@@ -158,7 +165,7 @@
 }
 
 .commentRow td {
-  padding-top: 0;
+  padding-top: 0 !important;
   color: #e6c84a;
 }
 
