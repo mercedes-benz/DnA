@@ -37,14 +37,25 @@
   background-color: #252a33;
   padding: 15px;
 
-  $grid-columns: 60px 160px minmax(220px, 340px) 220px 90px 150px 120px;
+  --col-sno: minmax(2.5rem, 0.4fr);
+  --col-token: minmax(7.5rem, 0.8fr);
+  --col-codespaces: minmax(12.5rem, 1.6fr);
+  --col-permissions: minmax(12.5rem, 1.6fr);
+  --col-status: minmax(4.5rem, 0.5fr);
+  --col-created: minmax(7.5rem, 0.8fr);
+  --col-action: minmax(6.25rem, 0.6fr);
+
+  $grid-columns: var(--col-sno) var(--col-token) var(--col-codespaces) var(--col-permissions) var(--col-status) var(--col-created) var(--col-action);
 
   .gridHeader {
     display: grid;
     grid-template-columns: $grid-columns;
     gap: 12px;
     padding: 10px 12px;
+    font-size: 14px;
     font-weight: bold;
+    border-bottom: 4px solid #5a6579;
+    margin-bottom: 14px;
   }
 
   .cardList {
@@ -56,8 +67,10 @@
   .card {
     background-color: #252a33;
     border: 1px solid #00adef;
-    border-radius: 6px;
+    border-radius: 0;
     padding: 10px 0;
+    width: 100%;
+    box-sizing: border-box;
   }
 
   .cardRow {
@@ -123,7 +136,7 @@
 }
 
 .deleteIcon.deleteIcon {
-  font-size: calc(var(--font-size-icon-small) + 8px);
+  font-size: calc(var(--font-size-icon-small) + 16px);
 }
 
 .permissionChip {
