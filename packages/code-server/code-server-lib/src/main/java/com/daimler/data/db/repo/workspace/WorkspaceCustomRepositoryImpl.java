@@ -1694,9 +1694,10 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 		List<CodespaceResourceExemptionDto> data = new ArrayList<>();
 		boolean filterByProject = projectName != null && !projectName.trim().isEmpty();
 		StringBuilder getQuery = new StringBuilder(
-				"select project_name, project_owner, workspace_count, exempt_int, exempt_prod from ( "
+				"select project_name, project_owner, owner_workspace_id, workspace_count, exempt_int, exempt_prod from ( "
 						+ "select jsonb_extract_path_text(data,'projectDetails','projectName') as project_name, "
 						+ "max(jsonb_extract_path_text(data,'projectDetails','projectOwner')) as project_owner, "
+						+ "max(case when lower(jsonb_extract_path_text(data,'workspaceOwner','id')) = lower(jsonb_extract_path_text(data,'projectDetails','projectOwner','id')) then id end) as owner_workspace_id, "
 						+ "count(*) as workspace_count, "
 						+ "bool_or(lower(coalesce(jsonb_extract_path_text(data,'projectDetails','resourceCapExemptInt'),'false')) = 'true') as exempt_int, "
 						+ "bool_or(lower(coalesce(jsonb_extract_path_text(data,'projectDetails','resourceCapExemptProd'),'false')) = 'true') as exempt_prod "
@@ -1734,9 +1735,10 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 						log.error("Failed to map project owner of project {}", rowData[0]);
 					}
 				}
-				rowDetails.setWorkspaceCount(rowData[2] != null ? ((Number) rowData[2]).intValue() : 0);
-				rowDetails.setExemptInt(Boolean.TRUE.equals(rowData[3]));
-				rowDetails.setExemptProd(Boolean.TRUE.equals(rowData[4]));
+				rowDetails.setOwnerWorkspaceId((String) rowData[2]);
+				rowDetails.setWorkspaceCount(rowData[3] != null ? ((Number) rowData[3]).intValue() : 0);
+				rowDetails.setExemptInt(Boolean.TRUE.equals(rowData[4]));
+				rowDetails.setExemptProd(Boolean.TRUE.equals(rowData[5]));
 				data.add(rowDetails);
 			}
 			log.info("Found {} codespace projects for the resource cap exemption listing", data.size());

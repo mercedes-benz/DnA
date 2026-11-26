@@ -1197,6 +1197,7 @@ import com.daimler.data.dto.workspace.DeploymentAuditVO;
 		 if (dto != null) {
 			 vo.setProjectName(dto.getProjectName());
 			 vo.setProjectOwner(toUserInfoVO(dto.getProjectOwner()));
+			 vo.setOwnerWorkspaceId(dto.getOwnerWorkspaceId());
 			 vo.setWorkspaceCount(dto.getWorkspaceCount());
 			 vo.setExemptInt(Boolean.TRUE.equals(dto.getExemptInt()));
 			 vo.setExemptProd(Boolean.TRUE.equals(dto.getExemptProd()));

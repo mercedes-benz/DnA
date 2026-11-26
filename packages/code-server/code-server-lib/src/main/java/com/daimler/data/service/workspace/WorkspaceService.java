@@ -91,6 +91,9 @@ public interface WorkspaceService {
 
 	GenericMessage reassignOwner(CreatedByVO currentUser, CodeServerWorkspaceVO vo, UserInfoVO newOwnerDeatils);
 
+	GenericMessage reassignOwner(CreatedByVO currentUser, String projectOwnerId, CodeServerWorkspaceVO vo,
+			UserInfoVO newOwnerDeatils);
+
 	Integer getTotalCountOfWorkSpace();
 
 	List<String> getAllWorkspaceIds();

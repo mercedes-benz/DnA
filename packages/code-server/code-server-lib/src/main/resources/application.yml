@@ -308,3 +308,6 @@ downtime:
       url: ${DOWNTIME_CHECK_SSO_URL:XXXX}
     harbor:
       url: ${DOWNTIME_CHECK_HARBOR_URL:XXXX}
+    argocd:
+      repoServerUrl: ${DOWNTIME_CHECK_ARGOCD_REPO_SERVER_URL:XXXX}
+      controllerUrl: ${DOWNTIME_CHECK_ARGOCD_CONTROLLER_URL:XXXX}
