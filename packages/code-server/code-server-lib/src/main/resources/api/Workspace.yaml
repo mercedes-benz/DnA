@@ -2389,6 +2389,30 @@ definitions:
       id:
         type: string
         description: "ID of user"
+      firstName:
+        type: string
+        description: "First Name of the user"
+      lastName:
+        type: string
+        description: "Last Name of the user"
+      email:
+        type: string
+        description: "E-Mail of the user"
+      department:
+        type: string
+        description: "Department of the user"
+      mobileNumber:
+        type: string
+        description: "Mobile number of the user"
+      gitUserName:
+        type: string
+        description: "Git username"
+      isAdmin:
+        type: boolean
+        default: false
+      isApprover:
+        type: boolean
+        default: false
       required:
         -id
 
@@ -2849,6 +2873,7 @@ definitions:
       full_name:
         type: string
         description: "Full name of the repository (owner/repo)"
+
       html_url:
         type: string
         description: "HTML URL of the repository"
