@@ -1,6 +1,7 @@
 package com.daimler.data.service.scheduler;
 
 import java.util.Locale;
+import java.net.InetSocketAddress;
 import java.util.Arrays;
 import java.util.List;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -58,6 +59,12 @@ public class ServiceDowntimeDetectorJob {
     @Value("${downtime.check.harbor.url:}")
     private String harborUrl;
 
+    @Value("${downtime.check.argocd.repoServerUrl:}")
+    private String argocdRepoServerUrl;
+
+    @Value("${downtime.check.argocd.controllerUrl:}")
+    private String argocdControllerUrl;
+
     @Autowired
     @Qualifier("gitCollaboratorRestTemplate")
     private RestTemplate restTemplate;
@@ -75,8 +82,7 @@ public class ServiceDowntimeDetectorJob {
                 "SSO service is unavailable. Login and authentication may be affected."));
         runCheck("Vault", () -> checkHttpService("Vault", vaultBaseUrl, "/healthz",
                 "Vault service is unavailable. Secret management operations may fail."));
-        runCheck("ArgoCD / Cluster", () -> checkHttpService("ArgoCD / Cluster", argoCdService.getArgocdBaseUrl(),
-                "/healthz?argocd-level=2", ARGOCD_DOWN_MESSAGE));
+        runCheck("ArgoCD / Cluster", this::checkArgoCd);
         runCheck("Harbor Registry", this::checkHarbor);
     }
 
@@ -107,6 +113,47 @@ public class ServiceDowntimeDetectorJob {
             return;
         }
 
+        serviceDowntimeService.markUp(name);
+    }
+
+    private void checkArgoCd() {
+        String name = "ArgoCD / Cluster";
+                String[][] httpComponents = {
+                {"argocd-server", argoCdService.getArgocdBaseUrl(), "/healthz"},
+                {"argocd-repo-server", argocdRepoServerUrl, "/healthz?full=true"},
+                {"argocd-application-controller", argocdControllerUrl, "/healthz"}
+        };
+        boolean anyConfigured = false;
+        for (String[] component : httpComponents) {
+            String componentName = component[0];
+            if (isUnconfigured(component[1])) {
+                continue;
+            }
+            anyConfigured = true;
+            String url = component[1].replaceAll("/+$", "") + component[2];
+            try {
+                ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
+                if (response.getStatusCodeValue() >= 500) {
+                    serviceDowntimeService.markDown(name, ARGOCD_DOWN_MESSAGE
+                            + " (" + componentName + " HTTP " + response.getStatusCodeValue() + ")");
+                    return;
+                }
+            } catch (HttpClientErrorException e) {
+                // 4xx means the component answered, so treat it as up
+            } catch (HttpServerErrorException e) {
+                serviceDowntimeService.markDown(name, ARGOCD_DOWN_MESSAGE
+                        + " (" + componentName + " HTTP " + e.getStatusCode().value() + ")");
+                return;
+            } catch (Exception e) {
+                log.warn("Health check failed for {} ({}): {}", name, componentName, e.getMessage());
+                serviceDowntimeService.markDown(name, ARGOCD_DOWN_MESSAGE + " (" + componentName + " unreachable)");
+                return;
+            }
+        }
+        if (!anyConfigured) {
+            log.debug("Skipping health check for {} because no ArgoCD URL is configured", name);
+            return;
+        }
         serviceDowntimeService.markUp(name);
     }
 

@@ -790,105 +790,173 @@ import org.springframework.beans.factory.annotation.Value;
 	 @RequestMapping(value = "/workspaces/{id}/projectowner", produces = { "application/json" }, consumes = {
 			 "application/json" }, method = RequestMethod.PATCH)
 	 @Override
-	 public ResponseEntity<GenericMessage> reassignOwner(
+	public ResponseEntity<GenericMessage> reassignOwner(
 			 @ApiParam(value = "Workspace ID to be fetched", required = true) @PathVariable("id") String id,
 			 @ApiParam(value = "UserId to add collaborator as Owner", required = true) @Valid @RequestBody UserIdVO userIdDto) {
 		 CreatedByVO currentUser = this.userStore.getVO();
 		 String userId = currentUser != null ? currentUser.getId() : null;
+		 boolean isCodespaceAdmin = userStore.getUserInfo().hasCodespaceAdminAccess();
 		 CodeServerWorkspaceVO vo = service.getById(userId, id);
-		 CodeServerWorkspaceVO userVo = null;
-		 GenericMessage responseMessage = new GenericMessage();
- 
-		 if (userIdDto.getId() == null) {
-			 GenericMessage emptyResponse = new GenericMessage();
-			 List<MessageDescription> errorMessage = new ArrayList<>();
-			 MessageDescription msg = new MessageDescription();
-			 msg.setMessage("User Id is required");
-			 errorMessage.add(msg);
-			 emptyResponse.addErrors(msg);
-			 emptyResponse.setSuccess("FAILED");
-			 emptyResponse.setErrors(errorMessage);
-			 return new ResponseEntity<>(emptyResponse, HttpStatus.BAD_REQUEST);
-		 }
-		 userVo = service.getByProjectName(userIdDto.getId(), vo.getProjectDetails().getProjectName());
-		if(!(vo.getProjectDetails().getRecipeDetails().getCloudServiceProvider().equals(userVo.getProjectDetails().getRecipeDetails().getCloudServiceProvider()))){
-			GenericMessage emptyResponse = new GenericMessage();
-			 List<MessageDescription> errorMessage = new ArrayList<>();
-			 MessageDescription msg = new MessageDescription();
-			 msg.setMessage("Ownership cannot be transferred to Collaborator with different CloudService Provider, kindly migrate.");
-			 errorMessage.add(msg);
-			 emptyResponse.addErrors(msg);
-			 emptyResponse.setSuccess("FAILED");
-			 emptyResponse.setErrors(errorMessage);
-			 return new ResponseEntity<>(emptyResponse, HttpStatus.NOT_ACCEPTABLE);
-		}
-		if (vo == null || vo.getWorkspaceId() == null) {
-			 log.debug("No workspace found, returning empty");
-			 GenericMessage emptyResponse = new GenericMessage();
-			 List<MessageDescription> errorMessage = new ArrayList<>();
-			 MessageDescription msg = new MessageDescription();
-			 msg.setMessage("No workspace found for given id and the user");
-			 errorMessage.add(msg);
-			 emptyResponse.addErrors(msg);
-			 emptyResponse.setSuccess("FAILED");
-			 emptyResponse.setErrors(errorMessage);
-			 return new ResponseEntity<>(emptyResponse, HttpStatus.NOT_FOUND);
+		 if ((vo == null || vo.getWorkspaceId() == null) && isCodespaceAdmin) {
+			 CodeServerWorkspaceNsql entity = workspaceCustomRepository.findDataById(id);
+			 vo = entity != null ? workspaceAssembler.toVo(entity) : null;
 		 }
  
-		 if (!vo.getProjectDetails().getProjectOwner().getId().equalsIgnoreCase(userId)) {
+		 if (userIdDto == null || userIdDto.getId() == null || userIdDto.getId().trim().isEmpty()) {
+			 GenericMessage errorMessage = new GenericMessage();
+			 errorMessage.setSuccess("FAILED");
+			 errorMessage.addErrors(new MessageDescription("User Id is required"));
+			 return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
+		 }
+
+		 if (vo == null || vo.getWorkspaceId() == null || vo.getProjectDetails() == null
+				 || vo.getProjectDetails().getProjectOwner() == null
+				 || vo.getProjectDetails().getProjectOwner().getId() == null
+				 || vo.getProjectDetails().getProjectName() == null
+				 || vo.getProjectDetails().getProjectName().trim().isEmpty()) {
+			 GenericMessage errorMessage = new GenericMessage();
+			 errorMessage.setSuccess("FAILED");
+			 errorMessage.addErrors(new MessageDescription("No workspace found for given id and the user"));
+			 return new ResponseEntity<>(errorMessage, HttpStatus.NOT_FOUND);
+		 }
+ 
+		 String projectName = vo.getProjectDetails().getProjectName();
+		 String ownerId = vo.getProjectDetails().getProjectOwner().getId();
+		 if (vo.getWorkspaceOwner() == null || !ownerId.equalsIgnoreCase(vo.getWorkspaceOwner().getId())) {
+			 vo = service.getByProjectName(ownerId, projectName);
+		 }
+		 if (vo == null || vo.getWorkspaceId() == null || vo.getProjectDetails() == null) {
+			 GenericMessage errorMessage = new GenericMessage();
+			 errorMessage.setSuccess("FAILED");
+			 errorMessage.addErrors(new MessageDescription("No workspace found for given id and the user"));
+			 return new ResponseEntity<>(errorMessage, HttpStatus.NOT_FOUND);
+		 }
+
+		 if (!isCodespaceAdmin && !ownerId.equalsIgnoreCase(userId)) {
 			 MessageDescription notAuthorizedMsg = new MessageDescription();
 			 notAuthorizedMsg.setMessage(
 					 "Not authorized to reassign owner of workspace. User does not have privileges.");
 			 GenericMessage errorMessage = new GenericMessage();
+			 errorMessage.setSuccess("FAILED");
 			 errorMessage.addErrors(notAuthorizedMsg);
-			 log.info("User {} cannot reassign owner, insufficient privileges. Workspace name: {}", userId,
-					 vo.getWorkspaceId());
+			 log.info("User {} cannot reassign owner, insufficient privileges. Workspace id: {}", userId, id);
 			 return new ResponseEntity<>(errorMessage, HttpStatus.FORBIDDEN);
 		 }
  
-		 // To check is user is already a part of workspace.
-		 boolean isCollabroratorAlreadyExits = false;
-		 UserInfoVO newOwnerDeatils = new UserInfoVO();
+		 String newOwnerId = userIdDto.getId();
+		 if (ownerId.equalsIgnoreCase(newOwnerId)) {
+			 GenericMessage errorMessage = new GenericMessage();
+			 errorMessage.setSuccess("FAILED");
+			 errorMessage.addErrors(new MessageDescription("User is already the owner of this codespace."));
+			 return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
+		 }
+
+		 String recipeId = vo.getProjectDetails().getRecipeDetails() != null
+				 && vo.getProjectDetails().getRecipeDetails().getRecipeId() != null
+				 ? vo.getProjectDetails().getRecipeDetails().getRecipeId().toString()
+				 : "";
+		 if (recipeId.toLowerCase().startsWith("public") || recipeId.equalsIgnoreCase("default")) {
+			 GenericMessage errorMessage = new GenericMessage();
+			 errorMessage.setSuccess("FAILED");
+			 errorMessage.addErrors(new MessageDescription("Invalid recipe type for reassign action. Bad request."));
+			 return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
+		 }
+
+		 UserInfoVO newOwnerDetails = null;
 		 if (vo.getProjectDetails().getProjectCollaborators() != null) {
 			 for (UserInfoVO collaborator : vo.getProjectDetails().getProjectCollaborators()) {
-				 if (userIdDto.getId() != null) {
-					 if (collaborator.getId().equalsIgnoreCase(userIdDto.getId())) {
-						 newOwnerDeatils = collaborator;
-						 isCollabroratorAlreadyExits = true;
-					 }
+				 if (collaborator != null && collaborator.getId() != null
+						 && collaborator.getId().equalsIgnoreCase(newOwnerId)) {
+					 newOwnerDetails = collaborator;
+					 break;
 				 }
 			 }
 		 }
 
-		 if(vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().toLowerCase().startsWith("public") 
-				|| vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().equalsIgnoreCase("default") ) {
-			 log.error("Invalid recipe type {} for Reassign action. for project {} ", vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().toLowerCase()
-					 , vo.getProjectDetails().getProjectName());
-			 GenericMessage emptyResponse = new GenericMessage();
-			 List<MessageDescription> errors = new ArrayList<>();
-			 MessageDescription msg = new MessageDescription();
-			 msg.setMessage("Invalid recipe type for reassign action. Bad request.");
-			 errors.add(msg);
-			 emptyResponse.setSuccess("FAILED");
-			 emptyResponse.setErrors(errors);
-			 return new ResponseEntity<>(emptyResponse, HttpStatus.BAD_REQUEST);
+		 if (newOwnerDetails == null && !isCodespaceAdmin) {
+			 log.info("User {} cannot transfer ownership to non-collaborator {}", userId, newOwnerId);
+			 GenericMessage errorMessage = new GenericMessage();
+			 errorMessage.setSuccess("FAILED");
+			 errorMessage.addErrors(new MessageDescription(
+					 "User is not part of a collaborator list, can reassign only to existing team members."));
+			 return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
 		 }
-		 
-		 if (isCollabroratorAlreadyExits) {
-			 responseMessage = service.reassignOwner(currentUser, vo, newOwnerDeatils);
-		 } else {
-			 log.error("User is not part of a collaborator list");
-			 GenericMessage emptyResponse = new GenericMessage();
-			 List<MessageDescription> errors = new ArrayList<>();
-			 MessageDescription msg = new MessageDescription();
-			 msg.setMessage("User is not part of a collaborator list, can reassign only to existing team members.");
-			 errors.add(msg);
-			 emptyResponse.setSuccess("FAILED");
-			 emptyResponse.setErrors(errors);
-			 return new ResponseEntity<>(emptyResponse, HttpStatus.BAD_REQUEST);
+
+		 if (newOwnerDetails == null) {
+			 UserInfoVO collaborator = new UserInfoVO();
+			 collaborator.setId(newOwnerId);
+			 collaborator.setFirstName(userIdDto.getFirstName());
+			 collaborator.setLastName(userIdDto.getLastName());
+			 collaborator.setEmail(userIdDto.getEmail());
+			 collaborator.setDepartment(userIdDto.getDepartment());
+			 collaborator.setMobileNumber(userIdDto.getMobileNumber());
+			 collaborator.setGitUserName(userIdDto.getGitUserName());
+			 collaborator.setIsAdmin(false);
+			 collaborator.setIsApprover(false);
+
+			 GenericMessage addResponse = service.addCollabById(ownerId, vo, collaborator);
+			 if (addResponse == null || !"SUCCESS".equalsIgnoreCase(addResponse.getSuccess())) {
+				 if (addResponse == null) {
+					 addResponse = new GenericMessage();
+					 addResponse.setSuccess("FAILED");
+					 addResponse.addErrors(new MessageDescription("Failed to add the user as collaborator."));
+				 }
+				 return new ResponseEntity<>(addResponse, HttpStatus.BAD_REQUEST);
+			 }
+
+			 vo = service.getByProjectName(ownerId, projectName);
+			 if (vo == null || vo.getWorkspaceId() == null || vo.getProjectDetails() == null) {
+				 GenericMessage errorMessage = new GenericMessage();
+				 errorMessage.setSuccess("FAILED");
+				 errorMessage.addErrors(new MessageDescription("Failed to add the user as collaborator."));
+				 return new ResponseEntity<>(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);
+			 }
+			 if (vo.getProjectDetails().getProjectCollaborators() != null) {
+				 for (UserInfoVO collaboratorDetails : vo.getProjectDetails().getProjectCollaborators()) {
+					 if (collaboratorDetails != null && collaboratorDetails.getId() != null
+							 && collaboratorDetails.getId().equalsIgnoreCase(newOwnerId)) {
+						 newOwnerDetails = collaboratorDetails;
+						 break;
+					 }
+				 }
+			 }
+			 if (newOwnerDetails == null) {
+				 GenericMessage errorMessage = new GenericMessage();
+				 errorMessage.setSuccess("FAILED");
+				 errorMessage.addErrors(new MessageDescription("Failed to add the user as collaborator."));
+				 return new ResponseEntity<>(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);
+			 }
 		 }
- 
-		 return new ResponseEntity<>(responseMessage, HttpStatus.OK);
+
+		 CodeServerWorkspaceVO userVo = service.getByProjectName(newOwnerId, projectName);
+		 if (userVo == null || userVo.getWorkspaceId() == null || userVo.getProjectDetails() == null
+				 || userVo.getProjectDetails().getRecipeDetails() == null
+				 || vo.getProjectDetails().getRecipeDetails() == null) {
+			 GenericMessage errorMessage = new GenericMessage();
+			 errorMessage.setSuccess("FAILED");
+			 errorMessage.addErrors(new MessageDescription("Failed to find workspace for the new owner."));
+			 return new ResponseEntity<>(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);
+		 }
+		 if (!Objects.equals(vo.getProjectDetails().getRecipeDetails().getCloudServiceProvider(),
+				 userVo.getProjectDetails().getRecipeDetails().getCloudServiceProvider())) {
+			 GenericMessage errorMessage = new GenericMessage();
+			 errorMessage.setSuccess("FAILED");
+			 errorMessage.addErrors(new MessageDescription(
+					 "Ownership cannot be transferred to Collaborator with different CloudService Provider, kindly migrate."));
+			 return new ResponseEntity<>(errorMessage, HttpStatus.NOT_ACCEPTABLE);
+		 }
+
+		 log.info("Transferring Codespace ownership from {} to {} by user {}", ownerId, newOwnerId, userId);
+		 GenericMessage responseMessage = service.reassignOwner(currentUser, ownerId, vo, newOwnerDetails);
+		 if (responseMessage != null && "SUCCESS".equalsIgnoreCase(responseMessage.getSuccess())) {
+			 return new ResponseEntity<>(responseMessage, HttpStatus.OK);
+		 }
+		 if (responseMessage == null) {
+			 responseMessage = new GenericMessage();
+			 responseMessage.setSuccess("FAILED");
+			 responseMessage.addErrors(new MessageDescription("Failed to transfer Codespace ownership."));
+		 }
+		 return new ResponseEntity<>(responseMessage, HttpStatus.INTERNAL_SERVER_ERROR);
 	 }
  
 	 @ApiOperation(value = "Create Workbench for user in code-server.", nickname = "createWorkspace", notes = "Create workspace for user in code-server with given password", response = InitializeWorkspaceResponseVO.class, tags = {

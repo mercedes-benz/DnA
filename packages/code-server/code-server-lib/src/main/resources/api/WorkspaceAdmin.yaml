@@ -278,6 +278,9 @@ definitions:
         description: "Name of the Project"
       projectOwner:
         $ref: "#/definitions/UserInfoVO"
+      ownerWorkspaceId:
+        type: string
+        description: "Owner workspace ID used for ownership transfer"
       workspaceCount:
         type: integer
         description: "Number of non deleted workspaces belonging to the project"
