@@ -10,12 +10,14 @@ import { USER_ROLE } from '../../Utility/constants';
 import SoftwareTab from '../softwareTab/SoftwareTab';
 import AdditionalServicesTab from '../additionalServicesTab/AdditionalServicesTab';
 import ExceptionListTab from './ExceptionListTab';
+import AllCodespacesTab from './AllCodespacesTab';
 
 const tabs = {
   recipesTab: {},
   softwareTab: {},
   additionalServicesTab: {},
   exceptionListTab: {},
+  allCodespacesTab: {},
 };
 
 const CodeSpaceAdministration = ({ user }) => {
@@ -95,6 +97,20 @@ const CodeSpaceAdministration = ({ user }) => {
                     </a>
                   </li>
                 )}
+                {isCodeSpaceAdmin && (
+                  <li className={classNames('tab', tabName !== undefined && tabName === 'allCodespacesTab' && 'active')}>
+                    <a
+                      href="#tab-content-5"
+                      id="allCodespacesTab"
+                      ref={(ref) => {
+                        if (elementRef.current) elementRef.current[4] = ref;
+                      }}
+                      onClick={setTab}
+                    >
+                      All Codespaces
+                    </a>
+                  </li>
+                )}
               </ul>
             </nav>
           </div>
@@ -118,6 +134,13 @@ const CodeSpaceAdministration = ({ user }) => {
               <div id="tab-content-4" className="tab-content">
                 {currentTab === 'exceptionListTab' ? (
                   <ExceptionListTab />
+                ) : null}
+              </div>
+            )}
+            {isCodeSpaceAdmin && (
+              <div id="tab-content-5" className="tab-content">
+                {currentTab === 'allCodespacesTab' ? (
+                  <AllCodespacesTab />
                 ) : null}
               </div>
             )}

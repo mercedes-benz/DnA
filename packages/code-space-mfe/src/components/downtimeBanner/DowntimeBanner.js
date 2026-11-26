@@ -10,6 +10,13 @@ const BANNER_MESSAGE =
 
 const HELP_URL = '';
 
+const ARGOCD_COMPONENT_PATTERN = /\b(argocd-[a-z-]+)\b/;
+
+const getDisplayName = (d) => {
+    const component = d.serviceName === 'ArgoCD / Cluster' ? d.message?.match(ARGOCD_COMPONENT_PATTERN)?.[1] : null;
+    return component ? `${d.serviceName} (${component})` : d.serviceName;
+};
+
 const AFFECTED_FEATURES = {
     'GitHub Runner':
         'Creating new codespaces, pushing code, and running build and deploy pipelines may fail or be delayed.',
@@ -95,7 +102,7 @@ const DowntimeBanner = () => {
                 return (
                     <div key={d.id} className={classNames(Styles.detailsItem)}>
                         <div className={classNames(Styles.itemHeader)}>
-                            <h5>{d.serviceName}</h5>
+                            <h5>{getDisplayName(d)}</h5>
                             {downFor && <span className={classNames(Styles.downFor)}>Down for {downFor}</span>}
                         </div>
                         <p>{d.message}</p>
@@ -130,8 +137,7 @@ const DowntimeBanner = () => {
             <div className={classNames(Styles.banner)}>
                 <i className="icon mbc-icon alert circle" />
                 <p>
-                    <strong>Service Downtime:</strong> {BANNER_MESSAGE}
-                </p>
+                    <strong>Service Downtime ({downtimes.map(getDisplayName).join(', ')}):</strong> {BANNER_MESSAGE}                </p>
                 <button type="button" className={classNames(Styles.detailsLink)} onClick={() => setShowDetails(true)}>
                     More details
                 </button>
