@@ -53,7 +53,7 @@
       border-bottom: 1px solid #3a4150;
     }
 
-    tbody tr {
+    tbody tr.rowDivider {
       border-bottom: 1px solid #3a4150;
 
       &:last-child {
@@ -134,6 +134,10 @@
   }
 }
 
+.deleteIcon.deleteIcon {
+  font-size: calc(var(--font-size-icon-small) + 4px);
+}
+
 .permissionChip {
   border: 1px solid #99a5b3;
   border-radius: 12px;
@@ -149,8 +153,7 @@
 
 .commentRow td {
   padding-top: 0;
-  opacity: 0.8;
-  border-right: 0;
+  color: #e6c84a;
 }
 
 .modalContent {
