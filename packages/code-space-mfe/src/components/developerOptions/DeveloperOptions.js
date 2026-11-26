@@ -292,82 +292,76 @@ const DeveloperOptions = () => {
           )}
           {!loading && !loadError && tokens.length > 0 && (
             <div className={Styles.tableWrapper}>
-              <table className="ul-table">
-                <thead>
-                  <tr className="header-row">
-                    <th>S.No.</th>
-                    <th>Token</th>
-                    <th>Codespaces</th>
-                    <th>Permissions</th>
-                    <th>Status</th>
-                    <th>Created date</th>
-                    <th>Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {tokens.map((token, index) => (
-                    <React.Fragment key={token.version}>
-                      <tr className={!token.comment ? Styles.rowDivider : undefined}>
-                        <td>{index + 1}</td>
-                        <td><code>cs_pat_…****{token.displaySuffix}</code><small className={Styles.version}>v{token.version}</small></td>
-                        <td>
-                          <div className={Styles.codeSpaceChipsBox}>
-                            {(token.codeSpaces || []).map((codeSpaceName) => (
-                              <span className={Styles.permissionChip} key={codeSpaceName}>
-                                {codeSpaceName}
-                              </span>
-                            ))}
-                          </div>
-                        </td>
-                        <td>
-                          <div className={Styles.permissionChips}>
-                            {(token.permissions || []).map((permission) => (
-                              <span className={Styles.permissionChip} key={permission}>
-                                {PAT_PERMISSIONS.find((item) => item.value === permission)?.label || permission}
-                              </span>
-                            ))}
-                          </div>
-                        </td>
-                        <td>{token.status === 'REVOKED' ? 'Revoked' : 'Active'}</td>
-                        <td>{token.createdAt ? regionalDateAndTimeConversionSolution(token.createdAt) : '—'}</td>
-                        <td>
-                          {token.status === 'REVOKED' ? (
-                            <button
-                              className={Styles.actionBtn + ' btn btn-primary'}
-                              type="button"
-                              disabled={pending}
-                              tooltip-data="Delete"
-                              onClick={() => {
-                                setDeleteVersion(token.version);
-                                setShowDeleteModal(true);
-                              }}
-                            >
-                              <i className={Styles.deleteIcon + ' icon mbc-icon trash-outline'} />
-                            </button>
-                          ) : (
-                            <button
-                              className="btn btn-secondary"
-                              type="button"
-                              disabled={pending}
-                              onClick={() => {
-                                setRevokeVersion(token.version);
-                                setShowRevokeModal(true);
-                              }}
-                            >
-                              Revoke
-                            </button>
-                          )}
-                        </td>
-                      </tr>
-                      {token.comment && (
-                        <tr className={classNames(Styles.commentRow, Styles.rowDivider)}>
-                          <td colSpan="7">Comment: {token.comment}</td>
-                        </tr>
-                      )}
-                    </React.Fragment>
-                  ))}
-                </tbody>
-              </table>
+              <div className={Styles.gridHeader}>
+                <div>S.No.</div>
+                <div>Token</div>
+                <div>Codespaces</div>
+                <div>Permissions</div>
+                <div>Status</div>
+                <div>Created date</div>
+                <div>Action</div>
+              </div>
+              <div className={Styles.cardList}>
+                {tokens.map((token, index) => (
+                  <div className={Styles.card} key={token.version}>
+                    <div className={Styles.cardRow}>
+                      <div>{index + 1}</div>
+                      <div><code>cs_pat_…****{token.displaySuffix}</code><small className={Styles.version}>v{token.version}</small></div>
+                      <div>
+                        <div className={Styles.codeSpaceChipsBox}>
+                          {(token.codeSpaces || []).map((codeSpaceName) => (
+                            <span className={Styles.permissionChip} key={codeSpaceName}>
+                              {codeSpaceName}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <div className={Styles.permissionChips}>
+                          {(token.permissions || []).map((permission) => (
+                            <span className={Styles.permissionChip} key={permission}>
+                              {PAT_PERMISSIONS.find((item) => item.value === permission)?.label || permission}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                      <div>{token.status === 'REVOKED' ? 'Revoked' : 'Active'}</div>
+                      <div>{token.createdAt ? regionalDateAndTimeConversionSolution(token.createdAt) : '—'}</div>
+                      <div className={Styles.actionCell}>
+                        {token.status === 'REVOKED' ? (
+                          <button
+                            className={Styles.actionBtn + ' btn btn-primary'}
+                            type="button"
+                            disabled={pending}
+                            tooltip-data="Delete"
+                            onClick={() => {
+                              setDeleteVersion(token.version);
+                              setShowDeleteModal(true);
+                            }}
+                          >
+                            <i className={Styles.deleteIcon + ' icon mbc-icon trash-outline'} />
+                          </button>
+                        ) : (
+                          <button
+                            className="btn btn-secondary"
+                            type="button"
+                            disabled={pending}
+                            onClick={() => {
+                              setRevokeVersion(token.version);
+                              setShowRevokeModal(true);
+                            }}
+                          >
+                            Revoke
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                    <div className={Styles.commentRow}>
+                      {token.comment ? `Comment: ${token.comment}` : ''}
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
         </div>
