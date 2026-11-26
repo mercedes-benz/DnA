@@ -307,7 +307,7 @@ const DeveloperOptions = () => {
                 <tbody>
                   {tokens.map((token, index) => (
                     <React.Fragment key={token.version}>
-                      <tr>
+                      <tr className={!token.comment ? Styles.rowDivider : undefined}>
                         <td>{index + 1}</td>
                         <td><code>cs_pat_…****{token.displaySuffix}</code><small className={Styles.version}>v{token.version}</small></td>
                         <td>
@@ -331,18 +331,7 @@ const DeveloperOptions = () => {
                         <td>{token.status === 'REVOKED' ? 'Revoked' : 'Active'}</td>
                         <td>{token.createdAt ? regionalDateAndTimeConversionSolution(token.createdAt) : '—'}</td>
                         <td>
-                          <button
-                            className="btn btn-secondary"
-                            type="button"
-                            disabled={pending || token.status === 'REVOKED'}
-                            onClick={() => {
-                              setRevokeVersion(token.version);
-                              setShowRevokeModal(true);
-                            }}
-                          >
-                            {token.status === 'REVOKED' ? 'Revoked' : 'Revoke'}
-                          </button>
-                          {token.status === 'REVOKED' && (
+                          {token.status === 'REVOKED' ? (
                             <button
                               className={Styles.actionBtn + ' btn btn-primary'}
                               type="button"
@@ -353,13 +342,25 @@ const DeveloperOptions = () => {
                                 setShowDeleteModal(true);
                               }}
                             >
-                              <i className="icon mbc-icon trash-outline" />
+                              <i className={Styles.deleteIcon + ' icon mbc-icon trash-outline'} />
+                            </button>
+                          ) : (
+                            <button
+                              className="btn btn-secondary"
+                              type="button"
+                              disabled={pending}
+                              onClick={() => {
+                                setRevokeVersion(token.version);
+                                setShowRevokeModal(true);
+                              }}
+                            >
+                              Revoke
                             </button>
                           )}
                         </td>
                       </tr>
                       {token.comment && (
-                        <tr className={Styles.commentRow}>
+                        <tr className={classNames(Styles.commentRow, Styles.rowDivider)}>
                           <td colSpan="7">Comment: {token.comment}</td>
                         </tr>
                       )}
