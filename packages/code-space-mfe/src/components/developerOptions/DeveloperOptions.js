@@ -36,6 +36,8 @@ const DeveloperOptions = () => {
   const [deleteVersion, setDeleteVersion] = useState(null);
   const [revealedToken, setRevealedToken] = useState('');
   const [sortBy, setSortBy] = useState({ name: 'createdAt', currentSortType: 'desc', nextSortType: 'asc' });
+  const [showCodespaceModal, setShowCodespaceModal] = useState(false);
+  const [modalCodespaces, setModalCodespaces] = useState([]);
 
   const loadTokens = () => {
     setLoading(true);
@@ -293,13 +295,22 @@ const DeveloperOptions = () => {
     <div className={Styles.mainPanel}>
       <div className={Styles.wrapper}>
         <Caption title="Developers options" onBackClick={() => history.push('/')}>
-          <div className={Styles.listHeader}>
-            <button className={classNames('btn btn-primary', Styles.refreshButton)} type="button" tooltip-data="Refresh" onClick={loadTokens}>
+          <div className={classNames(Styles.listHeader)}>
+            <button
+              className={'btn btn-primary'}
+              tooltip-data="Refresh"
+              onClick={loadTokens}
+            >
               <i className="icon mbc-icon refresh" />
             </button>
             {tokens.length > 0 && (
-              <button className="btn btn-primary" type="button" onClick={() => setShowCreateModal(true)}>
-                Create new PAT
+              <button
+                className={classNames('btn btn-primary', Styles.configIcon)}
+                type="button"
+                onClick={() => setShowCreateModal(true)}
+              >
+                <i className={'icon mbc-icon plus'} />
+                <span>&nbsp;Create new PAT</span>
               </button>
             )}
           </div>
@@ -380,13 +391,23 @@ const DeveloperOptions = () => {
                           <code>cs_pat_…****{token.displaySuffix}</code><small className={Styles.version}>v{token.version}</small>
                         </td>
                         <td className={classNames('wrap-text')}>
-                          <div className={Styles.codeSpaceChipsBox}>
-                            {(token.codeSpaces || []).map((codeSpaceName) => (
-                              <span className={Styles.permissionChip} key={codeSpaceName}>
-                                {codeSpaceName}
-                              </span>
+                          <ul className={Styles.filterWrapper}>
+                            {(token.codeSpaces || []).slice(0, 3).map((codeSpaceName, idx) => (
+                              <li key={idx} className={Styles.tagItem}>{codeSpaceName}</li>
                             ))}
-                          </div>
+                            {(token.codeSpaces || []).length > 3 && (
+                              <li
+                                className={Styles.threeDots}
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  setModalCodespaces(token.codeSpaces);
+                                  setShowCodespaceModal(true);
+                                }}
+                              >
+                                more...
+                              </li>
+                            )}
+                          </ul>
                         </td>
                         <td className={classNames('wrap-text')}>
                           <div className={Styles.permissionChips}>
@@ -497,6 +518,25 @@ const DeveloperOptions = () => {
               </div>
             </div>
           )}
+        />
+      )}
+      {showCodespaceModal && (
+        <Modal
+          title="Codespaces"
+          modalWidth="60%"
+          showAcceptButton={false}
+          showCancelButton={false}
+          buttonAlignment="center"
+          show={showCodespaceModal}
+          scrollableContent={true}
+          content={(
+            <ul className={Styles.filterWrapper}>
+              {modalCodespaces.map((name, idx) => (
+                <li key={idx} className={Styles.tagItem}>{name}</li>
+              ))}
+            </ul>
+          )}
+          onCancel={() => setShowCodespaceModal(false)}
         />
       )}
       {showDeleteModal && (

@@ -7,15 +7,51 @@
 }
 
 .listHeader {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 12px;
-}
+  align-items: flex-start;
+  display: inline-block;
+  justify-content: space-between;
+  margin: 0px;
+  position: relative;
+  background-color: #0a0b0e;
+  width: 100%;
+  text-align: right;
 
-.refreshButton {
-  background: unset;
-  border: 0;
+  .configIcon {
+    margin-left: 8px;
+    align-items: center;
+
+    i {
+      margin-right: 2px;
+      transform: translateY(-2px);
+    }
+  }
+
+  i {
+    font-size: var(--font-size-icon-content);
+    color: #00adef;
+  }
+
+  button {
+    background: none;
+    border: none;
+    color: #c0c8d0;
+    height: auto;
+    margin: 0px;
+    outline: none;
+    padding: 0 2px;
+
+    i {
+      margin-top: 2px;
+    }
+
+    a {
+      color: #c0c8d0;
+    }
+
+    &:hover {
+      color: #00adef;
+    }
+  }
 }
 
 .content {
@@ -78,6 +114,43 @@
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
+}
+
+.filterWrapper {
+  ul {
+    padding: 0;
+    margin: 0;
+
+    li {
+      list-style: none;
+      float: left;
+      width: max-content;
+      margin: 5px;
+    }
+  }
+}
+
+.tagItem {
+  border: 1px solid #697582;
+  border-radius: 25px;
+  color: #99a5b3;
+  padding: 7px 17px;
+  font-size: var(--font-size-small);
+
+  &:hover {
+    border-color: #00adef;
+    cursor: pointer;
+  }
+}
+
+.threeDots {
+  color: #99a5b3;
+  padding: 9px 0;
+
+  &:hover {
+    color: #00adef;
+    cursor: pointer;
+  }
 }
 
 .codeSpaceChipsBox {
