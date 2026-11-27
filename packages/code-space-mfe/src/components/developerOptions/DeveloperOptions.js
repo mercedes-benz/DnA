@@ -35,6 +35,7 @@ const DeveloperOptions = () => {
   const [revokeVersion, setRevokeVersion] = useState(null);
   const [deleteVersion, setDeleteVersion] = useState(null);
   const [revealedToken, setRevealedToken] = useState('');
+  const [sortBy, setSortBy] = useState({ name: 'createdAt', currentSortType: 'desc', nextSortType: 'asc' });
 
   const loadTokens = () => {
     setLoading(true);
@@ -80,6 +81,34 @@ const DeveloperOptions = () => {
     loadCodeSpaceOptions();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const sortByColumn = (propName, sortOrder) => {
+    const newSortType = sortOrder === 'asc' ? 'desc' : 'asc';
+    const newSortField = {
+      name: propName,
+      currentSortType: sortOrder,
+      nextSortType: newSortType,
+    };
+
+    const data = [...tokens];
+    if (propName === 'displaySuffix') {
+      data.sort((a, b) => (sortOrder === 'asc'
+        ? (a.displaySuffix || '').localeCompare(b.displaySuffix || '')
+        : (b.displaySuffix || '').localeCompare(a.displaySuffix || '')));
+    } else if (propName === 'status') {
+      data.sort((a, b) => (sortOrder === 'asc'
+        ? (a.status || '').localeCompare(b.status || '')
+        : (b.status || '').localeCompare(a.status || '')));
+    } else if (propName === 'createdAt') {
+      data.sort((a, b) => {
+        const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
+      });
+    }
+    setTokens(data);
+    setSortBy(newSortField);
+  };
 
   const togglePermission = (permission) => {
     setPermissions((selected) => selected.includes(permission)
@@ -292,76 +321,122 @@ const DeveloperOptions = () => {
           )}
           {!loading && !loadError && tokens.length > 0 && (
             <div className={Styles.tableWrapper}>
-              <div className={Styles.gridHeader}>
-                <div>S.No.</div>
-                <div>Token</div>
-                <div>Codespaces</div>
-                <div>Permissions</div>
-                <div>Status</div>
-                <div>Created date</div>
-                <div>Action</div>
-              </div>
-              <div className={Styles.cardList}>
-                {tokens.map((token, index) => (
-                  <div className={Styles.card} key={token.version}>
-                    <div className={Styles.cardRow}>
-                      <div>{index + 1}</div>
-                      <div><code>cs_pat_…****{token.displaySuffix}</code><small className={Styles.version}>v{token.version}</small></div>
-                      <div>
-                        <div className={Styles.codeSpaceChipsBox}>
-                          {(token.codeSpaces || []).map((codeSpaceName) => (
-                            <span className={Styles.permissionChip} key={codeSpaceName}>
-                              {codeSpaceName}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                      <div>
-                        <div className={Styles.permissionChips}>
-                          {(token.permissions || []).map((permission) => (
-                            <span className={Styles.permissionChip} key={permission}>
-                              {PAT_PERMISSIONS.find((item) => item.value === permission)?.label || permission}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                      <div>{token.status === 'REVOKED' ? 'Revoked' : 'Active'}</div>
-                      <div>{token.createdAt ? regionalDateAndTimeConversionSolution(token.createdAt) : '—'}</div>
-                      <div className={Styles.actionCell}>
-                        {token.status === 'REVOKED' ? (
-                          <button
-                            className={Styles.actionBtn + ' btn btn-primary'}
-                            type="button"
-                            disabled={pending}
-                            tooltip-data="Delete"
-                            onClick={() => {
-                              setDeleteVersion(token.version);
-                              setShowDeleteModal(true);
-                            }}
-                          >
-                            <i className={Styles.deleteIcon + ' icon mbc-icon trash-outline'} />
-                          </button>
-                        ) : (
-                          <button
-                            className="btn btn-secondary"
-                            type="button"
-                            disabled={pending}
-                            onClick={() => {
-                              setRevokeVersion(token.version);
-                              setShowRevokeModal(true);
-                            }}
-                          >
-                            Revoke
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                    <div className={Styles.commentRow}>
-                      {token.comment ? `Comment: ${token.comment}` : ''}
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <table className={classNames('ul-table solutions', Styles.codeSpaceMargininone)}>
+                <thead>
+                  <tr className={classNames('header-row', Styles.tableTitle)}>
+                    <th>
+                      <label>S.No.</label>
+                    </th>
+                    <th onClick={() => sortByColumn('displaySuffix', sortBy.nextSortType)}>
+                      <label
+                        className={
+                          'sortable-column-header ' +
+                          (sortBy.name === 'displaySuffix' ? sortBy.currentSortType : '')
+                        }
+                      >
+                        <i className="icon sort" />
+                        Token
+                      </label>
+                    </th>
+                    <th>
+                      <label>Codespaces</label>
+                    </th>
+                    <th>
+                      <label>Permissions</label>
+                    </th>
+                    <th onClick={() => sortByColumn('status', sortBy.nextSortType)}>
+                      <label
+                        className={
+                          'sortable-column-header ' +
+                          (sortBy.name === 'status' ? sortBy.currentSortType : '')
+                        }
+                      >
+                        <i className="icon sort" />
+                        Status
+                      </label>
+                    </th>
+                    <th onClick={() => sortByColumn('createdAt', sortBy.nextSortType)}>
+                      <label
+                        className={
+                          'sortable-column-header ' +
+                          (sortBy.name === 'createdAt' ? sortBy.currentSortType : '')
+                        }
+                      >
+                        <i className="icon sort" />
+                        Created date
+                      </label>
+                    </th>
+                    <th>
+                      <label>Action</label>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {tokens.map((token, index) => (
+                    <React.Fragment key={token.version}>
+                      <tr className={classNames('data-row')}>
+                        <td className={classNames('wrap-text')}>{index + 1}</td>
+                        <td className={classNames('wrap-text')}>
+                          <code>cs_pat_…****{token.displaySuffix}</code><small className={Styles.version}>v{token.version}</small>
+                        </td>
+                        <td className={classNames('wrap-text')}>
+                          <div className={Styles.codeSpaceChipsBox}>
+                            {(token.codeSpaces || []).map((codeSpaceName) => (
+                              <span className={Styles.permissionChip} key={codeSpaceName}>
+                                {codeSpaceName}
+                              </span>
+                            ))}
+                          </div>
+                        </td>
+                        <td className={classNames('wrap-text')}>
+                          <div className={Styles.permissionChips}>
+                            {(token.permissions || []).map((permission) => (
+                              <span className={Styles.permissionChip} key={permission}>
+                                {PAT_PERMISSIONS.find((item) => item.value === permission)?.label || permission}
+                              </span>
+                            ))}
+                          </div>
+                        </td>
+                        <td className={classNames('wrap-text')}>{token.status === 'REVOKED' ? 'Revoked' : 'Active'}</td>
+                        <td className={classNames('wrap-text')}>{token.createdAt ? regionalDateAndTimeConversionSolution(token.createdAt) : '—'}</td>
+                        <td className={classNames('wrap-text', Styles.actionCell)}>
+                          {token.status === 'REVOKED' ? (
+                            <button
+                              className={Styles.actionBtn + ' btn btn-primary'}
+                              type="button"
+                              disabled={pending}
+                              tooltip-data="Delete"
+                              onClick={() => {
+                                setDeleteVersion(token.version);
+                                setShowDeleteModal(true);
+                              }}
+                            >
+                              <i className={Styles.deleteIcon + ' icon mbc-icon trash-outline'} />
+                            </button>
+                          ) : (
+                            <button
+                              className="btn btn-secondary"
+                              type="button"
+                              disabled={pending}
+                              onClick={() => {
+                                setRevokeVersion(token.version);
+                                setShowRevokeModal(true);
+                              }}
+                            >
+                              Revoke
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                      {token.comment && (
+                        <tr className={classNames('data-row')}>
+                          <td className={Styles.commentRow} colSpan="7">{`Comment: ${token.comment}`}</td>
+                        </tr>
+                      )}
+                    </React.Fragment>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
         </div>

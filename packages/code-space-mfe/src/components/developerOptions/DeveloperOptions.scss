@@ -37,75 +37,39 @@
   background-color: #252a33;
   padding: 15px;
 
-  --col-sno-min: 2.5rem;
-  --col-token-min: 7.5rem;
-  --col-codespaces-min: 12.5rem;
-  --col-permissions-min: 12.5rem;
-  --col-status-min: 4.5rem;
-  --col-created-min: 7.5rem;
-  --col-action-min: 6.25rem;
-  --col-gap: 12px;
-  --col-count: 7;
-
-  --col-sno: minmax(var(--col-sno-min), 0.4fr);
-  --col-token: minmax(var(--col-token-min), 0.8fr);
-  --col-codespaces: minmax(var(--col-codespaces-min), 1.6fr);
-  --col-permissions: minmax(var(--col-permissions-min), 1.6fr);
-  --col-status: minmax(var(--col-status-min), 0.5fr);
-  --col-created: minmax(var(--col-created-min), 0.8fr);
-  --col-action: minmax(var(--col-action-min), 0.6fr);
-  --table-min-width: calc(
-    var(--col-sno-min) + var(--col-token-min) + var(--col-codespaces-min) +
-    var(--col-permissions-min) + var(--col-status-min) + var(--col-created-min) +
-    var(--col-action-min) + ((var(--col-count) - 1) * var(--col-gap)) + 24px
-  );
-
-  $grid-columns: var(--col-sno) var(--col-token) var(--col-codespaces) var(--col-permissions) var(--col-status) var(--col-created) var(--col-action);
-
-  .gridHeader {
-    display: grid;
-    grid-template-columns: $grid-columns;
-    gap: var(--col-gap);
-    padding: 10px 12px;
-    font-size: 14px;
-    font-weight: bold;
-    border-bottom: 4px solid #5a6579;
-    margin-bottom: 14px;
-    min-width: var(--table-min-width);
+  .codeSpaceMargininone {
+    position: relative;
+    margin-top: 0;
   }
 
-  .cardList {
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-    min-width: var(--table-min-width);
-  }
-
-  .card {
-    background-color: #252a33;
-    border: 1px solid #00adef;
-    border-radius: 0;
-    padding: 10px 0;
-    width: 100%;
-    box-sizing: border-box;
-  }
-
-  .cardRow {
-    display: grid;
-    grid-template-columns: $grid-columns;
-    gap: var(--col-gap);
-    padding: 0 12px;
-
-    > div {
-      vertical-align: top;
-      word-wrap: break-word;
+  .tableTitle {
+    th:first-child {
+      width: 4%;
+    }
+    th:nth-child(2) {
+      width: 16%;
+    }
+    th:nth-child(3) {
+      width: 18%;
+    }
+    th:nth-child(4) {
+      width: 18%;
+    }
+    th:nth-child(5) {
+      width: 10%;
+    }
+    th:nth-child(6) {
+      width: 16%;
+    }
+    th:last-child {
+      width: 10%;
+      text-align: right;
+      padding-right: 30px;
     }
   }
 
   .actionCell {
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    text-align: center;
   }
 }
 
